@@ -1,0 +1,514 @@
+{% load i18n %}
+{% load static %}
+{% load pwa %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Yatra Darshan - Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar / Toolbar */
+        .navbar {
+            background-color: #e66a00;
+            height: 55px;
+        }
+        .navbar-toggler {
+            border: none;
+            background-color: white;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        .navbar-toggler-icon {
+            display: inline-block;
+            width: 20px;
+            height: 2px;
+            background-color: black;
+            position: relative;
+        }
+        .navbar-toggler-icon::before,
+        .navbar-toggler-icon::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: black;
+            left: 0;
+        }
+        .navbar-toggler-icon::before { top: -6px; }
+        .navbar-toggler-icon::after { top: 6px; }
+        .navbar-brand {
+            color: white;
+            font-size: 18px;
+            margin-left: 8px;
+        }
+
+        /* Drawer / Side Menu */
+        .drawer {
+            position: fixed;
+            top: 55px;
+            left: -100%;
+            width: 70%;
+            height: calc(100% - 55px);
+            background-color: #f8f9fa;
+            transition: left 0.3s ease;
+            padding: 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .drawer.open { left: 0; }
+        .drawer ul { padding: 10px 20px; font-size: 15px; }
+        .drawer ul li { list-style: none; margin-bottom: 8px; }
+        .drawer ul li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 17px;
+        }
+        .drawer ul li a i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .additional-content {
+            position: sticky;
+            top: 0;
+            background-color: rgb(238, 238, 240);
+            color: white;
+            padding: 10px 0;
+            z-index: 1001;
+            width: 100%;
+            text-align: center;
+        }
+        .additional-content img.logo {
+            display: block;
+            margin: 0 auto 10px auto; /* add some bottom margin to separate text */
+            height: 100px;
+            width: 100px;
+            border-radius: 50%;       /* circular */
+            object-fit: cover;        /* scale image properly */
+        }
+
+        .drawer-close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: black;
+        }
+
+        /* Registration container */
+        .container-reg {
+            max-width: 600px;
+            margin: 80px auto 40px auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .container-reg h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 24px;
+            color: #003399;
+        }
+        .form-group { margin-bottom: 18px; }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #003399;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #006633;
+            box-shadow: 0 0 5px rgba(0,102,51,0.4);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #ff7b00;  /* changed from gradient to orange */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.03);
+            background: #e67000;  /* slightly darker on hover */
+        }
+
+        /* Search bar */
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #006633;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+        }
+        .search-bar button {
+            padding: 12px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #ff7b00;  /* changed to orange */
+            color: #fff;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            transition: 0.3s;
+        }
+
+        .search-bar button:hover { 
+            background: #e67000;  /* hover effect */
+        }
+
+        /* Route Yatra container buttons */
+        .route-select-btn {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #28a745;
+            background: white;
+            color: #28a745;
+            cursor: pointer;
+        }
+
+        .route-select-btn.active {
+            background: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
+        <button class="navbar-toggler" type="button" id="menuBtn" style="position: absolute; left: 15px;">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <span class="navbar-brand mb-0" style="font-size: 18px;">Welcome - {{ user.first_name }} {{ user.last_name }}</span>
+    </div>
+</nav>
+
+<!-- Side Drawer -->
+<div id="drawer" class="drawer">
+    <div class="additional-content">
+        <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" alt="Logo" class="logo" style="margin-bottom:0;" />
+        <p style="font-size: 25px;color: black ;margin-top:0;"><b>Darshan Yatra</b></p>
+        <button class="drawer-close-btn" onclick="closeDrawer()">&times;</button>
+    </div>
+    <ul>
+        <li><a href="{% url 'Registrationpage' %}"><i class="bi bi-house-door"></i> Home</a></li>
+ 
+        <li><a href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+    </ul>
+</div>
+
+<!-- Registration Form -->
+<div class="container-reg">
+
+    <h2>User Registration</h2>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchMobile" placeholder="Enter Mobile Number">
+        <button type="button" onclick="searchUser()">Search</button>
+    </div>
+
+    <!-- Registration Form Fields -->
+    <form id="registrationForm">
+        <div class="form-group"><label>First Name</label><input type="text" id="first_name"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" id="last_name"></div>
+        <div class="form-group"><label>Aadhar No.</label><input type="text" id="aadhar_no"></div>
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="dob"></div>
+        <div class="form-group"><label>Mobile No.</label><input type="text" id="mobile_no"></div>
+        <div class="form-group"><label>Alternate Mobile No.</label><input type="text" id="alt_mobile_no"></div>
+        <div class="form-group"><label>Address</label><input type="text" id="address"></div>
+        <div class="form-group"><label>Area</label><select id="area"></select></div>
+        <div class="form-group"><label>Blood Group</label><select id="blood_group"></select></div>
+        <div class="form-group"><label>Gender</label><select id="gender"></select></div>
+
+        <button type="button" class="btn-submit">Submit</button>
+
+        <!-- Main button -->
+        <div style="margin-top:15px;">
+            <button type="button" id="routeYatraBtn" class="btn-submit" style="background:#555;">
+                Select Route Yatra Date
+            </button>
+        </div>
+
+        <!-- Hidden container for route selection -->
+        <div id="routeSelectionContainer" style="display:none; margin-top:20px;">
+            <!-- Route Name Dropdown -->
+            <div class="form-group">
+                <label>Select Route:</label>
+                <select id="routeName" class="form-control">
+                    <option value="">Select Route</option>
+                </select>
+            </div>
+
+            <!-- Buttons: Date, Fees, Add -->
+            <div class="form-group" style="display:flex; gap:10px; margin-top:10px;">
+                <button type="button" id="routeDateBtn" class="route-select-btn">Select Date</button>
+                <button type="button" id="routeFeesBtn" class="route-select-btn">Select Fees</button>
+                <button type="button" id="addRouteBtn" class="route-select-btn">Add</button>
+            </div>
+
+            <!-- Display selected routes -->
+            <div id="selectedRoutes" style="margin-top:20px;">
+                <h5>Selected Routes:</h5>
+                <ul id="selectedRoutesList" style="list-style:none; padding-left:0;"></ul>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Drawer logic
+    const menuBtn = document.getElementById("menuBtn");
+    const drawer = document.getElementById("drawer");
+    menuBtn.addEventListener("click", () => { drawer.classList.add("open"); });
+    function closeDrawer() { drawer.classList.remove("open"); }
+    window.addEventListener("click", function (event) {
+        if (!drawer.contains(event.target) && !menuBtn.contains(event.target)) closeDrawer();
+    });
+
+    // -------- Dropdown loader --------
+    function callRegistrationAPI(action, extraData = {}) {
+        const formData = new FormData();
+        formData.append("action", action);
+        for (const key in extraData) formData.append(key, extraData[key]);
+        return fetch("/Yatra_darshan/registration_api/", { method: "POST", body: formData }).then(res => res.json());
+    }
+
+    function loadDropdown(action, selectId, valueField, textField) {
+        const formData = new FormData();
+        formData.append("action", action);
+
+        fetch("{% url 'registration_api' %}", { method: "POST", body: formData })
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Select</option>';
+                if (data.message_code === 1000 && Array.isArray(data.message_data)) {
+                    data.message_data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item[valueField];
+                        option.textContent = item[textField];
+                        select.appendChild(option);
+                    });
+                } else {
+                    console.error("Failed to load dropdown:", selectId, data.message_text);
+                }
+            })
+            .catch(err => console.error("Error fetching dropdown:", err));
+    }
+
+    // Load all dropdowns
+    loadDropdown("list_area", "area", "AreaId", "AreaName");
+    loadDropdown("list_bloodgroup", "blood_group", "BloodGroupId", "BloodGroupName");
+    loadDropdown("list_gender", "gender", "GenderId", "GenderName");
+
+    function clearForm() { document.getElementById("registrationForm").reset(); }
+
+    function searchUser() {
+        let mobile = document.getElementById("searchMobile").value.trim();
+        if (!mobile) { alert("Please enter a mobile number"); return; }
+
+        // Call our Django proxy API
+        const formData = new FormData();
+        formData.append("action", "search");
+        formData.append("search", mobile);
+
+        fetch("/Yatra_darshan/registration_api/", { method: "POST", body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message_code === 999) {
+                    clearForm(); // clear all fields
+                } 
+                else if (data.message_code === 1000 && data.result) {
+                    let user = data.result;
+
+                    // Populate text boxes
+                    document.getElementById("first_name").value = user.first_name || "";
+                    document.getElementById("last_name").value = user.last_name || "";
+                    document.getElementById("aadhar_no").value = user.adhar_no || "";
+                    document.getElementById("dob").value = user.dob || "";
+                    document.getElementById("mobile_no").value = user.mobile_no || "";
+                    document.getElementById("alt_mobile_no").value = user.alternate_mobile_no || "";
+                    document.getElementById("address").value = user.address || "";
+
+                    // Populate dropdowns if already loaded
+                    function setDropdownValue(selectId, value) {
+                        const select = document.getElementById(selectId);
+                        if (!select.options.length) return; // wait until loaded
+                        select.value = value || "";
+                    }
+
+                    setDropdownValue("area", user.areaId);
+                    setDropdownValue("blood_group", user.bloodGroupId);
+                    setDropdownValue("gender", user.genderId);
+                }
+            })
+            .catch(err => console.error("Search error:", err));
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        Promise.all([
+            loadDropdown("list_area", "area", "AreaId", "AreaName"),
+            loadDropdown("list_bloodgroup", "blood_group", "BloodGroupId", "BloodGroupName"),
+            loadDropdown("list_gender", "gender", "GenderId", "GenderName")
+        ]).then(() => {
+            console.log("All dropdowns loaded");
+        });
+    });
+</script>
+
+<!-- Pass route data safely to JS -->
+{{ route_yatras|json_script:"routeData" }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // ---- Dropdown loader ----
+    function callRegistrationAPI(action, extraData = {}) {
+        const formData = new FormData();
+        formData.append("action", action);
+        for (const key in extraData) formData.append(key, extraData[key]);
+        return fetch("/Yatra_darshan/registration_api/", { method: "POST", body: formData })
+            .then(res => res.json());
+    }
+
+    function loadDropdown(action, selectId, valueField, textField) {
+        callRegistrationAPI(action).then(data => {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select</option>';
+            if (data.message_code === 1000 && Array.isArray(data.message_data)) {
+                data.message_data.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item[valueField];
+                    option.textContent = item[textField];
+                    select.appendChild(option);
+                });
+            }
+        }).catch(err => console.error("Dropdown load error:", err));
+    }
+
+    // Load dropdowns
+    loadDropdown("list_area", "area", "AreaId", "AreaName");
+    loadDropdown("list_bloodgroup", "blood_group", "BloodGroupId", "BloodGroupName");
+    loadDropdown("list_gender", "gender", "GenderId", "GenderName");
+
+    // ---- Route Yatra ----
+    const routeData = JSON.parse(document.getElementById("routeData").textContent);
+    let selectedRoute = null;
+
+    const toggleBtn = document.getElementById("routeYatraBtn");
+    const container = document.getElementById("routeSelectionContainer");
+    const routeNameSelect = document.getElementById("routeName");
+    const routeDateBtn = document.getElementById("routeDateBtn");
+    const routeFeesBtn = document.getElementById("routeFeesBtn");
+    const addRouteBtn = document.getElementById("addRouteBtn");
+    const selectedRoutesList = document.getElementById("selectedRoutesList");
+
+    toggleBtn.addEventListener("click", () => {
+        if (container.style.display === "none") {
+            container.style.display = "block";
+            toggleBtn.classList.add("active");
+            populateRouteDropdown();
+        } else {
+            container.style.display = "none";
+            toggleBtn.classList.remove("active");
+            clearRouteSelection();
+        }
+    });
+
+    function populateRouteDropdown() {
+        routeNameSelect.innerHTML = '<option value="">Select Route</option>';
+        routeData.forEach(route => {
+            const option = document.createElement("option");
+            option.value = route.YatraRouteId;
+            option.textContent = route.YatraRouteName;
+            routeNameSelect.appendChild(option);
+        });
+    }
+
+    routeNameSelect.addEventListener("change", () => {
+        const routeId = routeNameSelect.value;
+        selectedRoute = routeData.find(r => String(r.YatraRouteId) === routeId);
+
+        if (selectedRoute) {
+            const yatra = selectedRoute.Yatras[0];
+            routeDateBtn.textContent = yatra.YatraDateTime;
+            routeFeesBtn.textContent = "₹" + yatra.YatraFees;
+            routeDateBtn.classList.add("active");
+            routeFeesBtn.classList.add("active");
+        } else {
+            routeDateBtn.textContent = "Select Date";
+            routeFeesBtn.textContent = "Select Fees";
+            routeDateBtn.classList.remove("active");
+            routeFeesBtn.classList.remove("active");
+        }
+    });
+
+    addRouteBtn.addEventListener("click", () => {
+        if (!selectedRoute) { alert("Please select a route first!"); return; }
+        const yatra = selectedRoute.Yatras[0];
+        const li = document.createElement("li");
+        li.textContent = `${selectedRoute.YatraRouteName} | ${yatra.YatraDateTime} | ₹${yatra.YatraFees}`;
+        selectedRoutesList.appendChild(li);
+
+        routeNameSelect.value = "";
+        routeDateBtn.textContent = "Select Date";
+        routeFeesBtn.textContent = "Select Fees";
+        routeDateBtn.classList.remove("active");
+        routeFeesBtn.classList.remove("active");
+    });
+
+    function clearRouteSelection() {
+        routeNameSelect.value = "";
+        routeDateBtn.textContent = "Select Date";
+        routeFeesBtn.textContent = "Select Fees";
+        routeDateBtn.classList.remove("active");
+        routeFeesBtn.classList.remove("active");
+        selectedRoutesList.innerHTML = "";
+        selectedRoute = null;
+    }
+});
+</script>
+
+</body>
+</html>
