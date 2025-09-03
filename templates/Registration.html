@@ -207,6 +207,91 @@
             background: #28a745;
             color: white;
         }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #003399;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 5px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .listview .item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            text-decoration: none;
+            color: #000;
+        }
+        .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            margin-right: 12px;
+        }
+        .bg-success { background-color: #28a745 !important; }
+        .in { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .text-small { font-size: 13px; color: #666; }
+
+        /* Yatra Route Cards */
+        .route-card { background: #fff; border-radius: 10px; margin-bottom: 15px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .route-card-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #003399; }
+        .yatra-list { list-style: none; padding: 0; margin: 0; }
+        .yatra-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .yatra-info { display: flex; flex-direction: column; }
+        .yatra-date { font-weight: bold; font-size: 14px; color: #006633; }
+        .yatra-fees { font-weight: bold; font-size: 14px; color: #e67000; margin-bottom: 4px; }
+        .yatra-toggle { display: flex; align-items: center; }
+        .yatra-toggle input[type="checkbox"] { width: 36px; height: 20px; }
+
+        .toggle-wrapper {
+            position: relative;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-wrapper input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0;
+            right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 14px; /* rounded pill */
+        }
+
+        .slider::before {
+            position: absolute;
+            content: "";
+            height: 22px; width: 22px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #28a745; /* active color */
+        }
+
+        input:checked + .slider::before {
+            transform: translateX(22px); /* slide circle */
+        }
+
     </style>
 </head>
 <body>
@@ -246,20 +331,105 @@
         <button type="button" onclick="searchUser()">Search</button>
     </div>
 
-    <!-- Registration Form Fields -->
-    <form id="registrationForm">
-        <div class="form-group"><label>First Name</label><input type="text" id="first_name"></div>
-        <div class="form-group"><label>Last Name</label><input type="text" id="last_name"></div>
-        <div class="form-group"><label>Aadhar No.</label><input type="text" id="aadhar_no"></div>
-        <div class="form-group"><label>Date of Birth</label><input type="date" id="dob"></div>
-        <div class="form-group"><label>Mobile No.</label><input type="text" id="mobile_no"></div>
-        <div class="form-group"><label>Alternate Mobile No.</label><input type="text" id="alt_mobile_no"></div>
-        <div class="form-group"><label>Address</label><input type="text" id="address"></div>
-        <div class="form-group"><label>Area</label><select id="area"></select></div>
-        <div class="form-group"><label>Blood Group</label><select id="blood_group"></select></div>
-        <div class="form-group"><label>Gender</label><select id="gender"></select></div>
+    <div id="statusMsg" class="alert d-none" role="alert"></div>
 
-        <button type="button" class="btn-submit">Submit</button>
+    <!-- Registration Form Fields -->
+
+        <!-- Registration ID -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="registration_id">Registration ID</label>
+                <input type="text" id="registration_id" class="form-control" value="0" readonly>
+            </div>
+        </div>
+
+        <!-- First Name -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" class="form-control" placeholder="Enter First Name">
+            </div>
+        </div>
+
+        <!-- Last Name -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" class="form-control" placeholder="Enter Last Name">
+            </div>
+        </div>
+
+        <!-- Aadhar No -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="aadhar_no">Aadhar No.</label>
+                <input type="text" id="aadhar_no" class="form-control" placeholder="Enter Aadhar No">
+            </div>
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" class="form-control">
+            </div>
+        </div>
+
+        <!-- Mobile No -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="mobile_no">Mobile No.</label>
+                <input type="text" id="mobile_no" class="form-control" placeholder="Enter Mobile No">
+            </div>
+        </div>
+
+        <!-- Alternate Mobile No -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="alt_mobile_no">Alternate Mobile No.</label>
+                <input type="text" id="alt_mobile_no" class="form-control" placeholder="Enter Alternate Mobile No">
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" class="form-control" placeholder="Enter Address">
+            </div>
+        </div>
+
+        <!-- Area -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="area">Area</label>
+                <select id="area" class="form-control">
+                    <option value="" selected disabled>Select Area</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Blood Group -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="blood_group">Blood Group</label>
+                <select id="blood_group" class="form-control">
+                    <option value="" selected disabled>Select Blood Group</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group basic animated">
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" class="form-control">
+                    <option value="" selected disabled>Select Gender</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" class="btn-submit" onclick="submitForm()">Submit</button>
 
         <!-- Main button -->
         <div style="margin-top:15px;">
@@ -268,31 +438,12 @@
             </button>
         </div>
 
-        <!-- Hidden container for route selection -->
+        <!-- Hidden container for route grouped list -->
         <div id="routeSelectionContainer" style="display:none; margin-top:20px;">
-            <!-- Route Name Dropdown -->
-            <div class="form-group">
-                <label>Select Route:</label>
-                <select id="routeName" class="form-control">
-                    <option value="">Select Route</option>
-                </select>
-            </div>
-
-            <!-- Buttons: Date, Fees, Add -->
-            <div class="form-group" style="display:flex; gap:10px; margin-top:10px;">
-                <button type="button" id="routeDateBtn" class="route-select-btn">Select Date</button>
-                <button type="button" id="routeFeesBtn" class="route-select-btn">Select Fees</button>
-                <button type="button" id="addRouteBtn" class="route-select-btn">Add</button>
-            </div>
-
-            <!-- Display selected routes -->
-            <div id="selectedRoutes" style="margin-top:20px;">
-                <h5>Selected Routes:</h5>
-                <ul id="selectedRoutesList" style="list-style:none; padding-left:0;"></ul>
-            </div>
+            <!-- Routes will be injected here -->
         </div>
-    </form>
-</div>
+            </form>
+        </div>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -345,46 +496,119 @@
 
     function clearForm() { document.getElementById("registrationForm").reset(); }
 
+    function showMessage(type, text) {
+        let box = document.getElementById("statusMsg");
+        box.className = "alert"; // reset
+        if (type === "success") {
+            box.classList.add("alert-success");
+        } else {
+            box.classList.add("alert-danger");
+        }
+        box.textContent = text;
+        box.classList.remove("d-none");
+    }
+
     function searchUser() {
         let mobile = document.getElementById("searchMobile").value.trim();
-        if (!mobile) { alert("Please enter a mobile number"); return; }
 
-        // Call our Django proxy API
+        // Clear all fields immediately on input
+        document.querySelectorAll(
+            "#registration_id, #first_name, #last_name, #aadhar_no, #dob, #mobile_no, #alt_mobile_no, #address"
+        ).forEach(el => el.value = "");
+        document.getElementById("area").value = "";
+        document.getElementById("blood_group").value = "";
+        document.getElementById("gender").value = "";
+
+        if (!mobile) { 
+            showMessage("error", "Please enter a mobile number"); 
+            return; 
+        }
+
         const formData = new FormData();
         formData.append("action", "search");
         formData.append("search", mobile);
 
-        fetch("/Yatra_darshan/registration_api/", { method: "POST", body: formData })
+        fetch("{% url 'registration_api' %}", { method: "POST", body: formData })
             .then(res => res.json())
             .then(data => {
-                if (data.message_code === 999) {
-                    clearForm(); // clear all fields
-                } 
-                else if (data.message_code === 1000 && data.result) {
-                    let user = data.result;
+                if (data.message_code === 1000 && data.message_data) {
+                    const u = data.message_data;
 
-                    // Populate text boxes
-                    document.getElementById("first_name").value = user.first_name || "";
-                    document.getElementById("last_name").value = user.last_name || "";
-                    document.getElementById("aadhar_no").value = user.adhar_no || "";
-                    document.getElementById("dob").value = user.dob || "";
-                    document.getElementById("mobile_no").value = user.mobile_no || "";
-                    document.getElementById("alt_mobile_no").value = user.alternate_mobile_no || "";
-                    document.getElementById("address").value = user.address || "";
+                    // Fill inputs with latest record
+                    document.getElementById("registration_id").value = u.RegistrationId || "";
+                    document.getElementById("first_name").value = u.Firstname || "";
+                    document.getElementById("last_name").value = u.Lastname || "";
+                    document.getElementById("aadhar_no").value = u.AadharNumber || "";
+                    document.getElementById("dob").value = u.DateOfBirth || "";
+                    document.getElementById("mobile_no").value = u.MobileNo || "";
+                    document.getElementById("alt_mobile_no").value = u.AlternateMobileNo || "";
+                    document.getElementById("address").value = u.Address || "";
 
-                    // Populate dropdowns if already loaded
-                    function setDropdownValue(selectId, value) {
-                        const select = document.getElementById(selectId);
-                        if (!select.options.length) return; // wait until loaded
-                        select.value = value || "";
-                    }
+                    // Auto-select dropdowns
+                    setTimeout(() => {
+                        document.getElementById("area").value = u.AreaId || "";
+                        document.getElementById("blood_group").value = u.BloodGroup || "";
+                        document.getElementById("gender").value = u.Gender || "";
+                    }, 300);
 
-                    setDropdownValue("area", user.areaId);
-                    setDropdownValue("blood_group", user.bloodGroupId);
-                    setDropdownValue("gender", user.genderId);
+                    // ✅ Show success message
+                    showMessage("success", "Registration details fetched successfully.");
+
+                } else {
+                    // ❌ User not found
+                    showMessage("error", data.message_text || "User not registered.");
                 }
             })
-            .catch(err => console.error("Search error:", err));
+            .catch(err => {
+                console.error("Search error:", err);
+                showMessage("error", "Something went wrong. Please try again.");
+            });
+    }
+
+    function submitForm(event) {
+        if (event) event.preventDefault();
+
+        const formData = new FormData();
+        formData.append("action", "submit");  // important
+
+        formData.append("RegistrationId", document.getElementById("registration_id").value.trim() || "0");
+        formData.append("userMobileNo", document.getElementById("mobile_no").value.trim());  // ✅ fixed key
+        formData.append("userFirstname", document.getElementById("first_name").value.trim());
+        formData.append("userMiddlename", document.getElementById("middle_name")?.value.trim() || "");
+        formData.append("userLastname", document.getElementById("last_name").value.trim());
+        formData.append("AreaId", document.getElementById("area")?.value || "1");   // default
+        formData.append("Gender", document.getElementById("gender")?.value || "1"); // default
+        formData.append("Address", document.getElementById("address").value.trim());
+        formData.append("userAlternateMobileNo", document.getElementById("alt_mobile_no")?.value.trim() || "");
+        formData.append("BloodGroup", document.getElementById("blood_group")?.options[document.getElementById("blood_group").selectedIndex]?.text || "Select"); // ✅ send text like "O+"
+        
+        // Convert DOB to DD/MM/YYYY
+        const dobInput = document.getElementById("dob").value;
+        if (dobInput) {
+            const [yyyy, mm, dd] = dobInput.split("-");
+            formData.append("DateOfBirth", `${dd}/${mm}/${yyyy}`);
+        } else {
+            formData.append("DateOfBirth", "");
+        }
+
+        formData.append("Photo", "");
+        formData.append("PhotoId", "");
+        formData.append("UserId", "1");
+
+        console.log("➡️ Final Payload:", Object.fromEntries(formData));
+
+        fetch("/Yatra_darshan/registration_api/", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log("✅ Response:", data);
+            alert(data.message_text);
+        })
+        .catch(err => {
+            console.error("❌ Error:", err);
+        });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -396,6 +620,19 @@
             console.log("All dropdowns loaded");
         });
     });
+
+    document.getElementById("searchMobile").addEventListener("input", () => {
+        // Clear fields instantly when user types a new number
+        document.querySelectorAll(
+            "#registration_id, #first_name, #last_name, #aadhar_no, #dob, #mobile_no, #alt_mobile_no, #address"
+        ).forEach(el => el.value = "");
+        document.getElementById("area").value = "";
+        document.getElementById("blood_group").value = "";
+        document.getElementById("gender").value = "";
+        document.getElementById("statusMsg").classList.add("d-none"); // hide any previous messages
+    });
+
+
 </script>
 
 <!-- Pass route data safely to JS -->
@@ -403,110 +640,61 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // ---- Dropdown loader ----
-    function callRegistrationAPI(action, extraData = {}) {
-        const formData = new FormData();
-        formData.append("action", action);
-        for (const key in extraData) formData.append(key, extraData[key]);
-        return fetch("/Yatra_darshan/registration_api/", { method: "POST", body: formData })
-            .then(res => res.json());
-    }
-
-    function loadDropdown(action, selectId, valueField, textField) {
-        callRegistrationAPI(action).then(data => {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select</option>';
-            if (data.message_code === 1000 && Array.isArray(data.message_data)) {
-                data.message_data.forEach(item => {
-                    const option = document.createElement("option");
-                    option.value = item[valueField];
-                    option.textContent = item[textField];
-                    select.appendChild(option);
-                });
-            }
-        }).catch(err => console.error("Dropdown load error:", err));
-    }
-
-    // Load dropdowns
-    loadDropdown("list_area", "area", "AreaId", "AreaName");
-    loadDropdown("list_bloodgroup", "blood_group", "BloodGroupId", "BloodGroupName");
-    loadDropdown("list_gender", "gender", "GenderId", "GenderName");
-
-    // ---- Route Yatra ----
     const routeData = JSON.parse(document.getElementById("routeData").textContent);
-    let selectedRoute = null;
-
     const toggleBtn = document.getElementById("routeYatraBtn");
     const container = document.getElementById("routeSelectionContainer");
-    const routeNameSelect = document.getElementById("routeName");
-    const routeDateBtn = document.getElementById("routeDateBtn");
-    const routeFeesBtn = document.getElementById("routeFeesBtn");
-    const addRouteBtn = document.getElementById("addRouteBtn");
-    const selectedRoutesList = document.getElementById("selectedRoutesList");
 
     toggleBtn.addEventListener("click", () => {
         if (container.style.display === "none") {
-            container.style.display = "block";
-            toggleBtn.classList.add("active");
-            populateRouteDropdown();
+            renderGroupedRoutes();
         } else {
             container.style.display = "none";
-            toggleBtn.classList.remove("active");
-            clearRouteSelection();
+            container.innerHTML = "";
         }
     });
 
-    function populateRouteDropdown() {
-        routeNameSelect.innerHTML = '<option value="">Select Route</option>';
+    function renderGroupedRoutes() {
+        container.innerHTML = "";
+
         routeData.forEach(route => {
-            const option = document.createElement("option");
-            option.value = route.YatraRouteId;
-            option.textContent = route.YatraRouteName;
-            routeNameSelect.appendChild(option);
+            const card = document.createElement("div");
+            card.classList.add("route-card");
+
+            const title = document.createElement("div");
+            title.classList.add("route-card-title");
+            title.textContent = route.YatraRouteName;
+            card.appendChild(title);
+
+            const ul = document.createElement("ul");
+            ul.classList.add("listview", "image-listview", "text", "inset", "no-line"); // Finapp style
+
+            route.Yatras.forEach((yatra, index) => {
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="yatra-date">${yatra.YatraDateTime}</span> |
+                            <span class="yatra-fees">₹${yatra.YatraFees}</span>
+                        </div>
+                        <label class="toggle-wrapper">
+                            <input type="checkbox" id="SwitchCheck_${route.YatraRouteId}_${index}" 
+                                data-route="${route.YatraRouteId}" data-yatra="${yatra.YatraId}">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                `;
+
+                ul.appendChild(li);
+            });
+
+            card.appendChild(ul);
+            container.appendChild(card);
         });
+
+        container.style.display = "block";
     }
 
-    routeNameSelect.addEventListener("change", () => {
-        const routeId = routeNameSelect.value;
-        selectedRoute = routeData.find(r => String(r.YatraRouteId) === routeId);
-
-        if (selectedRoute) {
-            const yatra = selectedRoute.Yatras[0];
-            routeDateBtn.textContent = yatra.YatraDateTime;
-            routeFeesBtn.textContent = "₹" + yatra.YatraFees;
-            routeDateBtn.classList.add("active");
-            routeFeesBtn.classList.add("active");
-        } else {
-            routeDateBtn.textContent = "Select Date";
-            routeFeesBtn.textContent = "Select Fees";
-            routeDateBtn.classList.remove("active");
-            routeFeesBtn.classList.remove("active");
-        }
-    });
-
-    addRouteBtn.addEventListener("click", () => {
-        if (!selectedRoute) { alert("Please select a route first!"); return; }
-        const yatra = selectedRoute.Yatras[0];
-        const li = document.createElement("li");
-        li.textContent = `${selectedRoute.YatraRouteName} | ${yatra.YatraDateTime} | ₹${yatra.YatraFees}`;
-        selectedRoutesList.appendChild(li);
-
-        routeNameSelect.value = "";
-        routeDateBtn.textContent = "Select Date";
-        routeFeesBtn.textContent = "Select Fees";
-        routeDateBtn.classList.remove("active");
-        routeFeesBtn.classList.remove("active");
-    });
-
-    function clearRouteSelection() {
-        routeNameSelect.value = "";
-        routeDateBtn.textContent = "Select Date";
-        routeFeesBtn.textContent = "Select Fees";
-        routeDateBtn.classList.remove("active");
-        routeFeesBtn.classList.remove("active");
-        selectedRoutesList.innerHTML = "";
-        selectedRoute = null;
-    }
 });
 </script>
 

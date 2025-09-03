@@ -60,24 +60,35 @@ def Registrationpage(request):
     if 'user_id' not in request.session:
         messages.error(request, "Please login first.")
         return redirect('login')
-    
-    # Fetch user details from session
+
+    # ✅ Prepare user details from session
     user_details = {
         "first_name": request.session.get("first_name", ""),
         "last_name": request.session.get("last_name", ""),
         "mobile_no": request.session.get("mobile_no", ""),
-        "aadhar_no": request.session.get("aadhar_no", ""),      
+        "aadhar_no": request.session.get("aadhar_no", ""),
+        "user_role": request.session.get("user_role", ""),
     }
 
-    # Fetch Route Yatras
+    # ✅ Fetch Route Yatras using API (same style as login)
     route_yatras_data = []
+    api_url = "https://www.lakshyapratishthan.com/apis/routeyatradates"
+
     try:
-        res = requests.get("https://www.lakshyapratishthan.com/apis/routeyatradates", timeout=5)
-        if res.status_code == 200:
-            json_data = res.json()
-            route_yatras_data = json_data.get("message_data", [])
+        response = requests.get(api_url, headers=headers, verify=False, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            print("Route Yatra API Response:", data)
+
+            if str(data.get("message_code")) == "1000":
+                route_yatras_data = data.get("message_data", [])
+            else:
+                messages.error(request, data.get("message_text", "Unable to fetch route yatra dates."))
+        else:
+            messages.error(request, f"HTTP Error {response.status_code}")
     except Exception as e:
-        print("Error fetching route yatra:", e)
+        print("Route Yatra API Exception:", e)
+        messages.error(request, "Unable to fetch route yatra dates. Please try again later.")
 
     return render(request, "registration.html", {
         "user": user_details,
@@ -96,10 +107,45 @@ def registration_api(request):
         action = request.POST.get("action")
         try:
             if action == "search":
-                mobile = request.POST.get("search")  # <-- read 'search' from POST
+                mobile = request.POST.get("search")
                 api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
                 payload = {"mobile_no": mobile}
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    msg_code = str(data.get("message_code"))
+
+                    if msg_code == "1000":
+                        # Only fill fields if user exists
+                        records = data.get("message_data", [])
+                        if records and isinstance(records, list):
+                            latest = records[0]  # take first record
+                            result = {
+                                "RegistrationId": latest.get("RegistrationId", ""),
+                                "Firstname": latest.get("Firstname", ""),
+                                "Lastname": latest.get("Lastname", ""),
+                                "Middlename": latest.get("Middlename", ""),
+                                "MobileNo": latest.get("MobileNo", ""),
+                                "AlternateMobileNo": latest.get("AlternateMobileNo", ""),
+                                "AadharNumber": latest.get("AadharNumber", ""),
+                                "DateOfBirth": latest.get("DateOfBirth", ""),
+                                "Gender": latest.get("Gender", ""),
+                                "BloodGroup": latest.get("BloodGroup", ""),
+                                "AreaId": latest.get("AreaId", "") or latest.get("AreaName", ""),
+                                "Address": latest.get("Address", ""),
+                            }
+                            return JsonResponse({
+                                "message_code": 1000,
+                                "message_text": "Registration details fetched successfully.",
+                                "message_data": result
+                            })
+
+                    # API returned 999 or empty data → clear fields
+                    return JsonResponse({
+                        "message_code": 999,
+                        "message_text": "User not registered."
+                    })
 
             elif action == "list_area":
                 api_url = "https://www.lakshyapratishthan.com/apis/listarea"
@@ -113,6 +159,39 @@ def registration_api(request):
                 api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
                 response = requests.get(api_url, headers=headers, verify=False, timeout=10)
 
+            elif action == "submit":
+                api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
+
+                dob_str = request.POST.get("DateOfBirth", "")
+                dob_final = ""
+                if dob_str:
+                    try:
+                        from datetime import datetime
+                        dob_final = datetime.strptime(dob_str, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except Exception:
+                        dob_final = dob_str
+
+                payload = {
+                    "RegistrationId": request.POST.get("RegistrationId", 0),
+                    "userMobileNo": request.POST.get("userMobileNo"),   # ✅ keep exact key
+                    "userFirstname": request.POST.get("userFirstname"),
+                    "userMiddlename": request.POST.get("userMiddlename", ""),
+                    "userLastname": request.POST.get("userLastname"),
+                    "AreaId": request.POST.get("AreaId", 1),
+                    "Gender": request.POST.get("Gender", 1),
+                    "Address": request.POST.get("Address", ""),
+                    "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
+                    "BloodGroup": request.POST.get("BloodGroup", "Select"),  # ✅ text like "O+"
+                    "DateOfBirth": dob_final,
+                    "Photo": request.POST.get("Photo", ""),
+                    "PhotoId": request.POST.get("PhotoId", ""),
+                    "UserId": request.session.get("user_id", 0),
+                }
+
+                print("➡️ Calling:", api_url)
+                print("➡️ Payload:", payload)
+
+                response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             else:
                 return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
 
