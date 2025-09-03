@@ -292,6 +292,13 @@
             transform: translateX(22px); /* slide circle */
         }
 
+        /* Remove bullets from route list */
+        .route-card ul {
+            list-style: none; /* removes the dots */
+            padding-left: 0;  /* remove default indentation */
+            margin: 0;        /* optional: remove extra space */
+        }
+
     </style>
 </head>
 <body>
@@ -438,9 +445,49 @@
             </button>
         </div>
 
-        <!-- Hidden container for route grouped list -->
         <div id="routeSelectionContainer" style="display:none; margin-top:20px;">
-            <!-- Routes will be injected here -->
+        <!-- Routes will be injected here -->
+        </div>
+
+        <!-- Payment & Booking Section -->
+        <div id="paymentSection" style="display:none; margin-top:20px;">
+        <div class="row align-items-end">
+            
+            <!-- Amount Payable -->
+            <div class="col-md-6 col-12">
+                <div class="form-group">
+                    <label for="amountPayable">Amount Payable</label>
+                    <input type="text" id="amountPayable" class="form-control" value="0" readonly>
+                </div>
+                </div>
+
+                <!-- Amount Mode -->
+                <div class="col-md-6 col-12">
+                <div class="form-group">
+                    <label class="form-label d-block mb-2">Amount Mode</label>
+                    <div class="btn-group w-100" role="group" aria-label="Amount Mode">
+                    <!-- Cash -->
+                    <input type="radio" class="btn-check" name="amountMode" id="amountCash" value="cash" autocomplete="off">
+                    <label class="btn btn-outline-success" for="amountCash">Cash</label>
+
+                    <!-- UPI -->
+                    <input type="radio" class="btn-check" name="amountMode" id="amountUPI" value="upi" autocomplete="off">
+                    <label class="btn btn-outline-success" for="amountUPI">UPI</label>
+                    </div>
+                </div>
+                </div>
+
+            </div>
+
+            <!-- Transaction ID (only for UPI) -->
+            <div class="form-group" id="transactionIdField" style="display:none;">
+                <label for="transactionId">Transaction ID</label>
+                <input type="text" id="transactionId" class="form-control" placeholder="Enter UPI Transaction ID">
+            </div>
+
+            <!-- Book Ticket -->
+            <button type="button" id="bookTicketBtn" class="btn-submit">Book Ticket</button>
+            </div>
         </div>
             </form>
         </div>
@@ -672,18 +719,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 const li = document.createElement("li");
 
                 li.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="yatra-date">${yatra.YatraDateTime}</span> |
-                            <span class="yatra-fees">₹${yatra.YatraFees}</span>
-                        </div>
-                        <label class="toggle-wrapper">
-                            <input type="checkbox" id="SwitchCheck_${route.YatraRouteId}_${index}" 
-                                data-route="${route.YatraRouteId}" data-yatra="${yatra.YatraId}">
-                            <span class="slider"></span>
-                        </label>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="yatra-date">Date: ${yatra.YatraDateTime}</span> |
+                        <span class="yatra-fees">Fees: ₹${yatra.YatraFees}</span>
                     </div>
-                `;
+                    <label class="toggle-wrapper">
+                        <input type="checkbox" 
+                            id="SwitchCheck_${route.YatraRouteId}_${index}" 
+                            data-route="${route.YatraRouteId}" 
+                            data-yatra="${yatra.YatraId}" 
+                            data-fees="${yatra.YatraFees}">
+                        <span class="slider"></span>
+                     </label>
+                </div>
+            `;
 
                 ul.appendChild(li);
             });
@@ -696,6 +746,60 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("routeSelectionContainer");
+    const paymentSection = document.getElementById("paymentSection");
+    const amountPayableInput = document.getElementById("amountPayable");
+    const transactionIdField = document.getElementById("transactionIdField");
+
+    function calculateTotal() {
+        let total = 0;
+        container.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
+            total += parseFloat(cb.dataset.fees) || 0;
+        });
+        amountPayableInput.value = total.toFixed(2);
+    }
+
+    // Recalculate when checkboxes change
+    container.addEventListener("change", function (e) {
+        if (e.target.type === "checkbox") {
+            calculateTotal();
+        }
+    });
+
+    // Toggle payment section with route list
+    document.getElementById("routeYatraBtn").addEventListener("click", () => {
+        if (container.style.display === "block") {
+            paymentSection.style.display = "block";
+        } else {
+            paymentSection.style.display = "none";
+        }
+    });
+
+    // Show/hide transaction ID field for UPI
+    document.querySelectorAll("input[name='amountMode']").forEach(radio => {
+        radio.addEventListener("change", function () {
+            transactionIdField.style.display = (this.value === "upi") ? "block" : "none";
+        });
+    });
+
+    // Book Ticket click
+    document.getElementById("bookTicketBtn").addEventListener("click", function () {
+        const mode = document.querySelector("input[name='amountMode']:checked")?.value;
+        if (!mode) {
+            alert("Please select Amount Mode");
+            return;
+        }
+        if (mode === "upi" && !document.getElementById("transactionId").value.trim()) {
+            alert("Please enter Transaction ID");
+            return;
+        }
+        alert("✅ Ticket booked successfully!");
+        // TODO: add fetch() to send selected Yatras + payment to backend
+    });
+});
+
 </script>
 
 </body>
