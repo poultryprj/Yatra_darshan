@@ -109,8 +109,9 @@ def registration_api(request):
             if action == "search":
                 mobile = request.POST.get("search")
                 api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
-                payload = {"mobile_no": mobile}
+                payload = {"mobile_no": 1245639874}
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                print(response.text)
 
                 if response.status_code == 200:
                     data = response.json()
@@ -119,34 +120,35 @@ def registration_api(request):
                     if msg_code == "1000":
                         # Only fill fields if user exists
                         records = data.get("message_data", [])
-                        if records and isinstance(records, list):
-                            latest = records[0]  # take first record
-                            result = {
-                                "RegistrationId": latest.get("RegistrationId", ""),
-                                "Firstname": latest.get("Firstname", ""),
-                                "Lastname": latest.get("Lastname", ""),
-                                "Middlename": latest.get("Middlename", ""),
-                                "MobileNo": latest.get("MobileNo", ""),
-                                "AlternateMobileNo": latest.get("AlternateMobileNo", ""),
-                                "AadharNumber": latest.get("AadharNumber", ""),
-                                "DateOfBirth": latest.get("DateOfBirth", ""),
-                                "Gender": latest.get("Gender", ""),
-                                "BloodGroup": latest.get("BloodGroup", ""),
-                                "AreaId": latest.get("AreaId", "") or latest.get("AreaName", ""),
-                                "Address": latest.get("Address", ""),
-                            }
+                    if records:
+                        if isinstance(records, list):
+                            latest = records[0]
+                        elif isinstance(records, dict):
+                            latest = records
+                        else:
                             return JsonResponse({
-                                "message_code": 1000,
-                                "message_text": "Registration details fetched successfully.",
-                                "message_data": result
+                                "message_code": 999,
+                                "message_text": "User not registered."
                             })
-
-                    # API returned 999 or empty data → clear fields
-                    return JsonResponse({
-                        "message_code": 999,
-                        "message_text": "User not registered."
-                    })
-
+                        result = {
+                            "RegistrationId": latest.get("RegistrationId", ""),
+                            "Firstname": latest.get("Firstname", ""),
+                            "Lastname": latest.get("Lastname", ""),
+                            "Middlename": latest.get("Middlename", ""),
+                            "MobileNo": latest.get("MobileNo", ""),
+                            "AlternateMobileNo": latest.get("AlternateMobileNo", ""),
+                            "AadharNumber": latest.get("AadharNumber", ""),
+                            "DateOfBirth": latest.get("DateOfBirth", ""),
+                            "Gender": latest.get("Gender", ""),
+                            "BloodGroup": latest.get("BloodGroup", ""),
+                            "AreaId": latest.get("AreaId", "") or latest.get("AreaName", ""),
+                            "Address": latest.get("Address", ""),
+                        }
+                        return JsonResponse({
+                            "message_code": 1000,
+                            "message_text": "Registration details fetched successfully.",
+                            "message_data": result
+                        })
             elif action == "list_area":
                 api_url = "https://www.lakshyapratishthan.com/apis/listarea"
                 response = requests.get(api_url, headers=headers, verify=False, timeout=10)
@@ -192,6 +194,27 @@ def registration_api(request):
                 print("➡️ Payload:", payload)
 
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+            elif action == "book_ticket":
+                api_url = "https://www.lakshyapratishthan.com/apis/inserttickets"
+
+                # Collect multiple YatraIds and join into comma-separated string
+                yatra_ids = request.POST.getlist("YatraIds[]", [])
+                yatra_ids_str = ",".join(yatra_ids)
+
+                payload = {
+                    "RegistrationId": request.POST.get("RegistrationId", ""),
+                    "UserId": str(request.session.get("user_id", "")),
+                    "YatraIds": yatra_ids_str,   # ✅ Comma-separated string
+                    "AmountPaid": request.POST.get("AmountPaid", "0"),
+                    "Discount": request.POST.get("Discount", "0"),
+                    "DiscountReason": request.POST.get("DiscountReason", ""),
+                    "PaymentId": request.POST.get("PaymentId", ""),
+                }
+
+                print("➡️ Ticket Booking Payload (final):", payload)
+
+                response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             else:
                 return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
 
@@ -204,13 +227,6 @@ def registration_api(request):
             return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
 
     return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
-
-
-def logout(request):
-    request.session.clear()  # Clears all session data, keeps same session key
-    return redirect('login') 
-
-
 
 
 def route_master(request):
@@ -443,7 +459,9 @@ def yatra_master_api(request):
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 
-
+def logout(request):
+    request.session.clear()  # Clears all session data, keeps same session key
+    return redirect('login') 
 
 
 # userMobileNo:9850180648
