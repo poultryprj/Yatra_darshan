@@ -109,9 +109,8 @@ def registration_api(request):
             if action == "search":
                 mobile = request.POST.get("search")
                 api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
-                payload = {"mobile_no": 1245639874}
+                payload = {"mobile_no": mobile}
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
-                print(response.text)
 
                 if response.status_code == 200:
                     data = response.json()
@@ -120,35 +119,34 @@ def registration_api(request):
                     if msg_code == "1000":
                         # Only fill fields if user exists
                         records = data.get("message_data", [])
-                    if records:
-                        if isinstance(records, list):
-                            latest = records[0]
-                        elif isinstance(records, dict):
-                            latest = records
-                        else:
+                        if records and isinstance(records, list):
+                            latest = records[0]  # take first record
+                            result = {
+                                "RegistrationId": latest.get("RegistrationId", ""),
+                                "Firstname": latest.get("Firstname", ""),
+                                "Lastname": latest.get("Lastname", ""),
+                                "Middlename": latest.get("Middlename", ""),
+                                "MobileNo": latest.get("MobileNo", ""),
+                                "AlternateMobileNo": latest.get("AlternateMobileNo", ""),
+                                "AadharNumber": latest.get("AadharNumber", ""),
+                                "DateOfBirth": latest.get("DateOfBirth", ""),
+                                "Gender": latest.get("Gender", ""),
+                                "BloodGroup": latest.get("BloodGroup", ""),
+                                "AreaId": latest.get("AreaId", "") or latest.get("AreaName", ""),
+                                "Address": latest.get("Address", ""),
+                            }
                             return JsonResponse({
-                                "message_code": 999,
-                                "message_text": "User not registered."
+                                "message_code": 1000,
+                                "message_text": "Registration details fetched successfully.",
+                                "message_data": result
                             })
-                        result = {
-                            "RegistrationId": latest.get("RegistrationId", ""),
-                            "Firstname": latest.get("Firstname", ""),
-                            "Lastname": latest.get("Lastname", ""),
-                            "Middlename": latest.get("Middlename", ""),
-                            "MobileNo": latest.get("MobileNo", ""),
-                            "AlternateMobileNo": latest.get("AlternateMobileNo", ""),
-                            "AadharNumber": latest.get("AadharNumber", ""),
-                            "DateOfBirth": latest.get("DateOfBirth", ""),
-                            "Gender": latest.get("Gender", ""),
-                            "BloodGroup": latest.get("BloodGroup", ""),
-                            "AreaId": latest.get("AreaId", "") or latest.get("AreaName", ""),
-                            "Address": latest.get("Address", ""),
-                        }
-                        return JsonResponse({
-                            "message_code": 1000,
-                            "message_text": "Registration details fetched successfully.",
-                            "message_data": result
-                        })
+
+                    # API returned 999 or empty data → clear fields
+                    return JsonResponse({
+                        "message_code": 999,
+                        "message_text": "User not registered."
+                    })
+
             elif action == "list_area":
                 api_url = "https://www.lakshyapratishthan.com/apis/listarea"
                 response = requests.get(api_url, headers=headers, verify=False, timeout=10)
