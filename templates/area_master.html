@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darshan Yatra - Area Master</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: bold; }
+
+        .container-main { 
+            max-width: 800px; 
+            margin: 80px auto 40px auto; 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
+        }
+        .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
+        .btn-custom:hover { background: #e67000; }
+        
+        .modal-body label {
+            font-weight: bold;
+            color: #003399; /* Blue labels like the registration page */
+        }
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #006633; /* Green focus border like registration page */
+            box-shadow: 0 0 5px rgba(0,102,51,0.4);
+        }
+        td { vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'Registrationpage' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Area Master</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0 fs-4 text-primary">Manage Areas</h2>
+        <button class="btn btn-custom" id="addAreaBtn"><i class="bi bi-plus-circle"></i> Add Area</button>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-hover">
+            <thead>
+                <tr class="text-muted">
+                    <th>Area Name</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="areaTableBody">
+                {% for area in areas %}
+                <tr data-area-id="{{ area.AreaId }}" data-area-status="{{ area.AreaStatus }}">
+                    <td class="area-name">{{ area.AreaName }}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary edit-btn">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" class="text-center">No areas found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="areaModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="areaForm">
+            <input type="hidden" id="formAreaId">
+            <div class="mb-3">
+                <label for="formAreaName" class="form-label">Area Name</label>
+                <input type="text" class="form-control" id="formAreaName" required>
+            </div>
+            <div class="mb-3">
+                <label for="formAreaStatus" class="form-label">Status</label>
+                <select class="form-select" id="formAreaStatus">
+                    <option value="1">Active</option>
+                    <option value="0">Deactivated</option>
+                </select>
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-custom" id="saveAreaBtn">Save Area</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script>
+    const areaModal = new bootstrap.Modal(document.getElementById('areaModal'));
+
+    document.getElementById('addAreaBtn').addEventListener('click', () => {
+        document.getElementById('areaForm').reset();
+        document.getElementById('formAreaId').value = ''; 
+        document.getElementById('modalTitle').textContent = 'Add New Area';
+        document.getElementById('formAreaStatus').value = '1'; 
+        areaModal.show();
+    });
+
+    document.getElementById('areaTableBody').addEventListener('click', (e) => {
+        const editButton = e.target.closest('.edit-btn');
+        if (editButton) {
+            const row = editButton.closest('tr');
+            document.getElementById('formAreaId').value = row.dataset.areaId;
+            document.getElementById('formAreaName').value = row.querySelector('.area-name').textContent;
+            document.getElementById('modalTitle').textContent = 'Edit Area';
+            document.getElementById('formAreaStatus').value = row.dataset.areaStatus;
+            areaModal.show();
+        }
+    });
+
+    document.getElementById('saveAreaBtn').addEventListener('click', () => {
+        const areaId = document.getElementById('formAreaId').value;
+        const areaName = document.getElementById('formAreaName').value;
+        const status = document.getElementById('formAreaStatus').value;
+
+        if (!areaName) {
+            swal("Error", "Area Name is required.", "error");
+            return;
+        }
+
+        let formData = new FormData();
+        formData.append('areaName', areaName);
+        formData.append('status', status); // Add status for both add and update
+        
+        if (areaId) {
+            formData.append('action', 'update_area');
+            formData.append('areaId', areaId);
+        } else {
+            formData.append('action', 'add_area');
+        }
+
+        fetch("{% url 'area_master_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message_code === 1000) {
+                    swal({ title: "Success!", text: data.message_text, type: "success" }, () => location.reload());
+                } else {
+                    swal("Error", data.message_text || "An error occurred.", "error");
+                }
+            });
+    });
+</script>
+
+</body>
+</html>
