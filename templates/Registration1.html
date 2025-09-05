@@ -1,0 +1,549 @@
+{% load i18n %}
+{% load static %}
+{% load pwa %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yatra Darshan - Registration</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    /* palette & base */
+    :root{
+      --brand-orange: #ff7b00;
+      --brand-orange-dark: #e67000;
+      --brand-blue: #003399;
+      --brand-green: #006633;
+    }
+    body{ background:#f0f2f5; font-family: Arial, sans-serif; margin:0; padding:0; }
+
+    /* top navbar */
+    .navbar{ background:var(--brand-orange); height:55px; }
+    .navbar-brand{ color:#fff; font-weight:600; font-size:18px; }
+    .navbar-toggler{ border:none; background:#fff; border-radius:6px; padding:6px 8px; }
+
+    /* drawer */
+    .drawer{ position:fixed; top:55px; left:-100%; width:68%; height:calc(100% - 55px); background:#fff; transition:left .28s; z-index:1100; box-shadow:2px 0 8px rgba(0,0,0,.08); overflow:auto; }
+    .drawer.open{ left:0; }
+    .drawer .additional-content{ padding:12px; text-align:center; background:#f8f9fb; position:sticky; top:0; }
+    .drawer ul{ padding:12px; }
+    .drawer ul li{ list-style:none; margin-bottom:6px; }
+
+    /* main container card */
+    .container-reg{ max-width:980px; margin:84px auto 40px; padding:0 12px; }
+    .card-main{ border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.06); overflow:hidden; }
+
+    /* row with search + add (single-line) */
+    .search-row{ padding:18px; display:flex; gap:10px; align-items:center; background:#fff; }
+    .search-grow{ flex:1; position:relative; }
+    .search-icon-btn{
+      position:absolute; right:6px; top:50%; transform:translateY(-50%);
+      border-radius:6px; border:none; background:var(--brand-orange); color:#fff; width:40px; height:40px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .search-icon-btn:hover{ background:var(--brand-orange-dark); }
+
+    /* small Add button: same height as search icon */
+    .small-add{
+      width:40px; height:40px; border-radius:8px; border:none; display:flex; align-items:center; justify-content:center;
+      background:#198754; color:#fff; flex:0 0 auto;
+    }
+    .small-add:hover{ background:#146c43; }
+
+    /* list area */
+    .results-area{ padding:12px 18px 24px 18px; background:#fff; }
+    .listview .list-group-item{ border:0; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0f0f0; cursor:pointer; }
+    .listview .list-group-item:hover{ background:#fbfbff; }
+
+    /* single-line user details (exclude mobile) */
+    .item-left{ display:flex; gap:12px; align-items:center; }
+    .item-reg{ font-weight:600; color:var(--brand-blue); min-width:90px; }
+    .item-name{ font-weight:600; color:#333; }
+    .item-meta{ color:#6c757d; font-size:0.9rem; }
+
+    .item-right{ text-align:right; color:#6c757d; font-size:0.88rem; min-width:120px; }
+
+    /* floating animated inputs for the action bottom sheet */
+    /* floating label system */
+    .floating {
+    position: relative;
+    margin-top: 16px;
+    }
+    .floating input,
+        .floating select {
+        width: 100%;
+        padding: 14px 12px 12px 12px;
+        border: none;
+        border-bottom: 1px solid #ccc;
+        border-radius: 0;
+        background: transparent;
+        outline: none;
+        font-size: 15px;
+    }
+    .floating label {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        font-size: 14px;
+        color: #6c757d;
+        pointer-events: none;
+        transition: all 0.2s ease;
+    }
+    /* 🔥 move label up when focused or input has text */
+        .floating input:focus + label,
+        .floating input:not(:placeholder-shown) + label,
+        .floating select:focus + label,
+        .floating select:not([value=""]) + label {
+        top: -6px;
+        font-size: 12px;
+        color: var(--brand-green);
+        background: #fff;
+        padding: 0 4px;
+    }
+
+    /* bottom sheet submit button */
+    .btn-submit{ background:var(--brand-orange); color:#fff; border:none; border-radius:10px; padding:12px; }
+    .btn-submit:hover{ background:var(--brand-orange-dark); }
+
+    /* offcanvas (bottom) header */
+    .offcanvas-bottom .offcanvas-header{ background:var(--brand-blue); color:#fff; }
+    .offcanvas-bottom .offcanvas-body{ padding:16px; background:#fff; }
+
+    /* responsive tweaks */
+    @media (max-width:520px){
+      .container-reg{ margin:72px 8px 20px; }
+      .item-right{ min-width:80px; font-size:0.8rem; }
+    }
+
+    /* search box same size as icon */
+    .search-grow input {
+    width: 220px;
+    height: 40px;
+    border: 1px solid #ccc;
+    text-align: center;
+    }
+
+    .item-line {
+        font-size: 14px;
+        white-space: nowrap;  /* keeps everything on one line */
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
+    <button id="menuBtn" class="navbar-toggler" type="button" style="position:absolute; left:12px;">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <span class="navbar-brand">Welcome - {{ user.first_name }} {{ user.last_name }}</span>
+  </div>
+</nav>
+
+<!-- Side Drawer -->
+<div id="drawer" class="drawer">
+  <div class="additional-content">
+    <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" width="92" height="92" class="rounded-circle" alt="logo">
+    <div style="margin-top:8px;"><b style="color:#000;">Darshan Yatra</b></div>
+    <button onclick="closeDrawer()" class="btn btn-sm position-absolute" style="right:8px; top:8px;"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <ul>
+    <li><a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-house-door me-2"></i>Home</a></li>
+    <li><a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-geo-alt-fill me-2"></i>Route Master</a></li>
+    <li><a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-map-fill me-2"></i>Area Master</a></li>
+    <li><a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-calendar-event-fill me-2"></i>Yatra Master</a></li>
+    <li><a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+  </ul>
+</div>
+
+<!-- main content -->
+<div class="container-reg">
+  <div class="card-main">
+
+    <!-- search + add -->
+    <div class="search-row">
+        <div class="search-grow">
+            <input id="searchMobile" type="tel" maxlength="10" 
+                placeholder="Mobile Number" autocomplete="off"
+                style="text-align:left; padding-left:10px; height:40px; border:1px solid #ccc; border-radius:6px;" />
+            <button id="btnSearch" class="search-icon-btn" title="Search">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+
+      <!-- small add icon (same size as search) - placed inline -->
+      <button id="btnAddNew" class="small-add" title="Add new registration for same mobile">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+
+    <!-- status -->
+    <div id="statusMsg" class="px-3 py-2 d-none"></div>
+
+    <!-- results box -->
+    <div id="resultsWrap" class="results-area d-none">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="text-muted">Registrations for <strong id="labelMobile"></strong></div>
+        <div><span id="resultCount" class="badge bg-secondary">0</span></div>
+      </div>
+
+      <div id="regList" class="listview">
+        <ul id="regItems" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- bottom action sheet (offcanvas bottom) -->
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="regActionBar" aria-labelledby="regActionBarLabel" style="height:fit-content; --bs-offcanvas-height: 64vh;">
+  <div class="offcanvas-header">
+    <h5 id="regActionBarLabel" class="offcanvas-title">Pilgrim Registration</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="regForm" autocomplete="off">
+      <input id="RegistrationId" type="hidden" value="0">
+
+      <!-- Row 1: Mobile + First Name -->
+        <div class="d-flex gap-2">
+        <div class="floating" style="flex:1">
+            <input id="MobileNo" type="tel" placeholder=" " maxlength="10" required>
+            <label>Mobile No.</label>
+        </div>
+        <div class="floating" style="flex:1">
+            <input id="Firstname" type="text" placeholder=" ">
+            <label>First Name</label>
+        </div>
+        </div>
+
+        <!-- Row 2: Middle + Last Name -->
+        <div class="d-flex gap-2 mt-2">
+        <div class="floating" style="flex:1">
+            <input id="Middlename" type="text" placeholder=" ">
+            <label>Middle Name</label>
+        </div>
+        <div class="floating" style="flex:1">
+            <input id="Lastname" type="text" placeholder=" ">
+            <label>Last Name</label>
+        </div>
+        </div>
+
+      <div class="floating">
+        <input id="Address" type="text" placeholder=" ">
+        <label>Address</label>
+      </div>
+
+      <div class="d-flex gap-2">
+        <div class="floating" style="flex:1">
+          <select id="AreaId" placeholder=" "><option value="">Select Area</option></select>
+          <label>Area</label>
+        </div>
+        <div class="floating" style="flex:1">
+          <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
+          <label>Gender</label>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-1">
+        <div class="floating" style="flex:1">
+          <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
+          <label>Blood Group</label>
+        </div>
+        <div class="floating" style="flex:1">
+          <input id="DateOfBirth" type="date" placeholder=" ">
+          <label>Date of Birth</label>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-1">
+        <div class="floating" style="flex:1">
+          <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10">
+          <label>Alternate Mobile</label>
+        </div>
+        <div class="floating" style="flex:1">
+          <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
+          <label>Aadhar No.</label>
+        </div>
+      </div>
+
+      <div class="mt-3 d-grid">
+        <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
+      </div>
+
+      <div class="text-muted small mt-2" id="formModeHint">Mode: Insert</div>
+    </form>
+  </div>
+</div>
+
+<!-- scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // drawer
+  const menuBtn = document.getElementById('menuBtn'), drawer = document.getElementById('drawer');
+  menuBtn.addEventListener('click', ()=> drawer.classList.add('open'));
+  function closeDrawer(){ drawer.classList.remove('open'); }
+  window.addEventListener('click', (e)=> { if (!drawer.contains(e.target) && !menuBtn.contains(e.target)) closeDrawer(); });
+
+  // helpers
+  const statusBox = document.getElementById('statusMsg');
+  function showMsg(type, text){
+    statusBox.className = 'px-3 py-2'; // reset
+    if (type === 'success') {
+        statusBox.classList.add('alert', 'alert-success');
+    } else {
+        statusBox.classList.add('alert', 'alert-danger');
+    }
+    statusBox.textContent = text;
+    statusBox.classList.remove('d-none');
+  }
+  function hideMsg(){ statusBox.classList.add('d-none'); statusBox.textContent=''; }
+
+  function postForm(action, data={}){
+    const fd = new FormData();
+    fd.append('action', action);
+    for (const k in data) fd.append(k, data[k]);
+    return fetch("{% url 'registration_api1' %}", { method:'POST', body: fd }).then(r=> r.json());
+  }
+
+  // elements
+  const inputMobile = document.getElementById('searchMobile');
+  const btnSearch = document.getElementById('btnSearch');
+  const btnAddNew = document.getElementById('btnAddNew');
+  const resultsWrap = document.getElementById('resultsWrap');
+  const regItems = document.getElementById('regItems');
+  const labelMobile = document.getElementById('labelMobile');
+  const resultCount = document.getElementById('resultCount');
+
+  function validMobile(m){ return /^\d{10}$/.test(m); }
+
+  btnSearch.addEventListener('click', doSearch);
+  inputMobile.addEventListener('keydown', function(e){ if (e.key==='Enter') doSearch(); });
+
+  async function doSearch(){
+    hideMsg();
+    const mob = inputMobile.value.trim();
+    if (!validMobile(mob)){ showMsg('error','Please enter a valid 10-digit mobile number.'); return; }
+    try {
+      const resp = await postForm('search_list', { search: mob });
+      if (resp.message_code == 1000 && Array.isArray(resp.message_data)){
+        renderList(resp.message_data, mob);
+        //showMsg('success','Registrations fetched.');
+      } else {
+        renderList([], mob);
+        showMsg('error', resp.message_text || 'No records found.');
+      }
+    } catch (err){
+      console.error(err);
+      showMsg('error','Search failed.');
+    }
+  }
+
+  function renderList(rows, mob){
+    labelMobile.textContent = mob;
+    resultsWrap.classList.remove('d-none');
+    regItems.innerHTML = '';
+    resultCount.textContent = rows.length;
+    if (!rows.length){
+      regItems.innerHTML = '<li class="list-group-item text-center text-muted py-4">No records found.</li>';
+      return;
+    }
+    rows.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+
+        const regId = r.RegistrationId || '';
+        const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
+        const area = r.AreaName || '-';
+        const gender = r.GenderName || '-';
+
+        li.innerHTML = `
+            <div class="item-line">
+            ${regId}&nbsp;&nbsp;${fullName}, ${area}, ${gender}
+            </div>
+        `;
+
+        li.addEventListener('click', () => openActionSheet('update', r, mob));
+        regItems.appendChild(li);
+    });
+ }
+
+  // action bottom sheet
+  const offcanvasEl = document.getElementById('regActionBar'), offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+  const regForm = document.getElementById('regForm'), modeHint = document.getElementById('formModeHint');
+
+  async function loadDropdowns(){
+    const [a,g,b] = await Promise.all([ postForm('list_area'), postForm('list_gender'), postForm('list_bloodgroup') ]);
+    const areaSel = document.getElementById('AreaId'), genderSel = document.getElementById('Gender'), bloodSel = document.getElementById('BloodGroup');
+    function fill(sel, res, vKey, tKey){
+      sel.innerHTML = '<option value="">Select</option>';
+      if (res && res.message_code == 1000 && Array.isArray(res.message_data)){
+        res.message_data.forEach(it=> {
+          const o = document.createElement('option'); o.value = it[vKey] || it[tKey] || ''; o.textContent = it[tKey];
+          sel.appendChild(o);
+        });
+      }
+    }
+    fill(areaSel, a, 'AreaId', 'AreaName');
+    fill(genderSel, g, 'GenderId', 'GenderName');
+    fill(bloodSel, b, 'BloodGroupId', 'BloodGroupName');
+  }
+
+  async function openActionSheet(mode, row, mob){
+    // reset form
+    regForm.reset();
+
+    // open Bootstrap offcanvas (bottom sheet)
+    offcanvas.show();
+
+    // update heading
+    document.getElementById('regActionBarLabel').textContent =
+        mode === 'insert' ? 'Add New Registration' : 'Update Registration';
+    modeHint.textContent = "Mode: " + (mode === 'insert' ? "Insert" : "Update");
+
+    if (mode === 'insert' && mob) {
+        document.getElementById('MobileNo').value = mob;
+    }
+
+    // load dropdowns (Area, Gender, Blood Group)
+    try {
+        const [areas, genders, bloodgroups] = await Promise.all([
+        postForm('list_area'),
+        postForm('list_gender'),
+        postForm('list_bloodgroup')
+        ]);
+
+        const areaSel = document.getElementById('AreaId');
+        const genderSel = document.getElementById('Gender');
+        const bloodSel = document.getElementById('BloodGroup');
+
+        // fill Area
+        areaSel.innerHTML = '<option value="">Select Area</option>';
+        if (areas?.message_code === 1000) {
+        areas.message_data.forEach(it => {
+            const o = document.createElement('option');
+            o.value = it.AreaId;
+            o.textContent = it.AreaName;
+            areaSel.appendChild(o);
+        });
+        }
+
+        // fill Gender (only Male & Female)
+        genderSel.innerHTML = '<option value="">Select Gender</option>';
+        if (genders?.message_code === 1000) {
+        genders.message_data
+            .filter(it => it.GenderName === "Male" || it.GenderName === "Female")
+            .forEach(it => {
+            const o = document.createElement('option');
+            o.value = it.GenderId || it.Gender || it.GenderName;
+            o.textContent = it.GenderName;
+            genderSel.appendChild(o);
+            });
+        }
+
+        // fill Blood Group
+        bloodSel.innerHTML = '<option value="">Select Blood Group</option>';
+        if (bloodgroups?.message_code === 1000) {
+        bloodgroups.message_data.forEach(it => {
+            const o = document.createElement('option');
+            o.value = it.BloodGroupId;
+            o.textContent = it.BloodGroupName;
+            bloodSel.appendChild(o);
+        });
+        }
+
+        if (mode === 'update' && row) {
+            document.getElementById('RegistrationId').value = row.RegistrationId || '';
+            document.getElementById('Firstname').value = row.Firstname || '';
+            document.getElementById('Middlename').value = row.Middlename || '';
+            document.getElementById('Lastname').value = row.Lastname || '';
+            document.getElementById('MobileNo').value = row.MobileNo || mob || '';
+            document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
+            document.getElementById('Address').value = row.Address || '';
+            document.getElementById('AadharNumber').value = row.AadharNumber || '';
+
+            // ✅ set dropdowns by ID, not by Name
+            setDropdownValue(areaSel, row.AreaId);
+            setDropdownValue(genderSel, row.Gender);
+            setDropdownValue(bloodSel, row.BloodGroup);
+
+            // DateOfBirth (UNIX timestamp → yyyy-mm-dd)
+            if (row.DateOfBirth) {
+                const dob = new Date(parseInt(row.DateOfBirth, 10) * 1000);
+                document.getElementById('DateOfBirth').value = dob.toISOString().split('T')[0];
+            }
+            }
+
+    } catch (err) {
+        console.error("Error loading dropdowns:", err);
+    }
+    }
+
+    function setDropdownValue(selectEl, id) {
+        if (!selectEl || !id) return;
+
+        for (let option of selectEl.options) {
+            if (option.value == id) {
+            option.selected = true;
+            break;
+            }
+        }
+    }
+
+  // add new click (small icon)
+  btnAddNew.addEventListener('click', ()=>{
+    const mob = inputMobile.value.trim();
+    if (!validMobile(mob)){ showMsg('error','Enter a valid 10-digit mobile then click +'); return; }
+    openActionSheet('insert', null, mob);
+  });
+
+  // submit handler
+  regForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const mob = document.getElementById('MobileNo').value.trim();
+    if (!validMobile(mob)){ alert('Mobile must be 10 digits'); return; }
+
+    const RegistrationId = document.getElementById('RegistrationId').value || '0';
+    const payload = {
+      RegistrationId,
+      userMobileNo: mob,
+      userFirstname: document.getElementById('Firstname').value.trim(),
+      userMiddlename: document.getElementById('Middlename').value.trim(),
+      userLastname: document.getElementById('Lastname').value.trim(),
+      AreaId: document.getElementById('AreaId').value || '1',
+      Gender: document.getElementById('Gender').value || '1',
+      Address: document.getElementById('Address').value.trim(),
+      userAlternateMobileNo: document.getElementById('AlternateMobileNo').value.trim(),
+      BloodGroup: (function(){ const sel = document.getElementById('BloodGroup'); return sel.options[sel.selectedIndex]?.text || 'Select'; })(),
+      DateOfBirth: (function(){ const v=document.getElementById('DateOfBirth').value; if(!v) return ''; const [y,m,d]=v.split('-'); return `${d}/${m}/${y}`; })(),
+      Photo:'', PhotoId:''
+    };
+
+    try {
+      const res = await postForm('submit', payload);
+      if (String(res.message_code) === '1000'){
+        offcanvas.hide();
+        showMsg('success', res.message_text || 'Saved');
+        setTimeout(()=> doSearch(), 300);
+      } else {
+        showMsg('error', res.message_text || 'Save failed');
+      }
+    } catch (err){
+      console.error(err); showMsg('error','Save error');
+    }
+  });
+
+  // allow pressing search icon or enter to trigger search
+  document.getElementById('btnSearch').addEventListener('click', doSearch);
+
+</script>
+</body>
+</html>

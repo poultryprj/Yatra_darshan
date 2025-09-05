@@ -40,7 +40,7 @@ def login(request):
                     request.session["first_name"] = user_info["UserFirstname"]
                     request.session["last_name"] = user_info["UserLastname"]
                     request.session["user_role"] = user_info["UserRole"]
-                    return redirect('Registrationpage')
+                    return redirect('Registrationpage1')
                     # messages.success(request, data.get("message_text", "Login successful."))
                 else:
                     messages.error(request, data.get("message_text", "Invalid mobile number or PIN."))
@@ -212,7 +212,7 @@ def registration_api(request):
 
                 print("➡️ Ticket Booking Payload (final):", payload)
 
-                response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)    
             else:
                 return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
 
@@ -225,6 +225,161 @@ def registration_api(request):
             return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
 
     return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
+
+
+def Registrationpage1(request):
+    """
+    Render Registration page after login with user details.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    user_details = {
+        "first_name": request.session.get("first_name", ""),
+        "last_name": request.session.get("last_name", ""),
+        "mobile_no": request.session.get("mobile_no", ""),
+        "aadhar_no": request.session.get("aadhar_no", ""),
+        "user_role": request.session.get("user_role", ""),
+    }
+
+    # If you still need route_yatras later for booking, keep this block
+    route_yatras_data = []
+    api_url = "https://www.lakshyapratishthan.com/apis/routeyatradates"
+    try:
+        resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            if str(data.get("message_code")) == "1000":
+                route_yatras_data = data.get("message_data", [])
+            else:
+                messages.error(request, data.get("message_text", "Unable to fetch route yatra dates."))
+        else:
+            messages.error(request, f"HTTP Error {resp.status_code}")
+    except Exception as e:
+        messages.error(request, "Unable to fetch route yatra dates. Please try again later.")
+
+    return render(request, "Registration1.html", {
+        "user": user_details,
+        "route_yatras": route_yatras_data
+    })
+
+@csrf_exempt
+def registration_api1(request):
+    """
+    Unified API proxy for Registration page.
+    Added:
+      - action=search_list -> returns FULL list of registrations for a mobile
+      - action=submit      -> insert/update pilgrim (keys aligned to external API)
+      - list_area / list_gender / list_bloodgroup passthrough
+    """
+    if request.method != "POST":
+        return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
+
+    action = request.POST.get("action")
+    try:
+        if action == "search_list":
+            mobile = request.POST.get("search")
+            api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
+            payload = {"search": mobile}   # ✅ Correct key
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+            if response.status_code != 200:
+                return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {response.status_code}"})
+            
+            data = response.json()
+            if str(data.get("message_code")) == "1000":
+                from datetime import datetime
+
+                rows = []
+                for r in data.get("message_data", []):
+                    dob_raw = r.get("DateOfBirth")
+                    dob_fmt = ""
+                    try:
+                        if dob_raw and dob_raw.isdigit():
+                            dob_fmt = datetime.fromtimestamp(int(dob_raw)).strftime("%d-%m-%Y")
+                        else:
+                            dob_fmt = dob_raw or ""
+                    except Exception:
+                        dob_fmt = dob_raw or ""
+
+                    rows.append({
+                        "RegistrationId": r.get("RegistrationId"),
+                        "Firstname": r.get("Firstname"),
+                        "Middlename": r.get("Middlename"),
+                        "Lastname": r.get("Lastname"),
+                        "MobileNo": r.get("MobileNo"),
+                        "AlternateMobileNo": r.get("AlternateMobileNo"),
+                        "AadharNumber": r.get("AadharNumber"),
+                        "DateOfBirth": dob_fmt,   # ✅ Converted to dd-mm-yyyy
+                        "Gender": r.get("Gender"),
+                        "GenderId": r.get("GenderId"),
+                        "GenderName": r.get("GenderName"),
+                        "BloodGroup": r.get("BloodGroup"),
+                        "AreaId": r.get("AreaId"),
+                        "AreaName": r.get("AreaName"),
+                        "Address": r.get("Address"),
+                    })
+                print(rows)        
+                return JsonResponse({"message_code": 1000, "message_text": "OK", "message_data": rows})
+
+            return JsonResponse({"message_code": 999, "message_text": data.get("message_text", "No data")})
+
+        elif action == "list_area":
+            api_url = "https://www.lakshyapratishthan.com/apis/listarea"
+            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+
+        elif action == "list_gender":
+            api_url = "https://www.lakshyapratishthan.com/apis/listgender"
+            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+
+        elif action == "list_bloodgroup":
+            api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
+            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+
+        elif action == "submit":
+            api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
+
+            # Accept DD/MM/YYYY directly from client; if it arrives as yyyy-mm-dd, try to convert.
+            dob_in = request.POST.get("DateOfBirth", "")
+            dob_final = dob_in
+            if dob_in and "-" in dob_in and "/" not in dob_in:
+                try:
+                    from datetime import datetime
+                    dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except Exception:
+                    pass
+
+            payload = {
+                "RegistrationId": request.POST.get("RegistrationId", 0),
+                "userMobileNo": request.POST.get("userMobileNo"),
+                "userFirstname": request.POST.get("userFirstname"),
+                "userMiddlename": request.POST.get("userMiddlename", ""),
+                "userLastname": request.POST.get("userLastname"),
+                "AreaId": request.POST.get("AreaId", 1),
+                "Gender": request.POST.get("Gender", 1),
+                "Address": request.POST.get("Address", ""),
+                "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
+                "BloodGroup": request.POST.get("BloodGroup", "Select"),  # send text e.g., "O+"
+                "DateOfBirth": dob_final,
+                "Photo": request.POST.get("Photo", ""),
+                "PhotoId": request.POST.get("PhotoId", ""),
+                "UserId": str(request.session.get("user_id", 0)),
+            }
+            print("358", payload)
+            resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            if resp.status_code != 200:
+                return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {resp.status_code}"})
+            return JsonResponse(resp.json(), safe=False)
+
+        else:
+            return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
+
+    except Exception as e:
+        return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
 
 
 def route_master(request):
