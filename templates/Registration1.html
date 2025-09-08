@@ -859,24 +859,78 @@ function handleAddYatra() {
   console.log("Yatra selection confirmed and section hidden.");
 }
 </script>
-
 <script>
-  // Show/hide UPI fields based on payment mode
+document.addEventListener("DOMContentLoaded", () => {
   const paymentMode = document.getElementById('PaymentMode');
   const upiFields = document.getElementById('upiFields');
 
-  paymentMode.addEventListener('change', () => {
-    if (paymentMode.value === 'upi') {
-      upiFields.classList.remove('d-none');
-    } else {
-      upiFields.classList.add('d-none');
-    }
-  });
-
-  // Show the whole section after user selects at least one yatra
-  function showYatraPaymentSection() {
-    document.getElementById('yatraPaymentSection').classList.remove('d-none');
+  if (paymentMode && upiFields) {
+    paymentMode.addEventListener('change', () => {
+      upiFields.classList.toggle('d-none', paymentMode.value !== 'upi');
+    });
   }
+
+  const btnBookTicket = document.getElementById("btnBookTicket");
+  if (btnBookTicket) {
+    btnBookTicket.addEventListener("click", async () => {
+      try {
+        btnBookTicket.disabled = true; // ✅ Prevent double click
+        btnBookTicket.innerText = "Booking...";
+
+        const allUsersYatras = getAllUsersYatras();
+        if (!allUsersYatras || Object.keys(allUsersYatras).length === 0) {
+          alert("Please select at least one yatra before booking.");
+          btnBookTicket.disabled = false;
+          btnBookTicket.innerText = "Book Ticket";
+          return;
+        }
+
+        // ✅ Collect all registrations with their yatraIds
+        let bookingData = [];
+        for (const regId in allUsersYatras) {
+          const user = allUsersYatras[regId];
+          if (!user.yatras || user.yatras.length === 0) continue;
+          bookingData.push({
+            RegistrationId: regId,
+            YatraIds: user.yatras.map(y => y.id)
+          });
+        }
+
+        const fd = new FormData();
+        fd.append("action", "book_ticket");
+        fd.append("UserId", "{{ request.session.user_id|default:'1' }}");
+        fd.append("Bookings", JSON.stringify(bookingData)); // ✅ send all bookings together
+        fd.append("AmountPaid", document.getElementById("AmountPayable").value || "0");
+        fd.append("Discount", document.getElementById("Discount")?.value || "0");
+        fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
+        fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
+
+        const resp = await fetch("{% url 'registration_api1' %}", {
+          method: "POST",
+          body: fd
+        });
+
+        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+
+        const data = await resp.json();
+        console.log("Book Ticket Response:", data);
+
+        if (data.message_code === 1000) {
+          alert("✅ Tickets booked successfully!");
+        } else {
+          alert(`⚠️ Booking failed: ${data.message_text}`);
+        }
+
+      } catch (error) {
+        console.error("Booking error:", error);
+        alert("❌ Failed to book ticket. Please try again.");
+      } finally {
+        btnBookTicket.disabled = false;
+        btnBookTicket.innerText = "Book Ticket";
+      }
+    });
+  }
+});
 </script>
 
 <script>

@@ -334,6 +334,55 @@ def registration_api1(request):
             api_url = "https://www.lakshyapratishthan.com/apis/listgender"
             resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+        
+        
+        elif action == "book_ticket":
+            try:
+                user_id = request.POST.get("UserId")
+                amount_paid = request.POST.get("AmountPaid")
+                discount = request.POST.get("Discount", 0)
+                discount_reason = request.POST.get("DiscountReason", "")
+                payment_id = request.POST.get("PaymentId")
+                bookings_json = request.POST.get("Bookings", "[]")
+
+                import json
+                bookings = json.loads(bookings_json)  # list of {RegistrationId, YatraIds}
+
+                print("Booking Request →")
+                print("UserId:", user_id)
+                print("AmountPaid:", amount_paid)
+                print("Discount:", discount)
+                print("DiscountReason:", discount_reason)
+                print("PaymentId:", payment_id)
+                print("Bookings:", bookings)
+
+                # TODO: Save or forward each booking
+                # Example structure
+                result = []
+                for b in bookings:
+                    result.append({
+                        "RegistrationId": b["RegistrationId"],
+                        "YatraIds": b["YatraIds"]
+                    })
+
+                return JsonResponse({
+                    "message_code": 1000,
+                    "message_text": "Tickets booked successfully",
+                    "data": {
+                        "UserId": user_id,
+                        "Bookings": result,
+                        "AmountPaid": amount_paid,
+                        "Discount": discount,
+                        "PaymentId": payment_id
+                    }
+                })
+
+            except Exception as e:
+                return JsonResponse({
+                    "message_code": 999,
+                    "message_text": f"Exception in booking: {str(e)}"
+                })
+
 
         elif action == "list_bloodgroup":
             api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
