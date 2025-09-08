@@ -12,6 +12,7 @@
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
 
   <style>
     /* palette & base */
@@ -134,6 +135,10 @@
         white-space: nowrap;  /* keeps everything on one line */
     }
 
+    .card-body { padding: 1rem; }
+    #yatraList .card { margin-bottom: 8px; 
+    }
+
   </style>
 </head>
 <body>
@@ -197,6 +202,62 @@
 
       <div id="regList" class="listview">
         <ul id="regItems" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+
+    <!-- Second Part: Selected Yatras + Payment Details -->
+    <div id="yatraPaymentSection" class="results-area mt-3 d-none">
+      <!-- Selected Yatras -->
+      <div class="mb-2" style="font-weight:600; color:#333;">Selected Yatras</div>
+      <div id="selectedYatras" class="list-group mb-3"></div>
+
+      <!-- Payment Details -->
+      <div class="mb-2" style="font-weight:600; color:#333;">Payment Details</div>
+
+      <!-- Amount Payable -->
+      <div class="floating">
+        <input id="AmountPayable" type="number" placeholder=" " min="0">
+        <label>Amount Payable (₹)</label>
+      </div>
+
+      <!-- Discount -->
+      <div class="floating mt-2">
+        <input id="Discount" type="number" placeholder=" " min="0">
+        <label>Discount (₹)</label>
+      </div>
+
+      <!-- Discount Reason -->
+      <div class="floating mt-2">
+        <input id="DiscountReason" type="text" placeholder=" ">
+        <label>Discount Reason</label>
+      </div>
+
+      <!-- Payment Mode -->
+      <div class="floating mt-2">
+        <select id="PaymentMode" placeholder=" ">
+          <option value="">Select Payment Mode</option>
+          <option value="cash">Cash</option>
+          <option value="upi">UPI</option>
+        </select>
+        <label>Payment Mode</label>
+      </div>
+
+      <!-- Conditional UPI Fields -->
+      <div id="upiFields" class="d-none mt-2">
+        <div class="floating">
+          <input id="TransactionId" type="text" placeholder=" ">
+          <label>UPI Transaction ID</label>
+        </div>
+        <div class="mt-2">
+          <label class="form-label">Upload UPI Screenshot</label>
+          <input id="UPIScreenshot" type="file" class="form-control" accept="image/*">
+        </div>
+      </div>
+
+      <div class="mt-3 d-grid">
+        <button id="btnBookTicket" type="button" class="btn btn-primary">
+          <i class="bi bi-ticket-perforated-fill me-1"></i> Book Ticket
+        </button>
       </div>
     </div>
   </div>
@@ -278,11 +339,23 @@
         <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
       </div>
 
-      <div class="text-muted small mt-2" id="formModeHint">Mode: Insert</div>
-    </form>
-  </div>
-</div>
+      <div class="card mt-3">
+        {% comment %} <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Select Yatras</h6>
+        </div> {% endcomment %}
+        <div id="yatraSection" class="card-body d-none">
+          <div id="yatraList"></div>
+          <div class="mt-3 d-flex justify-content-between align-items-center">
+            <strong>Total Fees: ₹<span id="totalFee">0</span></strong>
+            <button id="btnAddYatra" type="button" class="btn btn-success">
+              <i class="bi bi-plus-circle"></i> Add Yatra
+            </button>
+          </div>
+        </div>
+      </div>
 
+      <div class="text-muted small mt-2" id="formModeHint" style="display:none;">Mode: Insert</div>    
+    </form>
 <!-- scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -352,6 +425,11 @@
     resultsWrap.classList.remove('d-none');
     regItems.innerHTML = '';
     resultCount.textContent = rows.length;
+
+    // ✅ Show Selected Yatras + Payment section immediately
+    const yatraPaymentSection = document.getElementById('yatraPaymentSection');
+    yatraPaymentSection.classList.remove('d-none');
+
     if (!rows.length){
       regItems.innerHTML = '<li class="list-group-item text-center text-muted py-4">No records found.</li>';
       return;
@@ -374,7 +452,9 @@
         li.addEventListener('click', () => openActionSheet('update', r, mob));
         regItems.appendChild(li);
     });
- }
+    // 🔥 Render selected yatras per user
+    renderSelectedYatras(rows, mob);
+  }
 
   // action bottom sheet
   const offcanvasEl = document.getElementById('regActionBar'), offcanvas = new bootstrap.Offcanvas(offcanvasEl);
@@ -461,41 +541,40 @@
         }
 
         if (mode === 'update' && row) {
-            document.getElementById('RegistrationId').value = row.RegistrationId || '';
-            document.getElementById('Firstname').value = row.Firstname || '';
-            document.getElementById('Middlename').value = row.Middlename || '';
-            document.getElementById('Lastname').value = row.Lastname || '';
-            document.getElementById('MobileNo').value = row.MobileNo || mob || '';
-            document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
-            document.getElementById('Address').value = row.Address || '';
-            document.getElementById('AadharNumber').value = row.AadharNumber || '';
+          document.getElementById('RegistrationId').value = row.RegistrationId || '';
+          document.getElementById('Firstname').value = row.Firstname || '';
+          document.getElementById('Middlename').value = row.Middlename || '';
+          document.getElementById('Lastname').value = row.Lastname || '';
+          document.getElementById('MobileNo').value = row.MobileNo || mob || '';
+          document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
+          document.getElementById('Address').value = row.Address || '';
+          document.getElementById('AadharNumber').value = row.AadharNumber || '';
 
-            // ✅ set dropdowns by ID, not by Name
-            setDropdownValue(areaSel, row.AreaId);
-            setDropdownValue(genderSel, row.Gender);
-            setDropdownValue(bloodSel, row.BloodGroup);
+          // set dropdowns by their IDs from row
+          setDropdownValue(areaSel, row.AreaId);
+          setDropdownValue(genderSel, row.GenderId);
+          setDropdownValue(bloodSel, row.BloodGroupId);
 
-            // DateOfBirth (UNIX timestamp → yyyy-mm-dd)
-            if (row.DateOfBirth) {
-                const dob = new Date(parseInt(row.DateOfBirth, 10) * 1000);
-                document.getElementById('DateOfBirth').value = dob.toISOString().split('T')[0];
-            }
-            }
+          // ✅ DateOfBirth comes as "dd-mm-yyyy" → convert to yyyy-mm-dd
+          if (row.DateOfBirth) {
+              const parts = row.DateOfBirth.split("-");
+              if (parts.length === 3) {
+                  const formatted = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+                  document.getElementById('DateOfBirth').value = formatted;
+              }
+          }
+        }
 
     } catch (err) {
         console.error("Error loading dropdowns:", err);
     }
     }
 
-    function setDropdownValue(selectEl, id) {
-        if (!selectEl || !id) return;
-
-        for (let option of selectEl.options) {
-            if (option.value == id) {
-            option.selected = true;
-            break;
-            }
-        }
+    function setDropdownValue(select, value) {
+      if (!value) return;
+      [...select.options].forEach(opt => {
+          if (opt.value == value) opt.selected = true;
+      });
     }
 
   // add new click (small icon)
@@ -545,5 +624,244 @@
   document.getElementById('btnSearch').addEventListener('click', doSearch);
 
 </script>
+
+<script>
+let selectedYatras = []; 
+const routes = {{ route_yatras|safe }};
+
+// Insert "Select Yatras" button
+document.addEventListener("DOMContentLoaded", ()=>{
+  const yatraBtn = document.createElement("button");
+  yatraBtn.className = "btn btn-outline-primary w-100 mt-2";
+  yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
+  yatraBtn.type = "button";
+
+  // append button before yatra section
+  document.querySelector("#regForm .mt-3").appendChild(yatraBtn);
+
+  // toggle section on button click
+  yatraBtn.addEventListener("click", ()=>{
+    const section = document.getElementById("yatraSection");
+    if(section.classList.contains("d-none")){
+      renderYatras();
+      section.classList.remove("d-none");
+      yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
+    } else {
+      section.classList.add("d-none");
+      yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
+    }
+  });
+});
+
+// Render Yatras grouped by route
+function renderYatras(){
+  const container = document.getElementById("yatraList");
+  container.innerHTML = "";
+
+  routes.forEach(route=>{
+    const card = document.createElement("div");
+    card.className = "card mb-2 shadow-sm";
+
+    let yatraItems = "";
+    if(route.Yatras && route.Yatras.length){
+      route.Yatras.forEach(y=>{
+        yatraItems += `
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${y.YatraDateTime}</strong><br>
+              <small>Fees: ₹${y.YatraFees}</small>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input yatra-toggle" type="checkbox"
+                value="${y.YatraId}" data-amount="${y.YatraFees}" 
+                data-route="${route.YatraRouteName}">
+            </div>
+          </li>`;
+      });
+    } else {
+      yatraItems = `<li class="list-group-item"><em>No yatras available</em></li>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-header bg-light">
+        <strong>${route.YatraRouteName}</strong><br>
+        <small>${route.YatraRouteDetails}</small>
+      </div>
+      <ul class="list-group list-group-flush">${yatraItems}</ul>
+    `;
+    container.appendChild(card);
+  });
+
+  // attach toggle events
+  container.querySelectorAll(".yatra-toggle").forEach(chk=>{
+    chk.addEventListener("change", updateTotal);
+  });
+}
+
+// update total dynamically (but don't reset localStorage here)
+function updateTotal(){
+  let total = 0;
+  selectedYatras = [];
+  document.querySelectorAll(".yatra-toggle:checked").forEach(chk=>{
+    selectedYatras.push({
+      id: chk.value,
+      amount: parseFloat(chk.dataset.amount),
+      route: chk.dataset.route
+    });
+    total += parseFloat(chk.dataset.amount);
+  });
+  document.getElementById("totalFee").textContent = total;
+}
+
+document.getElementById("btnAddYatra").addEventListener("click", ()=>{
+  console.log("=== Add Yatra Button Clicked ===");
+
+  // ✅ Clear previously saved yatras completely before adding new
+  localStorage.removeItem("userYatras"); 
+  // OR use localStorage.clear(); to clear everything
+  console.log("Previous localStorage cleared.");
+
+  if (!selectedYatras.length) { 
+    console.log("No yatras selected.");
+    alert("Select at least one yatra"); 
+    return; 
+  }
+
+  // Get current user
+  const regId = document.getElementById("RegistrationId").value || "new";
+  const fullName = [
+    document.getElementById("Firstname").value.trim(),
+    document.getElementById("Middlename").value.trim(),
+    document.getElementById("Lastname").value.trim()
+  ].filter(Boolean).join(" ") || "Unknown";
+
+  console.log("Current User:", { regId, fullName });
+
+  // Initialize fresh object since previous data is cleared
+  let allUsersYatras = {};
+  allUsersYatras[regId] = { fullName, yatras: [] };
+
+  let addedCount = 0, skippedCount = 0;
+
+  selectedYatras.forEach(y=>{
+    console.log("Processing selected yatra:", y);
+    allUsersYatras[regId].yatras.push({ id: y.id, route: y.route, amount: y.amount });
+    console.log(`Added Yatra ID ${y.id} for user ${regId}`);
+    addedCount++;
+  });
+
+  // Save to localStorage
+  localStorage.setItem("userYatras", JSON.stringify(allUsersYatras));
+  console.log("Updated userYatras saved to localStorage:", allUsersYatras);
+
+  // Refresh display
+  renderSelectedYatras();
+
+  // Alert user
+  alert(`${addedCount} yatra(s) added successfully.`);
+
+  // Clear selections
+  document.querySelectorAll(".yatra-toggle:checked").forEach(chk=> chk.checked=false);
+  selectedYatras = [];
+  document.getElementById("totalFee").textContent = 0;
+
+  console.log("Selected yatras cleared, total fee reset to 0.");
+});
+
+</script>
+
+<script>
+  // Show/hide UPI fields based on payment mode
+  const paymentMode = document.getElementById('PaymentMode');
+  const upiFields = document.getElementById('upiFields');
+
+  paymentMode.addEventListener('change', () => {
+    if (paymentMode.value === 'upi') {
+      upiFields.classList.remove('d-none');
+    } else {
+      upiFields.classList.add('d-none');
+    }
+  });
+
+  // Show the whole section after user selects at least one yatra
+  function showYatraPaymentSection() {
+    document.getElementById('yatraPaymentSection').classList.remove('d-none');
+  }
+</script>
+
+<script>
+// remove: let selectedYatras = [];  <-- already declared above
+// const routes = {{ route_yatras|safe }};  <-- you can keep this if not declared before
+
+// Render selected yatras for all users from localStorage
+function renderSelectedYatras() {
+  const yatraContainer = document.getElementById('selectedYatras');
+  if (!yatraContainer) return;
+
+  yatraContainer.innerHTML = '';
+
+  // Get all users' yatras from localStorage
+  const allUsersYatras = JSON.parse(localStorage.getItem("userYatras") || "{}");
+  console.log("Rendering all users' yatras:", allUsersYatras);
+
+  // Use route_yatras from Django context
+  const routes = {{ route_yatras|safe }};
+
+  // Build Yatra lookup by ID
+  const yatraMap = {};
+  routes.forEach(route => {
+    if (route.Yatras && route.Yatras.length) {
+      route.Yatras.forEach(y => {
+        yatraMap[y.YatraId] = {
+          route: route.YatraRouteName,
+          fees: y.YatraFees
+        };
+      });
+    }
+  });
+
+  // Loop through each user in localStorage
+  Object.keys(allUsersYatras).forEach(regId => {
+    const user = allUsersYatras[regId];
+    const fullName = user.fullName || "(Unnamed)";
+    const userYatras = Array.isArray(user.yatras) ? user.yatras : [];
+
+    const userBlock = document.createElement('div');
+    userBlock.className = "mb-3";
+
+    const nameLine = document.createElement('div');
+    nameLine.className = "fw-bold text-primary";
+    nameLine.textContent = fullName;
+    userBlock.appendChild(nameLine);
+
+    if (!userYatras.length) {
+      const noYatra = document.createElement('div');
+      noYatra.className = "small text-muted ms-3";
+      noYatra.textContent = "No yatras selected yet.";
+      userBlock.appendChild(noYatra);
+    } else {
+      userYatras.forEach(y => {
+        const yData = yatraMap[y.id];
+        const yLine = document.createElement('div');
+        yLine.className = "small ms-3 text-dark";
+
+        if (yData) {
+          yLine.innerHTML = `<i class="bi bi-arrow-right-short"></i>
+                             Yatra ID: ${y.id} — ${yData.route} — ₹${yData.fees}`;
+        } else {
+          yLine.innerHTML = `<i class="bi bi-arrow-right-short"></i>
+                             Yatra ID: ${y.id} — (not found)`;
+        }
+
+        userBlock.appendChild(yLine);
+      });
+    }
+
+    yatraContainer.appendChild(userBlock);
+  });
+}
+
+</script>
+
 </body>
 </html>
