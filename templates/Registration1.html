@@ -432,8 +432,12 @@
 
     if (!rows.length){
       regItems.innerHTML = '<li class="list-group-item text-center text-muted py-4">No records found.</li>';
+      
+      // Still render selected yatras even if no users found
+      renderSelectedYatras([], mob);
       return;
     }
+    
     rows.forEach(r => {
         const li = document.createElement('li');
         li.className = 'list-group-item';
@@ -452,7 +456,8 @@
         li.addEventListener('click', () => openActionSheet('update', r, mob));
         regItems.appendChild(li);
     });
-    // 🔥 Render selected yatras per user
+    
+    // 🔥 Pass search results to renderSelectedYatras to show only relevant users' yatras
     renderSelectedYatras(rows, mob);
   }
 
@@ -626,6 +631,7 @@
 </script>
 
 <script>
+// Updated Yatra Management System
 let selectedYatras = []; 
 const routes = {{ route_yatras|safe }};
 
@@ -651,12 +657,70 @@ document.addEventListener("DOMContentLoaded", ()=>{
       yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
     }
   });
+
+  // Initial render of selected yatras on page load
+  renderSelectedYatras();
 });
 
-// Render Yatras grouped by route
+// Get current user identifier
+function getCurrentUserId() {
+  const regId = document.getElementById("RegistrationId").value || "new";
+  return regId;
+}
+
+// Get current user's full name
+function getCurrentUserName() {
+  return [
+    document.getElementById("Firstname").value.trim(),
+    document.getElementById("Middlename").value.trim(),
+    document.getElementById("Lastname").value.trim()
+  ].filter(Boolean).join(" ") || "Unknown";
+}
+
+// Get all users' yatras from localStorage
+function getAllUsersYatras() {
+  return JSON.parse(localStorage.getItem("userYatras") || "{}");
+}
+
+// Save all users' yatras to localStorage
+function saveAllUsersYatras(data) {
+  localStorage.setItem("userYatras", JSON.stringify(data));
+  console.log("Updated userYatras saved to localStorage:", data);
+}
+
+// Get current user's yatras
+function getCurrentUserYatras() {
+  const userId = getCurrentUserId();
+  const allUsersYatras = getAllUsersYatras();
+  return allUsersYatras[userId] ? allUsersYatras[userId].yatras || [] : [];
+}
+
+// Update current user's yatras
+function updateCurrentUserYatras(yatras) {
+  const userId = getCurrentUserId();
+  const userName = getCurrentUserName();
+  const allUsersYatras = getAllUsersYatras();
+  
+  if (!allUsersYatras[userId]) {
+    allUsersYatras[userId] = { fullName: userName, yatras: [] };
+  }
+  
+  allUsersYatras[userId].fullName = userName;
+  allUsersYatras[userId].yatras = yatras;
+  
+  saveAllUsersYatras(allUsersYatras);
+}
+
+// Render Yatras grouped by route with restored toggle states
 function renderYatras(){
   const container = document.getElementById("yatraList");
   container.innerHTML = "";
+
+  // Get current user's existing yatras
+  const existingYatras = getCurrentUserYatras();
+  const existingYatraIds = existingYatras.map(y => y.id);
+  
+  console.log("Existing yatras for current user:", existingYatras);
 
   routes.forEach(route=>{
     const card = document.createElement("div");
@@ -665,6 +729,10 @@ function renderYatras(){
     let yatraItems = "";
     if(route.Yatras && route.Yatras.length){
       route.Yatras.forEach(y=>{
+        // Check if this yatra is already selected
+        const isSelected = existingYatraIds.includes(y.YatraId.toString());
+        const checkedAttr = isSelected ? 'checked' : '';
+        
         yatraItems += `
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
@@ -674,7 +742,8 @@ function renderYatras(){
             <div class="form-check form-switch">
               <input class="form-check-input yatra-toggle" type="checkbox"
                 value="${y.YatraId}" data-amount="${y.YatraFees}" 
-                data-route="${route.YatraRouteName}">
+                data-route="${route.YatraRouteName}" data-datetime="${y.YatraDateTime}"
+                ${checkedAttr}>
             </div>
           </li>`;
       });
@@ -692,82 +761,103 @@ function renderYatras(){
     container.appendChild(card);
   });
 
-  // attach toggle events
+  // Attach toggle events
   container.querySelectorAll(".yatra-toggle").forEach(chk=>{
-    chk.addEventListener("change", updateTotal);
+    chk.addEventListener("change", handleYatraToggle);
   });
+  
+  // Calculate initial total based on existing selections
+  calculateAndDisplayTotal();
 }
 
-// update total dynamically (but don't reset localStorage here)
-function updateTotal(){
-  let total = 0;
-  selectedYatras = [];
-  document.querySelectorAll(".yatra-toggle:checked").forEach(chk=>{
-    selectedYatras.push({
-      id: chk.value,
-      amount: parseFloat(chk.dataset.amount),
-      route: chk.dataset.route
-    });
-    total += parseFloat(chk.dataset.amount);
-  });
+// Handle individual yatra toggle changes
+function handleYatraToggle(event) {
+  const checkbox = event.target;
+  const yatraId = checkbox.value;
+  const amount = parseFloat(checkbox.dataset.amount);
+  const route = checkbox.dataset.route;
+  const datetime = checkbox.dataset.datetime;
+  
+  let currentUserYatras = getCurrentUserYatras();
+  
+  if (checkbox.checked) {
+    // Add yatra if not already exists
+    const exists = currentUserYatras.find(y => y.id === yatraId);
+    if (!exists) {
+      currentUserYatras.push({
+        id: yatraId,
+        route: route,
+        amount: amount,
+        datetime: datetime
+      });
+      console.log(`Added Yatra ID ${yatraId} for current user`);
+    }
+  } else {
+    // Remove yatra
+    currentUserYatras = currentUserYatras.filter(y => y.id !== yatraId);
+    console.log(`Removed Yatra ID ${yatraId} for current user`);
+  }
+  
+  // Update localStorage
+  updateCurrentUserYatras(currentUserYatras);
+  
+  // Update total display
+  calculateAndDisplayTotal();
+  
+  // Update selected yatras display in main screen
+  renderSelectedYatras();
+}
+
+// Calculate and display total for current user
+function calculateAndDisplayTotal() {
+  const currentUserYatras = getCurrentUserYatras();
+  const total = currentUserYatras.reduce((sum, y) => sum + y.amount, 0);
+  
   document.getElementById("totalFee").textContent = total;
+  console.log("Total calculated:", total);
 }
 
-document.getElementById("btnAddYatra").addEventListener("click", ()=>{
+// Updated Add Yatra button handler
+document.addEventListener("DOMContentLoaded", () => {
+  // Wait for DOM to be ready, then add event listener
+  setTimeout(() => {
+    const addYatraBtn = document.getElementById("btnAddYatra");
+    if (addYatraBtn) {
+      addYatraBtn.addEventListener("click", handleAddYatra);
+    }
+  }, 100);
+});
+
+function handleAddYatra() {
   console.log("=== Add Yatra Button Clicked ===");
-
-  // ✅ Clear previously saved yatras completely before adding new
-  localStorage.removeItem("userYatras"); 
-  // OR use localStorage.clear(); to clear everything
-  console.log("Previous localStorage cleared.");
-
-  if (!selectedYatras.length) { 
-    console.log("No yatras selected.");
+  
+  const currentUserYatras = getCurrentUserYatras();
+  
+  if (!currentUserYatras.length) { 
+    console.log("No yatras selected for current user.");
     alert("Select at least one yatra"); 
     return; 
   }
 
-  // Get current user
-  const regId = document.getElementById("RegistrationId").value || "new";
-  const fullName = [
-    document.getElementById("Firstname").value.trim(),
-    document.getElementById("Middlename").value.trim(),
-    document.getElementById("Lastname").value.trim()
-  ].filter(Boolean).join(" ") || "Unknown";
-
-  console.log("Current User:", { regId, fullName });
-
-  // Initialize fresh object since previous data is cleared
-  let allUsersYatras = {};
-  allUsersYatras[regId] = { fullName, yatras: [] };
-
-  let addedCount = 0, skippedCount = 0;
-
-  selectedYatras.forEach(y=>{
-    console.log("Processing selected yatra:", y);
-    allUsersYatras[regId].yatras.push({ id: y.id, route: y.route, amount: y.amount });
-    console.log(`Added Yatra ID ${y.id} for user ${regId}`);
-    addedCount++;
-  });
-
-  // Save to localStorage
-  localStorage.setItem("userYatras", JSON.stringify(allUsersYatras));
-  console.log("Updated userYatras saved to localStorage:", allUsersYatras);
-
-  // Refresh display
+  // Update the selected yatras display
   renderSelectedYatras();
 
-  // Alert user
-  alert(`${addedCount} yatra(s) added successfully.`);
+  // Show success message
+  alert(`${currentUserYatras.length} yatra(s) confirmed for this user.`);
 
-  // Clear selections
-  document.querySelectorAll(".yatra-toggle:checked").forEach(chk=> chk.checked=false);
-  selectedYatras = [];
-  document.getElementById("totalFee").textContent = 0;
+  // Hide the yatra selection section
+  const section = document.getElementById("yatraSection");
+  section.classList.add("d-none");
+  
+  // Update button text
+  const yatraBtn = document.querySelector('button[data-bs-target="#yatraSection"]') || 
+                   document.querySelector('button:contains("Hide Yatras")');
+  if (yatraBtn) {
+    yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
+  }
 
-  console.log("Selected yatras cleared, total fee reset to 0.");
-});
-
+  console.log("Yatra selection confirmed and section hidden.");
+}
 </script>
 
 <script>
@@ -790,78 +880,146 @@ document.getElementById("btnAddYatra").addEventListener("click", ()=>{
 </script>
 
 <script>
-// remove: let selectedYatras = [];  <-- already declared above
-// const routes = {{ route_yatras|safe }};  <-- you can keep this if not declared before
-
-// Render selected yatras for all users from localStorage
-function renderSelectedYatras() {
+// Render selected yatras for all users from localStorage (for main screen display)
+function renderSelectedYatras(searchResults = null, searchMobile = null) {
   const yatraContainer = document.getElementById('selectedYatras');
   if (!yatraContainer) return;
 
   yatraContainer.innerHTML = '';
 
   // Get all users' yatras from localStorage
-  const allUsersYatras = JSON.parse(localStorage.getItem("userYatras") || "{}");
+  const allUsersYatras = getAllUsersYatras();
   console.log("Rendering all users' yatras:", allUsersYatras);
 
-  // Use route_yatras from Django context
-  const routes = {{ route_yatras|safe }};
-
-  // Build Yatra lookup by ID
+  // Build Yatra lookup by ID from routes
   const yatraMap = {};
   routes.forEach(route => {
     if (route.Yatras && route.Yatras.length) {
       route.Yatras.forEach(y => {
-        yatraMap[y.YatraId] = {
+        yatraMap[y.YatraId.toString()] = {
           route: route.YatraRouteName,
-          fees: y.YatraFees
+          fees: y.YatraFees,
+          datetime: y.YatraDateTime
         };
       });
     }
   });
 
-  // Loop through each user in localStorage
-  Object.keys(allUsersYatras).forEach(regId => {
-    const user = allUsersYatras[regId];
+  // If we have search results, show only those users' yatras
+  let usersToShow = {};
+  
+  if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
+    // Show yatras only for users in search results
+    searchResults.forEach(user => {
+      const regId = user.RegistrationId ? user.RegistrationId.toString() : 'new';
+      if (allUsersYatras[regId]) {
+        usersToShow[regId] = allUsersYatras[regId];
+      }
+    });
+  } else {
+    // Show all users' yatras
+    usersToShow = allUsersYatras;
+  }
+
+  // If no users have yatras, show message
+  if (Object.keys(usersToShow).length === 0) {
+    const noYatras = document.createElement('div');
+    noYatras.className = "text-muted text-center py-3";
+    noYatras.innerHTML = '<i class="bi bi-info-circle"></i> No yatras selected yet.';
+    yatraContainer.appendChild(noYatras);
+    return;
+  }
+
+  // Calculate total amount across all selected users
+  let grandTotal = 0;
+
+  // Loop through each user to show
+  Object.keys(usersToShow).forEach(regId => {
+    const user = usersToShow[regId];
     const fullName = user.fullName || "(Unnamed)";
     const userYatras = Array.isArray(user.yatras) ? user.yatras : [];
 
     const userBlock = document.createElement('div');
-    userBlock.className = "mb-3";
+    userBlock.className = "card mb-2";
 
-    const nameLine = document.createElement('div');
-    nameLine.className = "fw-bold text-primary";
-    nameLine.textContent = fullName;
-    userBlock.appendChild(nameLine);
+    const cardHeader = document.createElement('div');
+    cardHeader.className = "card-header bg-light d-flex justify-content-between align-items-center";
+    
+    const nameDiv = document.createElement('div');
+    nameDiv.className = "fw-bold text-primary";
+    nameDiv.textContent = fullName;
+    cardHeader.appendChild(nameDiv);
+
+    if (userYatras.length > 0) {
+      const userTotal = userYatras.reduce((sum, y) => {
+        const yData = yatraMap[y.id];
+        const fee = yData ? parseFloat(yData.fees) : parseFloat(y.amount || 0);
+        return sum + (isNaN(fee) ? 0 : fee);
+      }, 0);
+      
+      grandTotal += userTotal;
+      
+      const totalBadge = document.createElement('span');
+      totalBadge.className = "badge bg-success";
+      totalBadge.textContent = `₹${userTotal}`;
+      cardHeader.appendChild(totalBadge);
+    }
+
+    userBlock.appendChild(cardHeader);
+
+    const cardBody = document.createElement('div');
+    cardBody.className = "card-body";
 
     if (!userYatras.length) {
       const noYatra = document.createElement('div');
-      noYatra.className = "small text-muted ms-3";
+      noYatra.className = "small text-muted";
       noYatra.textContent = "No yatras selected yet.";
-      userBlock.appendChild(noYatra);
+      cardBody.appendChild(noYatra);
     } else {
       userYatras.forEach(y => {
         const yData = yatraMap[y.id];
         const yLine = document.createElement('div');
-        yLine.className = "small ms-3 text-dark";
+        yLine.className = "small text-dark mb-1 d-flex justify-content-between";
 
         if (yData) {
-          yLine.innerHTML = `<i class="bi bi-arrow-right-short"></i>
-                             Yatra ID: ${y.id} — ${yData.route} — ₹${yData.fees}`;
+          yLine.innerHTML = `
+            <span><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</span>
+            <span class="fw-bold">₹${yData.fees}</span>
+          `;
         } else {
-          yLine.innerHTML = `<i class="bi bi-arrow-right-short"></i>
-                             Yatra ID: ${y.id} — (not found)`;
+          yLine.innerHTML = `
+            <span><i class="bi bi-question-circle me-1"></i>Yatra ID: ${y.id} (details not found)</span>
+            <span class="fw-bold">₹${y.amount || 0}</span>
+          `;
         }
 
-        userBlock.appendChild(yLine);
+        cardBody.appendChild(yLine);
       });
     }
 
+    userBlock.appendChild(cardBody);
     yatraContainer.appendChild(userBlock);
   });
+
+  // Show grand total if there are selected yatras
+  if (grandTotal > 0) {
+    const totalCard = document.createElement('div');
+    totalCard.className = "card border-success";
+    totalCard.innerHTML = `
+      <div class="card-body text-center">
+        <h5 class="card-title text-success">Total Amount: ₹${grandTotal}</h5>
+        <p class="card-text small text-muted">Total for all selected yatras</p>
+      </div>
+    `;
+    yatraContainer.appendChild(totalCard);
+    
+    // Auto-fill the payment amount
+    const amountPayableInput = document.getElementById('AmountPayable');
+    if (amountPayableInput) {
+      amountPayableInput.value = grandTotal;
+    }
+  }
 }
-
 </script>
-
 </body>
 </html>
