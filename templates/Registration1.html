@@ -273,65 +273,72 @@
     <form id="regForm" autocomplete="off">
       <input id="RegistrationId" type="hidden" value="0">
 
-      <!-- Row 1: Mobile + First Name -->
-        <div class="d-flex gap-2">
-        <div class="floating" style="flex:1">
-            <input id="MobileNo" type="tel" placeholder=" " maxlength="10" required>
-            <label>Mobile No.</label>
-        </div>
-        <div class="floating" style="flex:1">
-            <input id="Firstname" type="text" placeholder=" ">
-            <label>First Name</label>
-        </div>
-        </div>
-
-        <!-- Row 2: Middle + Last Name -->
-        <div class="d-flex gap-2 mt-2">
-        <div class="floating" style="flex:1">
-            <input id="Middlename" type="text" placeholder=" ">
-            <label>Middle Name</label>
-        </div>
-        <div class="floating" style="flex:1">
-            <input id="Lastname" type="text" placeholder=" ">
-            <label>Last Name</label>
-        </div>
-        </div>
-
-      <div class="floating">
-        <input id="Address" type="text" placeholder=" ">
-        <label>Address</label>
-      </div>
-
+      <!-- Row 1: Mobile + Alternate Mobile -->
       <div class="d-flex gap-2">
         <div class="floating" style="flex:1">
-          <select id="AreaId" placeholder=" "><option value="">Select Area</option></select>
-          <label>Area</label>
+            <input id="MobileNo" type="tel" placeholder=" " maxlength="10" required>
+            <label>Mobile No. *</label>
         </div>
         <div class="floating" style="flex:1">
-          <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
-          <label>Gender</label>
-        </div>
-      </div>
-
-      <div class="d-flex gap-2 mt-1">
-        <div class="floating" style="flex:1">
-          <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
-          <label>Blood Group</label>
-        </div>
-        <div class="floating" style="flex:1">
-          <input id="DateOfBirth" type="date" placeholder=" ">
-          <label>Date of Birth</label>
+            <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10">
+            <label>Alternate Mobile</label>
         </div>
       </div>
 
-      <div class="d-flex gap-2 mt-1">
+      <!-- Row 2: First Name + Middle Name -->
+      <div class="d-flex gap-2 mt-2">
         <div class="floating" style="flex:1">
-          <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10">
-          <label>Alternate Mobile</label>
+            <input id="Firstname" type="text" placeholder=" " required>
+            <label>First Name *</label>
         </div>
         <div class="floating" style="flex:1">
-          <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
-          <label>Aadhar No.</label>
+            <input id="Middlename" type="text" placeholder=" " required>
+            <label>Middle Name *</label>
+        </div>
+      </div>
+
+      <!-- Row 3: Last Name + Area -->
+      <div class="d-flex gap-2 mt-2">
+        <div class="floating" style="flex:1">
+            <input id="Lastname" type="text" placeholder=" " required>
+            <label>Last Name *</label>
+        </div>
+        <div class="floating" style="flex:1">
+          <select id="AreaId" placeholder=" " required><option value="">Select Area</option></select>
+          <label>Area *</label>
+        </div>
+      </div>
+
+      <!-- Row 4: Address -->
+      <div class="d-flex gap-2 mt-2">
+        <div class="floating" style="flex:1">
+          <input id="Address" type="text" placeholder=" " required>
+          <label>Address *</label>
+        </div>
+      </div>
+
+      <!-- Fields to show only in INSERT mode -->
+      <div id="insertOnlyFields">
+        <div class="d-flex gap-2 mt-2">
+          <div class="floating" style="flex:1">
+            <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
+            <label>Gender</label>
+          </div>
+          <div class="floating" style="flex:1">
+            <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
+            <label>Blood Group</label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-2">
+          <div class="floating" style="flex:1">
+            <input id="DateOfBirth" type="date" placeholder=" ">
+            <label>Date of Birth</label>
+          </div>
+          <div class="floating" style="flex:1">
+            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
+            <label>Aadhar No.</label>
+          </div>
         </div>
       </div>
 
@@ -408,13 +415,16 @@
     try {
       const resp = await postForm('search_list', { search: mob });
       if (resp.message_code == 1000 && Array.isArray(resp.message_data)){
+        // Store search results for later use
+        sessionStorage.setItem('lastSearchResults', JSON.stringify(resp.message_data));
         renderList(resp.message_data, mob);
         //showMsg('success','Registrations fetched.');
       } else {
+        sessionStorage.setItem('lastSearchResults', JSON.stringify([]));
         renderList([], mob);
         showMsg('error', resp.message_text || 'No records found.');
       }
-    } catch (err){
+          } catch (err){
       console.error(err);
       showMsg('error','Search failed.');
     }
@@ -426,14 +436,14 @@
     regItems.innerHTML = '';
     resultCount.textContent = rows.length;
 
-    // ✅ Show Selected Yatras + Payment section immediately
+    // ✅ Show Selected Yatras + Payment section only when there are search results
     const yatraPaymentSection = document.getElementById('yatraPaymentSection');
     yatraPaymentSection.classList.remove('d-none');
 
     if (!rows.length){
       regItems.innerHTML = '<li class="list-group-item text-center text-muted py-4">No records found.</li>';
       
-      // Still render selected yatras even if no users found
+      // Show empty yatras when no users found
       renderSelectedYatras([], mob);
       return;
     }
@@ -463,6 +473,14 @@
 
   // action bottom sheet
   const offcanvasEl = document.getElementById('regActionBar'), offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+
+  offcanvasEl.addEventListener('hidden.bs.offcanvas', function() {
+    // Update selected yatras display when the registration form is closed
+    const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
+    const searchMobile = inputMobile.value.trim();
+    renderSelectedYatras(currentSearchResults, searchMobile);
+  });
+
   const regForm = document.getElementById('regForm'), modeHint = document.getElementById('formModeHint');
 
   async function loadDropdowns(){
@@ -486,6 +504,19 @@
     // reset form
     regForm.reset();
 
+    // 🔥 CRITICAL FIX: Always reset RegistrationId to 0 for insert mode
+    if (mode === 'insert') {
+        document.getElementById('RegistrationId').value = '0';
+
+      // 🔥 NEW FIX: Clear any existing yatra selections for new user
+        const userId = getCurrentUserId(); // This will be "0" for new users
+        const allUsersYatras = getAllUsersYatras();
+        if (allUsersYatras[userId]) {
+            delete allUsersYatras[userId]; // Remove any existing data for "0" key
+            saveAllUsersYatras(allUsersYatras);
+        }  
+    }
+
     // open Bootstrap offcanvas (bottom sheet)
     offcanvas.show();
 
@@ -495,7 +526,17 @@
     modeHint.textContent = "Mode: " + (mode === 'insert' ? "Insert" : "Update");
 
     if (mode === 'insert' && mob) {
-        document.getElementById('MobileNo').value = mob;
+      document.getElementById('MobileNo').value = mob;
+    } else if (mode === 'insert') {
+        document.getElementById('MobileNo').value = ''; // Clear mobile for fresh registration
+    }
+
+    // Show/hide fields based on mode
+    const insertOnlyFields = document.getElementById('insertOnlyFields');
+    if (mode === 'insert') {
+      insertOnlyFields.style.display = 'block';
+    } else {
+      insertOnlyFields.style.display = 'none';
     }
 
     // load dropdowns (Area, Gender, Blood Group)
@@ -521,17 +562,26 @@
         });
         }
 
-        // fill Gender (only Male & Female)
+        // fill Gender (only Male & Female) with Female as default for insert
         genderSel.innerHTML = '<option value="">Select Gender</option>';
         if (genders?.message_code === 1000) {
-        genders.message_data
-            .filter(it => it.GenderName === "Male" || it.GenderName === "Female")
-            .forEach(it => {
-            const o = document.createElement('option');
-            o.value = it.GenderId || it.Gender || it.GenderName;
-            o.textContent = it.GenderName;
-            genderSel.appendChild(o);
-            });
+          let femaleValue = null;
+          genders.message_data
+              .filter(it => it.GenderName === "Male" || it.GenderName === "Female")
+              .forEach(it => {
+              const o = document.createElement('option');
+              o.value = it.GenderId;  // 🔥 Use GenderId, not GenderName
+              o.textContent = it.GenderName;
+              if (it.GenderName === "Female") {
+                femaleValue = o.value;
+              }
+              genderSel.appendChild(o);
+              });
+          
+          // Set Female as default for insert mode
+          if (mode === 'insert' && femaleValue) {
+            genderSel.value = femaleValue;
+          }
         }
 
         // fill Blood Group
@@ -539,13 +589,16 @@
         if (bloodgroups?.message_code === 1000) {
         bloodgroups.message_data.forEach(it => {
             const o = document.createElement('option');
-            o.value = it.BloodGroupId;
+            o.value = it.BloodGroupId;  // 🔥 Use BloodGroupId
             o.textContent = it.BloodGroupName;
             bloodSel.appendChild(o);
         });
         }
 
+        // 🔥 POPULATE FIELDS FOR UPDATE MODE
         if (mode === 'update' && row) {
+          console.log("Populating update mode with row:", row);  // Debug log
+          
           document.getElementById('RegistrationId').value = row.RegistrationId || '';
           document.getElementById('Firstname').value = row.Firstname || '';
           document.getElementById('Middlename').value = row.Middlename || '';
@@ -555,13 +608,26 @@
           document.getElementById('Address').value = row.Address || '';
           document.getElementById('AadharNumber').value = row.AadharNumber || '';
 
-          // set dropdowns by their IDs from row
-          setDropdownValue(areaSel, row.AreaId);
-          setDropdownValue(genderSel, row.GenderId);
-          setDropdownValue(bloodSel, row.BloodGroupId);
+          // Set dropdown values after options are loaded
+          setTimeout(() => {
+            if (row.AreaId) {
+              console.log("Setting AreaId:", row.AreaId);
+              areaSel.value = row.AreaId;
+            }
+            
+            if (row.GenderId) {
+              console.log("Setting GenderId:", row.GenderId);
+              genderSel.value = row.GenderId;
+            }
+            
+            if (row.BloodGroupId) {
+              console.log("Setting BloodGroupId:", row.BloodGroupId);
+              bloodSel.value = row.BloodGroupId;
+            }
+          }, 100);
 
-          // ✅ DateOfBirth comes as "dd-mm-yyyy" → convert to yyyy-mm-dd
-          if (row.DateOfBirth) {
+          // 🔥 DateOfBirth comes as "dd-mm-yyyy" → convert to yyyy-mm-dd
+          if (row.DateOfBirth && row.DateOfBirth !== "") {
               const parts = row.DateOfBirth.split("-");
               if (parts.length === 3) {
                   const formatted = `${parts[2]}-${parts[1]}-${parts[0]}`; 
@@ -573,8 +639,8 @@
     } catch (err) {
         console.error("Error loading dropdowns:", err);
     }
-    }
-
+  }
+  
     function setDropdownValue(select, value) {
       if (!value) return;
       [...select.options].forEach(opt => {
@@ -585,17 +651,33 @@
   // add new click (small icon)
   btnAddNew.addEventListener('click', ()=>{
     const mob = inputMobile.value.trim();
-    if (!validMobile(mob)){ showMsg('error','Enter a valid 10-digit mobile then click +'); return; }
-    openActionSheet('insert', null, mob);
+    // Only pass mobile if it's valid, otherwise pass null for fresh registration
+    const mobileToPass = validMobile(mob) ? mob : null;
+    openActionSheet('insert', null, mobileToPass);
   });
 
   // submit handler
   regForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
+
+    // Validate required fields
+    const requiredFields = ['MobileNo', 'Firstname', 'Middlename', 'Lastname', 'AreaId', 'Address'];
+    for (const fieldId of requiredFields) {
+      const field = document.getElementById(fieldId);
+      if (!field.value.trim()) {
+        const fieldName = field.previousElementSibling.textContent.replace(' *', '');
+        alert(`Please fill ${fieldName}`);
+        field.focus();
+        return;
+      }
+    }
+
     const mob = document.getElementById('MobileNo').value.trim();
     if (!validMobile(mob)){ alert('Mobile must be 10 digits'); return; }
 
     const RegistrationId = document.getElementById('RegistrationId').value || '0';
+    const isInsertMode = RegistrationId === '0';
+    
     const payload = {
       RegistrationId,
       userMobileNo: mob,
@@ -606,7 +688,7 @@
       Gender: document.getElementById('Gender').value || '1',
       Address: document.getElementById('Address').value.trim(),
       userAlternateMobileNo: document.getElementById('AlternateMobileNo').value.trim(),
-      BloodGroup: (function(){ const sel = document.getElementById('BloodGroup'); return sel.options[sel.selectedIndex]?.text || 'Select'; })(),
+      BloodGroup: document.getElementById('BloodGroup').value || '1',
       DateOfBirth: (function(){ const v=document.getElementById('DateOfBirth').value; if(!v) return ''; const [y,m,d]=v.split('-'); return `${d}/${m}/${y}`; })(),
       Photo:'', PhotoId:''
     };
@@ -614,19 +696,64 @@
     try {
       const res = await postForm('submit', payload);
       if (String(res.message_code) === '1000'){
-        offcanvas.hide();
-        showMsg('success', res.message_text || 'Saved');
-        setTimeout(()=> doSearch(), 300);
+        showMsg('success', res.message_text || 'Registration saved successfully');
+        
+        // For INSERT mode: Keep the form open and show yatra selection option
+        if (isInsertMode) {
+          // 🔥 CRITICAL FIX: Update localStorage key when we get new RegistrationId
+          const oldUserId = getCurrentUserId(); // This was "0"
+          const newRegistrationId = res.RegistrationId || res.message_data?.RegistrationId;
+          
+          if (newRegistrationId) {
+            document.getElementById('RegistrationId').value = newRegistrationId;
+            
+            // 🔥 Transfer any existing yatra selections from "0" key to new RegistrationId key
+            const allUsersYatras = getAllUsersYatras();
+            if (allUsersYatras["0"]) {
+              allUsersYatras[newRegistrationId] = allUsersYatras["0"];
+              delete allUsersYatras["0"];
+              saveAllUsersYatras(allUsersYatras);
+            }
+          }
+          
+          // Show success message but keep form open
+          alert('Registration saved successfully! You can now select yatras for this user or close the form.');
+          
+          // Optionally show the yatra selection section automatically
+          const yatraSection = document.getElementById("yatraSection");
+          const yatraBtn = document.querySelector('.btn-outline-primary');
+          if (yatraSection && yatraSection.classList.contains("d-none")) {
+            renderYatras();
+            yatraSection.classList.remove("d-none");
+            if (yatraBtn) {
+              yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
+            }
+          }
+        } else {
+          // For UPDATE mode: Close the form as before
+          offcanvas.hide();
+        }
+        
+        // Refresh the search results
+        setTimeout(async ()=> {
+          await doSearch();
+          // Force update selected yatras display after search completes
+          setTimeout(() => {
+            const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
+            renderSelectedYatras(currentSearchResults, inputMobile.value.trim());
+          }, 100);
+        }, 300);
+        
       } else {
         showMsg('error', res.message_text || 'Save failed');
       }
     } catch (err){
       console.error(err); showMsg('error','Save error');
     }
-  });
+});
 
   // allow pressing search icon or enter to trigger search
-  document.getElementById('btnSearch').addEventListener('click', doSearch);
+  //document.getElementById('btnSearch').addEventListener('click', doSearch);
 
 </script>
 
@@ -658,8 +785,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
   });
 
-  // Initial render of selected yatras on page load
-  renderSelectedYatras();
+  // Initial render of selected yatras on page load - show nothing initially
+  renderSelectedYatras([], null);
 });
 
 // Get current user identifier
@@ -804,8 +931,10 @@ function handleYatraToggle(event) {
   // Update total display
   calculateAndDisplayTotal();
   
-  // Update selected yatras display in main screen
-  renderSelectedYatras();
+  // 🔥 FIX: Update selected yatras display in main screen with current search context
+  const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
+  const searchMobile = document.getElementById('searchMobile').value.trim();
+  renderSelectedYatras(currentSearchResults, searchMobile);
 }
 
 // Calculate and display total for current user
@@ -959,9 +1088,9 @@ function renderSelectedYatras(searchResults = null, searchMobile = null) {
     }
   });
 
-  // If we have search results, show only those users' yatras
   let usersToShow = {};
-  
+
+  // If we have search results, show only those users' yatras
   if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
     // Show yatras only for users in search results
     searchResults.forEach(user => {
@@ -970,9 +1099,18 @@ function renderSelectedYatras(searchResults = null, searchMobile = null) {
         usersToShow[regId] = allUsersYatras[regId];
       }
     });
+  } else if (searchMobile && validMobile(searchMobile)) {
+    // If we have a searched mobile but no results, still check localStorage for any users with that mobile
+    Object.keys(allUsersYatras).forEach(regId => {
+      // This would need mobile number stored in localStorage structure for proper filtering
+      // For now, show nothing if no search results
+      // usersToShow = {}; // Empty object - no users to show
+    });
+    usersToShow = {}; // Show nothing when search returns no results
   } else {
-    // Show all users' yatras
-    usersToShow = allUsersYatras;
+    // Only show yatras when there's no search active (initial state)
+    // Don't show all users' yatras when search box is empty but user hasn't searched
+    usersToShow = {};
   }
 
   // If no users have yatras, show message

@@ -281,7 +281,7 @@ def registration_api1(request):
         if action == "search_list":
             mobile = request.POST.get("search")
             api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
-            payload = {"search": mobile}   # ✅ Correct key
+            payload = {"search": mobile}
             response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
 
             if response.status_code != 200:
@@ -303,6 +303,35 @@ def registration_api1(request):
                     except Exception:
                         dob_fmt = dob_raw or ""
 
+                    # 🔥 FIX: Map Gender value to proper IDs
+                    gender_raw = r.get("Gender", "0")
+                    gender_id = "1"  # Default to "Select"
+                    gender_name = "Select"
+                    
+                    if str(gender_raw) == "2":
+                        gender_id = "2"
+                        gender_name = "Male"
+                    elif str(gender_raw) == "3":
+                        gender_id = "3" 
+                        gender_name = "Female"
+                    elif str(gender_raw) == "4":
+                        gender_id = "4"
+                        gender_name = "Custom"
+
+                    # 🔥 FIX: Handle BloodGroup properly
+                    blood_group_name = r.get("BloodGroup", "").strip()
+                    blood_group_id = "1"  # Default to "Select"
+                    
+                    # Map blood group names to IDs
+                    blood_group_mapping = {
+                        "A+": "2", "A-": "3", "B+": "4", "B-": "5",
+                        "O+": "6", "O-": "7", "AB+": "8", "AB-": "9"
+                    }
+                    if blood_group_name in blood_group_mapping:
+                        blood_group_id = blood_group_mapping[blood_group_name]
+                    elif not blood_group_name:
+                        blood_group_name = "Select"
+
                     rows.append({
                         "RegistrationId": r.get("RegistrationId"),
                         "Firstname": r.get("Firstname"),
@@ -311,16 +340,17 @@ def registration_api1(request):
                         "MobileNo": r.get("MobileNo"),
                         "AlternateMobileNo": r.get("AlternateMobileNo"),
                         "AadharNumber": r.get("AadharNumber"),
-                        "DateOfBirth": dob_fmt,   # ✅ Converted to dd-mm-yyyy
-                        "Gender": r.get("Gender"),
-                        "GenderId": r.get("GenderId"),
-                        "GenderName": r.get("GenderName"),
-                        "BloodGroup": r.get("BloodGroup"),
-                        "AreaId": r.get("AreaId"),
+                        "DateOfBirth": dob_fmt,
+                        "Gender": gender_raw,
+                        "GenderId": gender_id,  # 🔥 Added missing GenderId
+                        "GenderName": gender_name,  # 🔥 Added missing GenderName
+                        "BloodGroup": blood_group_name,
+                        "BloodGroupId": blood_group_id,  # 🔥 Added missing BloodGroupId
+                        "AreaId": r.get("AreaId"),  # 🔥 Make sure AreaId is included
                         "AreaName": r.get("AreaName"),
                         "Address": r.get("Address"),
                     })
-                print(rows)        
+                        
                 return JsonResponse({"message_code": 1000, "message_text": "OK", "message_data": rows})
 
             return JsonResponse({"message_code": 999, "message_text": data.get("message_text", "No data")})
