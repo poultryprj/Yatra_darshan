@@ -466,21 +466,36 @@
 
         <!-- Payment & Booking Section -->
         <div id="paymentSection" style="display:none; margin-top:20px;">
-        <div class="row align-items-end">
-            
-            <!-- Amount Payable -->
-            <div class="col-md-6 col-12">
-                <div class="form-group">
-                    <label for="amountPayable">Amount Payable</label>
-                    <input type="text" id="amountPayable" class="form-control" value="0" readonly>
-                </div>
+            <div class="row align-items-end">
+
+                <!-- Amount Payable -->
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="amountPayable">Amount Payable</label>
+                        <input type="text" id="amountPayable" class="form-control" value="0" readonly>
+                    </div>
                 </div>
 
-                <!-- Amount Mode -->
-                <div class="col-md-6 col-12">
-                <div class="form-group">
-                    <label class="form-label d-block mb-2">Amount Mode</label>
-                    <div class="btn-group w-100" role="group" aria-label="Amount Mode">
+                <!-- Discount -->
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="discount">Discount</label>
+                        <input type="number" id="discount" class="form-control" value="0" placeholder="Enter Discount">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Discount Reason (full width) -->
+            <div class="form-group">
+                <label for="discountReason">Discount Reason</label>
+                <input type="text" id="discountReason" class="form-control" placeholder="Enter Reason for Discount">
+            </div>
+
+            <!-- Amount Mode -->
+            <div class="form-group">
+                <label class="form-label d-block mb-2">Amount Mode</label>
+                <div class="btn-group w-100" role="group" aria-label="Amount Mode">
                     <!-- Cash -->
                     <input type="radio" class="btn-check" name="amountMode" id="amountCash" value="cash" autocomplete="off">
                     <label class="btn btn-outline-success" for="amountCash">Cash</label>
@@ -488,10 +503,7 @@
                     <!-- UPI -->
                     <input type="radio" class="btn-check" name="amountMode" id="amountUPI" value="upi" autocomplete="off">
                     <label class="btn btn-outline-success" for="amountUPI">UPI</label>
-                    </div>
                 </div>
-                </div>
-
             </div>
 
             <!-- Transaction ID (only for UPI) -->
@@ -502,7 +514,7 @@
 
             <!-- Book Ticket -->
             <button type="button" id="bookTicketBtn" class="btn-submit">Book Ticket</button>
-            </div>
+        </div>
         </div>
             </form>
         </div>
@@ -736,8 +748,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 li.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <span class="yatra-date">Date: ${yatra.YatraDateTime}</span> |
-                        <span class="yatra-fees">Fees: ₹${yatra.YatraFees}</span>
+                        <span class="yatra-date">${yatra.YatraDateTime}</span> |
+                        <span class="yatra-fees">₹${yatra.YatraFees}</span>
                     </div>
                     <label class="toggle-wrapper">
                         <input type="checkbox" 

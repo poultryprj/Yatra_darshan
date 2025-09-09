@@ -10,8 +10,10 @@ urlpatterns = [
 
     path('Registrationpage', views.Registrationpage, name='Registrationpage'),
     path("registration_api/", views.registration_api, name="registration_api"),
-    # path("route_yatra_api/", views.route_yatra_api, name="route_yatra_api"),
-    path("logout/", views.logout, name="logout"),
+    
+    path('Registrationpage1', views.Registrationpage1, name='Registrationpage1'),
+    path("registration_api1/", views.registration_api1, name="registration_api1"),
+    
 
     path('route_master/', views.route_master, name='route_master'),
     path('route_master_api/', views.route_master_api, name='route_master_api'),
@@ -22,6 +24,8 @@ urlpatterns = [
 
     path('yatra_master/', views.yatra_master, name='yatra_master'),
     path('yatra_master_api/', views.yatra_master_api, name='yatra_master_api'),
+
+    path("logout/", views.logout, name="logout"),
 
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard_api/', views.dashboard_api, name='dashboard_api'),
