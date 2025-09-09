@@ -332,6 +332,18 @@ def registration_api1(request):
             data = response.json()
             if str(data.get("message_code")) == "1000":
                 from datetime import datetime
+                # 🔥 FETCH AREA LOOKUP TABLE
+                area_lookup = {}
+                try:
+                    area_api_url = "https://www.lakshyapratishthan.com/apis/listarea"
+                    area_resp = requests.get(area_api_url, headers=headers, verify=False, timeout=10)
+                    if area_resp.status_code == 200:
+                        area_data = area_resp.json()
+                        if str(area_data.get("message_code")) == "1000":
+                            for area in area_data.get("message_data", []):
+                                area_lookup[area.get("AreaName", "")] = area.get("AreaId", "1")
+                except Exception as e:
+                    print(f"Failed to fetch area lookup: {e}")
 
                 rows = []
                 for r in data.get("message_data", []):
@@ -374,6 +386,10 @@ def registration_api1(request):
                         blood_group_id = blood_group_mapping[blood_group_name]
                     elif not blood_group_name:
                         blood_group_name = "Select"
+                        
+                    # 🔥 FIX: Get AreaId from AreaName using lookup table
+                    area_name = r.get("AreaName", "")
+                    area_id = area_lookup.get(area_name, "1")  # Default to "1" if not found
 
                     rows.append({
                         "RegistrationId": r.get("RegistrationId"),
@@ -389,8 +405,8 @@ def registration_api1(request):
                         "GenderName": gender_name,  # 🔥 Added missing GenderName
                         "BloodGroup": blood_group_name,
                         "BloodGroupId": blood_group_id,  # 🔥 Added missing BloodGroupId
-                        "AreaId": r.get("AreaId"),  # 🔥 Make sure AreaId is included
-                        "AreaName": r.get("AreaName"),
+                        "AreaId": area_id,  # 🔥 Make sure AreaId is included
+                        "AreaName": area_name,
                         "Address": r.get("Address"),
                     })
                         
@@ -456,14 +472,19 @@ def registration_api1(request):
                     api_responses = []
 
                     for b in bookings:
+                        # Ensure YatraIds is a comma-separated string
+                        yatra_ids = b["YatraIds"]
+                        if isinstance(yatra_ids, list):
+                            yatra_ids = ",".join(str(y) for y in yatra_ids)
+
                         payload = {
-                            "RegistrationId": b["RegistrationId"],
-                            "UserId": user_id,
-                            "YatraIds": b["YatraIds"],  # list of Yatra IDs
-                            "AmountPaid": amount_paid,
-                            "Discount": discount,
-                            "DiscountReason": discount_reason,
-                            "PaymentId": payment_id or ""
+                            "RegistrationId": str(b["RegistrationId"]),
+                            "UserId": str(user_id),
+                            "YatraIds": yatra_ids,  # ✅ converted to string
+                            "AmountPaid": str(amount_paid),
+                            "Discount": str(discount),
+                            "DiscountReason": str(discount_reason),
+                            "PaymentId": str(payment_id or "")
                         }
 
                         try:
@@ -471,11 +492,9 @@ def registration_api1(request):
                             api_response = r.json()
                             print("API Response:", api_response)
                         except Exception as api_err:
-                            # Force rollback
                             raise Exception(f"API Error: {str(api_err)}")
 
                         if api_response.get("message_code") != 1000:
-                            # Force rollback if even one booking fails
                             raise Exception(api_response.get("message_text", "Booking failed"))
 
                         api_responses.append(api_response)
