@@ -1,0 +1,154 @@
+<!-- templates/daily_report.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darshan Yatra - Daily Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: bold; }
+        .container-main { max-width: 800px; margin: 80px auto 40px auto; }
+        .content-section { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-top: 2rem; }
+        .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
+        .booking-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'Registrationpage' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Daily Collection Report</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="content-section">
+        <h4 class="mb-3 text-primary">Filter Report</h4>
+        <div class="row g-3">
+            
+            <!-- **** THIS IS THE FIX **** -->
+            <!-- This entire column will only be rendered if the user is an Admin (role '1') -->
+            {% if user_role == '1' %}
+            <div class="col-12 col-md-6">
+                <label for="userSelect" class="form-label fw-bold">Select User</label>
+                <select class="form-select" id="userSelect" style="width: 100%;">
+                    <option value="">-- Select an Agent --</option>
+                    {% for u in all_users %}
+                    <option value="{{ u.UserId }}">{{ u.UserFirstname }} {{ u.UserLastname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- The date picker will now take up the full width for Agents -->
+            <div class="col-12 {% if user_role == '1' %}col-md-6{% endif %}">
+                <label for="dateSelect" class="form-label fw-bold">Select Date</label>
+                <input type="date" class="form-control" id="dateSelect">
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section mt-4" id="resultsContainer">
+        {% if user_role != '1' %}
+            <!-- For agents, we can show a loading spinner initially -->
+            <div class="text-center"><div class="spinner-border text-primary"></div></div>
+        {% else %}
+            <!-- For admins, show the initial message -->
+            <div class="text-center text-muted">Please select filters to view the report.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    const dateSelect = document.getElementById('dateSelect');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const currentUserRole = "{{ user_role }}";
+    const currentUserId = "{{ request.session.user_id }}";
+    
+    // Only initialize Select2 if the dropdown exists on the page
+    if (document.getElementById('userSelect')) {
+        $(document).ready(function() {
+            $('#userSelect').select2({
+                theme: "bootstrap-5"
+            });
+        });
+    }
+
+    dateSelect.value = new Date().toISOString().split('T')[0];
+
+    function fetchReport() {
+        const selectedDate = dateSelect.value;
+        let selectedUserId;
+
+        if (currentUserRole === '1') {
+            selectedUserId = $('#userSelect').val(); // Admin gets user from dropdown
+            if (!selectedUserId || !selectedDate) {
+                resultsContainer.innerHTML = '<div class="text-center text-muted">Please select a user and a date.</div>';
+                return;
+            }
+        } else {
+            selectedUserId = currentUserId; // Agent uses their own session ID
+            if (!selectedDate) {
+                resultsContainer.innerHTML = '<div class="text-center text-muted">Please select a date.</div>';
+                return;
+            }
+        }
+        
+        resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
+        let formData = new FormData();
+        formData.append('user_id', selectedUserId);
+        formData.append('booking_date', selectedDate);
+
+        fetch("{% url 'daily_report_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    renderReport(result.data);
+                } else {
+                    resultsContainer.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+                }
+            });
+    }
+
+    function renderReport(bookings) {
+        if (!bookings || bookings.length === 0) {
+            resultsContainer.innerHTML = '<div class="alert alert-secondary text-center">No bookings found for the selected criteria.</div>';
+            return;
+        }
+        let totalFees = 0;
+        let reportHtml = '';
+        bookings.forEach(booking => {
+            const fees = parseFloat(booking.YatraFees) || 0;
+            totalFees += fees;
+            const fullName = `${booking.Firstname} ${booking.Lastname}`.trim();
+            reportHtml += `<div class="booking-card"><div class="d-flex justify-content-between align-items-center"><span class="fw-bold">${fullName}</span><span class="badge bg-success fs-6">₹${fees.toFixed(2)}</span></div><div class="text-muted small mt-1"><span>${booking.YatraRouteName}</span> | <span>Bus: ${booking.BusName}</span></div></div>`;
+        });
+        let headerHtml = `<div class="text-center mb-4"><h3>Total Collection: <span class="text-success">₹${totalFees.toFixed(2)}</span></h3><h5 class="text-muted">Total Bookings: ${bookings.length}</h5></div>`;
+        resultsContainer.innerHTML = headerHtml + reportHtml;
+    }
+
+    // Event Listeners
+    dateSelect.addEventListener('change', fetchReport);
+    if (currentUserRole === '1') {
+        $('#userSelect').on('change', fetchReport);
+    }
+
+    // Auto-load report for Agent on page load
+    if (currentUserRole !== '1') {
+        document.addEventListener('DOMContentLoaded', fetchReport);
+    }
+</script>
+</body>
+</html>

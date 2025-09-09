@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darshan Yatra - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: bold; }
+        .container-main { max-width: 800px; margin: 80px auto 40px auto; }
+        .stat-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-align: center; }
+        .stat-card .stat-number { font-size: 2.5rem; font-weight: bold; color: #003399; }
+        .stat-card .stat-label { font-size: 1rem; color: #6c757d; }
+        .content-section { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-top: 2rem; }
+        .yatra-toggle, .bus-toggle, .bus-toggle-report, .contact-toggle, .print-btn { cursor: pointer; }
+        .details-content { padding-top: 1rem; border-top: 1px solid #eee; margin-top: 1rem; }
+        .passenger-list { padding-top: 1rem; }
+        .contact-info-card { background-color: #f0f2f5; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid #dee2e6;}
+        .seat-map-container { padding: 1rem; background-color: #f8f9fa; border-radius: 8px; margin-top: 0.75rem; }
+        .seat-map { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; }
+        .seat { aspect-ratio: 1 / 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold; }
+        .seat.booked { background-color: #dc3545; color: white; border: 1px solid #c82333; }
+        .seat.available { background-color: #ffffff; color: #6c757d; border: 1px solid #ced4da; }
+        .select2-container--bootstrap-5 .select2-dropdown { z-index: 1060; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'Registrationpage' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Dashboard</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="row g-3">
+        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_registrations }}</div><div class="stat-label">Total Registrations</div></div></div>
+        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_tickets }}</div><div class="stat-label">Total Tickets</div></div></div>
+    </div>
+    <div class="content-section">
+        <h4 class="mb-3 text-primary">Yatra Booking Summary</h4>
+        <div class="list-group" id="yatraListContainer">
+            {% for yatra in yatras %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center yatra-toggle" data-yatra-id="{{ yatra.YatraId }}">
+                    <div><div class="fw-bold">{{ yatra.YatraRouteName }}</div><small class="text-muted">{{ yatra.YatraDateTime }}</small></div>
+                    <span class="badge bg-primary rounded-pill fs-6">{{ yatra.TotalBookings }} <i class="bi bi-person-fill"></i></span>
+                </div>
+                <div class="details-content" id="details-{{ yatra.YatraId }}" style="display: none;"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h4 class="mb-3 text-primary">Detailed Booking Report</h4>
+        <div class="mb-3">
+            <label for="reportYatraSelect" class="form-label fw-bold">Select a Yatra to see all bookings</label>
+            <select class="form-select" id="reportYatraSelect" style="width: 100%;">
+                <option value="">-- Please select a trip --</option>
+                {% for yatra in yatras %}
+                <option value="{{ yatra.YatraId }}">{{ yatra.YatraRouteName }} ({{ yatra.YatraDateTime }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="reportResultsContainer" class="mt-4"></div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+    const CARD_IMAGE_BASE_URL = "https://www.lakshyapratishthan.com/apis/cards/";
+
+    document.getElementById('yatraListContainer').addEventListener('click', function(e) {
+        const yatraToggle = e.target.closest('.yatra-toggle');
+        if (yatraToggle) {
+            const yatraId = yatraToggle.dataset.yatraId;
+            const detailsContainer = document.getElementById(`details-${yatraId}`);
+            const isHidden = detailsContainer.style.display === 'none';
+            document.querySelectorAll('.details-content').forEach(el => {
+                if (el.id !== `details-${yatraId}`) { el.style.display = 'none'; el.innerHTML = ''; }
+            });
+            if (isHidden) { fetchYatraDetails(yatraId, detailsContainer); } 
+            else { detailsContainer.style.display = 'none'; detailsContainer.innerHTML = ''; }
+            return;
+        }
+        const busToggle = e.target.closest('.bus-toggle');
+        if (busToggle) {
+            const seatMapContainer = busToggle.nextElementSibling;
+            const isSeatMapHidden = seatMapContainer.style.display === 'none';
+            busToggle.closest('.details-content').querySelectorAll('.seat-map-container').forEach(el => {
+                if(el !== seatMapContainer) { el.style.display = 'none'; }
+            });
+            seatMapContainer.style.display = isSeatMapHidden ? 'block' : 'none';
+        }
+    });
+
+    function fetchYatraDetails(yatraId, container) {
+        container.style.display = 'block';
+        container.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
+        let formData = new FormData();
+        formData.append('yatra_id', yatraId);
+        fetch("{% url 'dashboard_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json()).then(result => {
+                if (result.status === 'success') { renderBusDetails(result.data, container); } 
+                else { container.innerHTML = `<p class="text-center text-danger">${result.message}</p>`; }
+            });
+    }
+
+    function renderBusDetails(data, container) {
+        const buses = Object.keys(data.buses);
+        if (buses.length === 0) { container.innerHTML = '<p class="text-center text-muted">No bookings found.</p>'; return; }
+        let finalHtml = '<div class="list-group list-group-flush">';
+        buses.forEach(busName => {
+            const busInfo = data.buses[busName];
+            const bookedSeats = new Set(busInfo.booked_seats);
+            let seatMapHtml = '<div class="seat-map">';
+            for (let i = 1; i <= 35; i++) {
+                seatMapHtml += `<div class="seat ${bookedSeats.has(i) ? 'booked' : 'available'}">${i}</div>`;
+            }
+            seatMapHtml += '</div>';
+            finalHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-secondary rounded-pill">${bookedSeats.size} / 35</span></div><div class="seat-map-container" style="display: none;">${seatMapHtml}</div></div>`;
+        });
+        finalHtml += '</div>';
+        container.innerHTML = finalHtml;
+    }
+
+    const reportResultsContainer = document.getElementById('reportResultsContainer');
+    
+    $(document).ready(function() {
+        $('#reportYatraSelect').select2({ theme: "bootstrap-5" });
+    });
+
+    $('#reportYatraSelect').on('change', function() {
+        const yatraId = $(this).val();
+        reportResultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
+        if (!yatraId) { reportResultsContainer.innerHTML = ''; return; }
+        let formData = new FormData();
+        formData.append('yatra_id', yatraId);
+        fetch("{% url 'detailed_report_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    renderBookingReport(result.data);
+                } else {
+                    reportResultsContainer.innerHTML = `<p class="text-center text-danger">${result.message}</p>`;
+                }
+            });
+    });
+
+    reportResultsContainer.addEventListener('click', function(e) {
+        const busToggle = e.target.closest('.bus-toggle-report');
+        if (busToggle) {
+            const passengerListId = busToggle.getAttribute('data-bs-target');
+            const passengerListEl = document.querySelector(passengerListId);
+            document.querySelectorAll('.passenger-list.show').forEach(el => {
+                if (el !== passengerListEl) { new bootstrap.Collapse(el, {toggle: false}).hide(); }
+            });
+        }
+        const contactToggle = e.target.closest('.contact-toggle');
+        if (contactToggle) {
+            const contactInfoId = contactToggle.getAttribute('data-bs-target');
+            const contactInfoEl = document.querySelector(contactInfoId);
+            document.querySelectorAll('.contact-info.show').forEach(el => {
+                if (el !== contactInfoEl) { new bootstrap.Collapse(el, {toggle: false}).hide(); }
+            });
+        }
+        const printButton = e.target.closest('.print-btn');
+        if (printButton) {
+            printButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            printButton.disabled = true;
+            const regId = printButton.dataset.regId;
+            let formData = new FormData();
+            formData.append('registration_id', regId);
+            fetch("{% url 'get_pilgrim_card_api' %}", { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.message_code === 999 && data.message_data) {
+                        const imageUrl = CARD_IMAGE_BASE_URL + data.message_data;
+                        printImage(imageUrl);
+                    } else { alert("Error: " + data.message_text); }
+                })
+                .catch(err => alert("An error occurred while generating the card."))
+                .finally(() => {
+                    printButton.innerHTML = '<i class="bi bi-printer-fill"></i>';
+                    printButton.disabled = false;
+                });
+        }
+    });
+
+    function renderBookingReport(data) {
+        if (!data.bookings || data.bookings.length === 0) {
+            reportResultsContainer.innerHTML = `<div class="alert alert-secondary text-center mt-3" role="alert"><i class="bi bi-info-circle me-2"></i>No bookings found for this Yatra.</div>`;
+            return;
+        }
+        const buses = data.bookings.reduce((acc, booking) => {
+            if (!acc[booking.BusName]) { acc[booking.BusName] = []; }
+            acc[booking.BusName].push(booking);
+            return acc;
+        }, {});
+        let totalBookings = data.bookings.length;
+        let busHtml = `<h5 class="mb-3">Total Tickets Booked: <span class="badge bg-success">${totalBookings}</span></h5><div class="list-group">`;
+        for (const busName in buses) {
+            const passengers = buses[busName];
+            const passengerListId = `report-passenger-list-${busName.replace(/\s+/g, '')}`;
+            busHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle-report" data-bs-toggle="collapse" data-bs-target="#${passengerListId}"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-primary rounded-pill">${passengers.length} Booked</span></div><div class="collapse passenger-list" id="${passengerListId}">${renderPassengerReportTable(passengers, busName)}</div></div>`;
+        }
+        busHtml += '</div>';
+        reportResultsContainer.innerHTML = busHtml;
+    }
+
+    function renderPassengerReportTable(passengers, busName) {
+        let tableHtml = `<div class="table-responsive pt-3"><table class="table table-sm table-hover"><tbody>`;
+        passengers.forEach((booking, index) => {
+            const contactId = `contact-info-${busName.replace(/\s+/g, '')}-${index}`;
+            const phone = (booking.MobileNo || '').replace(/\D/g, ''); 
+            let printButtonHtml = '';
+            if (booking.RegistrationId) {
+                printButtonHtml = `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}"><i class="bi bi-printer-fill"></i></button>`;
+            }
+            tableHtml += `
+                <tr>
+                    <td>${booking.PilgrimName}</td>
+                    <td class="text-center">Serial No.: <strong>${booking.SeatNo || 'N/A'}</strong></td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-success contact-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#${contactId}"><i class="bi bi-telephone-fill"></i></button>
+                            ${printButtonHtml}
+                        </div>
+                    </td>
+                </tr>
+                <tr class="collapse contact-info" id="${contactId}">
+                    <td colspan="3">
+                        <div class="contact-info-card">
+                            <div><strong>Mobile:</strong> ${booking.MobileNo || 'N/A'}</div>
+                            <div><strong>Alternate:</strong> ${booking.AlternateMobileNo || 'N/A'}</div>
+                            <div class="mt-2 btn-group w-100">
+                                <a href="tel:${phone}" class="btn btn-sm btn-success flex-fill"><i class="bi bi-telephone-outbound-fill"></i> Call</a>
+                                <a href="sms:${phone}" class="btn btn-sm btn-info flex-fill"><i class="bi bi-chat-text-fill"></i> Text</a>
+                                <a href="https://wa.me/${phone}" target="_blank" class="btn btn-sm btn-success flex-fill"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+        tableHtml += `</tbody></table></div>`;
+        return tableHtml;
+    }
+
+    function printImage(url) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Pilgrim Card</title><style>@media print{body{margin:0;}img{width:100%;}}</style></head><body>');
+        printWindow.document.write(`<img src="${url}" onload="window.print(); window.close();" onerror="window.close(); alert('Could not load image to print.');">`);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darshan Yatra - User Master (Animated)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: bold; }
+
+        .container-main { max-width: 800px; margin: 80px 0 40px 0; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+
+        .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
+        .modal-body label { font-weight: bold; color: #000; }
+        .form-control, .form-select { border-radius: 6px; border: 1px solid #ccc; }
+        .form-control:focus, .form-select:focus { border-color: #000; box-shadow: 0 0 8px rgba(0,0,0,0.25); }
+
+        /* Updated card layout: two rows per user */
+        .user-card { border: 1px solid #e9ecef; border-radius: 10px; }
+        .user-card .card-body { padding: 12px 14px; }
+        .user-name { font-size: 1.05rem; font-weight: 600; color: #030303; }
+        .user-mobile { font-size: 0.95rem; color: #555; }
+        .badge-role { font-weight: 600; }
+        .action-btns .btn { min-width: 38px; }
+
+        /* Layout grid inside card for two rows */
+        .user-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 10px; align-items: center; }
+        .user-grid .col-left { overflow-wrap: anywhere; }
+        .user-grid .col-center { text-align: center; }
+        .user-grid .col-right { text-align: right; }
+
+        @media (max-width: 480px) {
+            .container-main { 
+                margin: 70px 0; 
+                border-radius: 0;
+                padding: 1rem 0.5rem; /* Reduced padding on the sides */
+            }
+            .user-card { padding: 0; }
+        }
+
+        /* animated form-group */
+        .form-group.basic.animated { margin-bottom: 1rem; }
+        .input-wrapper { position: relative; }
+        .input-wrapper .float-label { position: absolute; left: 12px; top: 16px; font-size: 18px; color: #000; pointer-events: none; transition: all .18s ease; background: transparent; padding: 0 6px; }
+        .input-wrapper input.form-control,
+        .input-wrapper select.form-select,
+        .input-wrapper textarea.form-control {
+          padding: 18px 12px 14px 12px; border: none; border-bottom: 1px solid #ccc; border-radius: 0; background: transparent; outline: none; font-size: 18px; width:100%;
+        }
+        .input-wrapper textarea.form-control { min-height:80px; resize:vertical; }
+
+        .input-wrapper input.form-control:focus + .float-label,
+        .input-wrapper input.form-control:not(:placeholder-shown) + .float-label,
+        .input-wrapper select.form-select:focus + .float-label,
+        .input-wrapper select.form-select:not([value=""]) + .float-label,
+        .input-wrapper textarea.form-control:focus + .float-label,
+        .input-wrapper textarea.form-control:not(:placeholder-shown) + .float-label {
+          top: -10px; font-size: 16px; color: #000; background: #fff; padding: 0 6px;
+        }
+
+        /* ensure select has enough height for floating label */
+        .select-fix { height: calc(2.75rem + 10px); padding-top: 10px; }
+    </style>
+    <!-- Select2 CSS (for improved dropdowns inside modal) -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        /* ensure select2 dropdown pops above modal */
+        .select2-container--bootstrap-5 .select2-dropdown { z-index: 2200 !important; }
+        /* allow dropdowns to overflow modal (helps on small screens) */
+        .modal { overflow: visible; }
+    </style>
+</head>"
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'Registrationpage' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">User Master</span>
+        <span style="width: 30px;"></span>
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0 fs-4 text-primary">Manage Users</h2>
+        <button class="btn btn-custom" id="addUserBtn"><i class="bi bi-plus-circle"></i> Add User</button>
+    </div>
+
+    <div class="mt-4" id="userListBody">
+        {% for user in users %}
+        <div class="card user-card mb-3" 
+             data-user-id="{{ user.UserId }}"
+             data-first-name="{{ user.UserFirstname }}"
+             data-last-name="{{ user.UserLastname }}"
+             data-mobile="{{ user.UserMobileNo }}"
+             data-pin="{{ user.UserLoginPin }}"
+             data-role="{{ user.UserRole }}"
+             data-status="{{ user.UserStatus }}">
+            <div class="card-body">
+                <!-- Row 1: name | role | edit -->
+                <div class="user-grid mb-2">
+                    <div class="col-left">
+                        <div class="user-name">{{ user.UserFirstname }} {{ user.UserLastname }}</div>
+                    </div>
+
+                    <div class="col-center">
+                        {% if user.UserRole == "1" %}
+                            <span class="badge bg-primary badge-role">Admin</span>
+                        {% elif user.UserRole == "2" %}
+                            <span class="badge bg-info text-dark badge-role">Operator</span>
+                        {% else %}
+                            <span class="badge bg-secondary badge-role">Unknown</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-right">
+                        <button class="btn btn-outline-primary btn-sm edit-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                    </div>
+                </div>
+
+                <!-- Row 2: mobile | status | delete -->
+                <div class="user-grid">
+                    <div class="col-left">
+                        <div class="user-mobile">{{ user.UserMobileNo }}</div>
+                    </div>
+
+                    <div class="col-center">
+                        {% if user.UserStatus == "1" %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Deactivated</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-right">
+                        <button class="btn btn-outline-danger btn-sm delete-btn" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted">No users found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal with animated inputs -->
+<div class="modal fade" id="userModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="userForm">
+            <input type="hidden" id="formUserId">
+
+            <div class="form-group basic animated">
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" id="formUserFirstName" placeholder=" " required>
+                    <label class="float-label">First Name</label>
+                </div>
+            </div>
+
+            <div class="form-group basic animated">
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" id="formUserLastName" placeholder=" " required>
+                    <label class="float-label">Last Name</label>
+                </div>
+            </div>
+
+            <div class="form-group basic animated">
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" id="formUserMobile" placeholder=" " required maxlength="10">
+                    <label class="float-label">Mobile Number</label>
+                </div>
+            </div>
+
+            <div class="form-group basic animated">
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" id="formUserPin" placeholder=" " required>
+                    <label class="float-label">Login PIN</label>
+                </div>
+            </div>
+
+            <div class="form-group basic animated">
+                <div class="input-wrapper">
+                    <select class="form-select select-fix" id="formUserRole">
+                        <option value="1">Admin</option>
+                        <option value="2" selected>Operator</option>
+                    </select>
+                    <label class="float-label">Role</label>
+                </div>
+            </div>
+
+            <div class="form-group basic animated" id="statusContainer">
+                <div class="input-wrapper">
+                    <select class="form-select select-fix" id="formUserStatus">
+                        <option value="1">Active</option>
+                        <option value="0">Deactivated</option>
+                    </select>
+                    <label class="float-label">Status</label>
+                </div>
+            </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-custom" id="saveUserBtn">Save User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- jQuery + Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+
+<script>
+  // initialize select2 inside modal so dropdowns are not clipped
+  $(document).ready(function(){
+    try{
+      $('#formUserRole').select2({ theme: 'bootstrap-5', dropdownParent: $('#userModal'), width: '100%' });
+      $('#formUserStatus').select2({ theme: 'bootstrap-5', dropdownParent: $('#userModal'), minimumResultsForSearch: Infinity, width: '100%' });
+    }catch(e){ console.warn('Select2 init failed (maybe not loaded):', e); }
+  });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script>
+    const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+    const userListBody = document.getElementById('userListBody');
+
+    // Open modal for ADDING
+    document.getElementById('addUserBtn').addEventListener('click', () => {
+        document.getElementById('userForm').reset();
+        document.getElementById('formUserId').value = ''; 
+        document.getElementById('modalTitle').textContent = 'Add New User';
+        document.getElementById('formUserRole').value = '2'; // Default to Operator
+        document.getElementById('statusContainer').style.display = 'none'; // Hide status for new users
+        userModal.show();
+    });
+
+    // Handle clicks for EDIT and DELETE
+    userListBody.addEventListener('click', (e) => {
+        const editButton = e.target.closest('.edit-btn');
+        const deleteButton = e.target.closest('.delete-btn');
+
+        if (editButton) {
+            const row = editButton.closest('.user-card');
+            document.getElementById('formUserId').value = row.dataset.userId;
+            document.getElementById('formUserFirstName').value = row.dataset.firstName;
+            document.getElementById('formUserLastName').value = row.dataset.lastName;
+            document.getElementById('formUserMobile').value = row.dataset.mobile;
+            document.getElementById('formUserPin').value = row.dataset.pin;
+            document.getElementById('formUserRole').value = row.dataset.role;
+            document.getElementById('formUserStatus').value = row.dataset.status;
+            document.getElementById('modalTitle').textContent = 'Edit User';
+            document.getElementById('statusContainer').style.display = 'block'; // Show status for existing users
+            userModal.show();
+        }
+
+        if (deleteButton) {
+            const row = deleteButton.closest('.user-card');
+            const userId = row.dataset.userId;
+            const userName = `${row.dataset.firstName} ${row.dataset.lastName}`;
+
+            swal({
+                title: "Are you sure?",
+                text: `You are about to delete the user: ${userName}`,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function(){
+                let formData = new FormData();
+                formData.append('action', 'delete_user');
+                formData.append('userId', userId);
+
+                fetch("{% url 'user_master_api' %}", { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.message_code === 1000) {
+                            swal({ title: "Deleted!", text: data.message_text, type: "success" }, () => location.reload());
+                        } else {
+                            swal("Error", data.message_text || "Failed to delete user.", "error");
+                        }
+                    });
+            });
+        }
+    });
+
+    // SAVE button logic (handles both Add and Edit)
+    document.getElementById('saveUserBtn').addEventListener('click', () => {
+        const userId = document.getElementById('formUserId').value;
+        let formData = new FormData();
+
+        formData.append('firstName', document.getElementById('formUserFirstName').value);
+        formData.append('lastName', document.getElementById('formUserLastName').value);
+        formData.append('mobile', document.getElementById('formUserMobile').value);
+        formData.append('pin', document.getElementById('formUserPin').value);
+        formData.append('roleId', document.getElementById('formUserRole').value);
+        
+        if (userId) {
+            formData.append('action', 'update_user');
+            formData.append('userId', userId);
+            formData.append('status', document.getElementById('formUserStatus').value);
+        } else {
+            formData.append('action', 'add_user');
+        }
+
+        fetch("{% url 'user_master_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message_code === 1000) {
+                    swal({ title: "Success!", text: data.message_text, type: "success" }, () => location.reload());
+                } else {
+                    swal("Error", data.message_text || "An error occurred.", "error");
+                }
+            });
+    });
+</script>
+
+</body>
+</html>

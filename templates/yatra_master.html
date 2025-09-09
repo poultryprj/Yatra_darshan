@@ -8,36 +8,34 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+
     <style>
         body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
         .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
         .navbar-brand { font-weight: bold; }
-
-        .container-main { 
-            max-width: 800px; 
-            margin: 80px auto 40px auto; 
-            background: #ffffff; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
-        }
+        .container-main { max-width: 800px; margin: 80px 0; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
         .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
-        .btn-custom:hover { background: #e67000; }
+        .modal-body label { font-weight: bold; color: #003399; }
+        .form-control, .form-select { border-radius: 6px; border: 1px solid #ccc; }
+        .form-control:focus, .form-select:focus { border-color: #006633; box-shadow: 0 0 5px rgba(0,102,51,0.4); }
+
+        /* **** NEW STYLES FOR THE CARD LAYOUT **** */
+        .yatra-card { padding: 0.75rem; border-bottom: 1px solid #dee2e6; }
+        .yatra-card:last-child { border-bottom: none; }
+        .yatra-row-1 { display: flex; justify-content: space-between; align-items: center; }
+        .yatra-row-2 { margin-top: 0.25rem; }
+        .yatra-name { font-weight: bold; }
+        .yatra-date { font-size: 0.9em; color: #6c757d; }
+        .yatra-actions { display: flex; gap: 0.75rem; align-items: center; }
         
-        .modal-body label {
-            font-weight: bold;
-            color: #003399; /* Blue labels */
+        @media (max-width: 480px) {
+            .container-main { margin: 70px 0; border-radius: 0; padding: 1rem 0.5rem; }
         }
-        .form-control, .form-select {
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #006633; /* Green focus border */
-            box-shadow: 0 0 5px rgba(0,102,51,0.4);
-        }
-        td { vertical-align: middle; }
+        .select2-container--bootstrap-5 .select2-dropdown { z-index: 1060; }
     </style>
 </head>
 <body>
@@ -51,40 +49,33 @@
 </nav>
 
 <div class="container-main">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0 fs-4 text-primary">Manage Yatras</h2>
         <button class="btn btn-custom" id="addYatraBtn"><i class="bi bi-plus-circle"></i> Add Yatra</button>
     </div>
 
-    <div class="table-responsive mt-4">
-        <table class="table table-hover">
-            <thead>
-                <tr class="text-muted">
-                    <th>Route Name</th>
-                    <th>Date & Time</th>
-                    <th class="text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody id="yatraTableBody">
-                {% for yatra in yatras %}
-                <tr data-yatra-id="{{ yatra.YatraId }}" 
-                    data-route-id="{{ yatra.YatraRouteId }}"
-                    data-date-time="{{ yatra.YatraDateTime }}"
-                    data-fees="{{ yatra.YatraFees|default_if_none:'' }}"
-                    data-status="{{ yatra.YatraStatus }}">
-                    <td>{{ yatra.YatraRouteName }}</td>
-                    <td>{{ yatra.YatraDateTime }}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary edit-btn">
-                            <i class="bi bi-pencil-fill"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" class="text-center">No yatras found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- **** UPDATED LIST STRUCTURE **** -->
+    <div id="yatraTableBody">
+        {% for yatra in yatras %}
+        <div class="yatra-card" 
+             data-yatra-id="{{ yatra.YatraId }}" data-route-id="{{ yatra.YatraRouteId }}" data-date-time="{{ yatra.YatraDateTime }}"
+             data-fees="{{ yatra.YatraFees|default_if_none:'' }}" data-status="{{ yatra.YatraStatus }}">
+            
+            <div class="yatra-row-1">
+                <span class="yatra-name">{{ yatra.YatraRouteName }}</span>
+                <div class="yatra-actions">
+                    {% if yatra.YatraStatus == "1" %}<span class="badge bg-success">Active</span>
+                    {% else %}<span class="badge bg-danger">Inactive</span>{% endif %}
+                    <button class="btn btn-sm btn-outline-primary edit-btn"><i class="bi bi-pencil-fill"></i></button>
+                </div>
+            </div>
+            <div class="yatra-row-2">
+                <span class="yatra-date">{{ yatra.YatraDateTime }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-muted">No yatras found.</p>
+        {% endfor %}
     </div>
 </div>
 
@@ -98,44 +89,30 @@
       <div class="modal-body">
         <form id="yatraForm">
             <input type="hidden" id="formYatraId">
-            <div class="mb-3">
-                <label for="formRouteId" class="form-label">Route</label>
-                <select class="form-select" id="formRouteId" required>
-                    <option value="">Select a Route</option>
-                    {% for route in routes %}
-                    <option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="formDateTime" class="form-label">Date and Time</label>
-                <input type="datetime-local" class="form-control" id="formDateTime" required>
-            </div>
-            <div class="mb-3">
-                <label for="formFees" class="form-label">Fees</label>
-                <input type="number" class="form-control" id="formFees" placeholder="fees" required>
-            </div>
-            <div class="mb-3">
-                <label for="formStatus" class="form-label">Status</label>
-                <select class="form-select" id="formStatus">
-                    <option value="1">Active</option>
-                    <option value="0">Deactivated</option>
-                </select>
-            </div>
+            <div class="mb-3"><label for="formRouteId" class="form-label">Route</label><select class="form-select" id="formRouteId" style="width:100%;" required><option value="">Select a Route</option>{% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}</select></div>
+            <div class="mb-3"><label for="formDateTime" class="form-label">Date and Time</label><input type="datetime-local" class="form-control" id="formDateTime" required></div>
+            <div class="mb-3"><label for="formFees" class="form-label">Fees</label><input type="number" class="form-control" id="formFees" placeholder="Enter fees" required></div>
+            <div class="mb-3"><label for="formStatus" class="form-label">Status</label><select class="form-select" id="formStatus" style="width:100%;"><option value="1">Active</option><option value="0">Deactivated</option></select></div>
         </form>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-custom" id="saveYatraBtn">Save Yatra</button>
-      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-custom" id="saveYatraBtn">Save Yatra</button></div>
     </div>
   </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     const yatraModal = new bootstrap.Modal(document.getElementById('yatraModal'));
+    const yatraTableBody = document.getElementById('yatraTableBody');
+
+    // Initialize Select2 on the modal's dropdowns
+    $(document).ready(function() {
+        $('#formRouteId').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal') });
+        $('#formStatus').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal'), minimumResultsForSearch: Infinity });
+    });
 
     function formatToInput(apiDate) {
         if (!apiDate) return '';
@@ -155,30 +132,34 @@
         document.getElementById('yatraForm').reset();
         document.getElementById('formYatraId').value = ''; 
         document.getElementById('modalTitle').textContent = 'Add New Yatra';
-        document.getElementById('formStatus').value = '1';
+        // Use jQuery to reset/set Select2 values
+        $('#formRouteId').val('').trigger('change');
+        $('#formStatus').val('1').trigger('change');
         yatraModal.show();
     });
 
-    document.getElementById('yatraTableBody').addEventListener('click', (e) => {
+    yatraTableBody.addEventListener('click', (e) => {
         const editButton = e.target.closest('.edit-btn');
         if (editButton) {
-            const row = editButton.closest('tr');
-            document.getElementById('formYatraId').value = row.dataset.yatraId;
-            document.getElementById('formRouteId').value = row.dataset.routeId;
-            document.getElementById('formDateTime').value = formatToInput(row.dataset.dateTime);
-            document.getElementById('formFees').value = row.dataset.fees; 
-            document.getElementById('formStatus').value = row.dataset.status;
+            const card = editButton.closest('.yatra-card');
+            document.getElementById('formYatraId').value = card.dataset.yatraId;
+            document.getElementById('formDateTime').value = formatToInput(card.dataset.dateTime);
+            document.getElementById('formFees').value = card.dataset.fees; 
             document.getElementById('modalTitle').textContent = 'Edit Yatra';
+            // Use jQuery to set Select2 values
+            $('#formRouteId').val(card.dataset.routeId).trigger('change');
+            $('#formStatus').val(card.dataset.status).trigger('change');
             yatraModal.show();
         }
     });
 
     document.getElementById('saveYatraBtn').addEventListener('click', () => {
         const yatraId = document.getElementById('formYatraId').value;
-        const routeId = document.getElementById('formRouteId').value;
         const dateTime = document.getElementById('formDateTime').value;
         const fees = document.getElementById('formFees').value;
-        const status = document.getElementById('formStatus').value;
+        // Use jQuery to get Select2 values
+        const routeId = $('#formRouteId').val();
+        const status = $('#formStatus').val();
 
         if (!routeId || !dateTime || !fees) {
             swal("Error", "All fields are required.", "error");
@@ -190,14 +171,12 @@
         formData.append('dateTime', formatToAPI(dateTime));
         formData.append('fees', fees);
         formData.append('status', status);
-        
         if (yatraId) {
             formData.append('action', 'update_yatra');
             formData.append('yatraId', yatraId);
         } else {
             formData.append('action', 'add_yatra');
         }
-
         fetch("{% url 'yatra_master_api' %}", { method: 'POST', body: formData })
             .then(res => res.json())
             .then(data => {

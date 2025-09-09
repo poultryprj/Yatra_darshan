@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Passenger List</title>
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: "Helvetica", sans-serif;
+            font-size: 9pt;
+        }
+        .page-container {
+            page-break-before: always;
+        }
+        .page-container.first-page {
+            page-break-before: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            font-weight: bold;
+        }
+        .sub-header {
+            display: -pdf-grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 15px;
+            font-size: 11pt;
+            font-weight: bold;
+        }
+        .bus-code {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #999;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .sn-col { width: 4%; }
+        .name-col { width: 22%; }
+        .mobile-col { width: 13%; }
+        .address-col { width: 25%; }
+        .area-col { width: 15%; }
+    </style>
+</head>
+<body>
+    {% for bus_name, passengers in buses.items %}
+        {# Outer loop for each bus #}
+        
+        {# Inner loop to handle page breaks for every 35 passengers #}
+        {% for pax in passengers %}
+            {% if forloop.counter0|divisibleby:35 %}
+                <div class="page-container {% if forloop.parentloop.first and forloop.first %}first-page{% endif %}">
+                    
+                    <div class="header"><h1>Passenger List</h1></div>
+
+                    <div class="header-grid">
+                <div><strong>Route:</strong> {{ route_name }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                 &nbsp;&nbsp;<strong>Yatra Date:</strong> {{ yatra_date }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;<strong>Bus No:</strong> ______________</div>
+            </div>
+                    
+                    <div class="bus-code">Bus Code: {{ bus_name }}</div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sn-col">SN</th><th class="name-col">Full Name</th><th class="mobile-col">Mobile No</th><th class="mobile-col">Alternate Mobile</th><th class="address-col">Address</th><th class="area-col">Area</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            {% endif %}
+                        <tr>
+                            <td class="sn-col">{{ forloop.counter }}</td>
+                            <td class="name-col">{{ pax.Firstname|default:"" }} {{ pax.Middlename|default:"" }} {{ pax.Lastname|default:"" }}</td>
+                            <td class="mobile-col">{{ pax.MobileNo|default:"-" }}</td>
+                            <td class="mobile-col">{{ pax.AlternateMobileNo|default:"-" }}</td>
+                            <td class="address-col">{{ pax.Address|default:"-" }}</td>
+                            <td class="area-col">{{ pax.AreaName|default:"-" }}</td>
+                        </tr>
+            {% if forloop.counter|divisibleby:35 or forloop.last %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</body>
+</html>
