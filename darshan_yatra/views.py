@@ -5,6 +5,11 @@ import requests
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
+import os, uuid, json
+from django.conf import settings
+from django.http import JsonResponse
+from django.db import transaction
+
 headers = {
     "Accept": "application/json, text/plain, */*",
     "Content-Type": "application/json",
@@ -170,6 +175,43 @@ def registration_api(request):
                         dob_final = datetime.strptime(dob_str, "%Y-%m-%d").strftime("%d/%m/%Y")
                     except Exception:
                         dob_final = dob_str
+                 # ✅ Handle file uploads
+                aadhar_file = request.FILES.get("AadharUpload")
+                profile_file = request.FILES.get("ProfilePicUpload")
+
+                aadhar_url, profile_url = None, None
+
+                # --- Save Aadhar ---
+                if aadhar_file:
+                    ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
+                    file_name = f"{uuid.uuid4().hex}{ext}"
+                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                    os.makedirs(img_directory, exist_ok=True)
+                    save_path = os.path.join(img_directory, file_name)
+
+                    with open(save_path, "wb+") as dest:
+                        for chunk in aadhar_file.chunks():
+                            dest.write(chunk)
+
+                    aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                    print("Aadhar saved at:", save_path)
+                    print("Aadhar URL:", aadhar_url)
+
+                # --- Save Profile Pic ---
+                if profile_file:
+                    ext = os.path.splitext(profile_file.name)[1] or ".jpg"
+                    file_name = f"{uuid.uuid4().hex}{ext}"
+                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                    os.makedirs(img_directory, exist_ok=True)
+                    save_path = os.path.join(img_directory, file_name)
+
+                    with open(save_path, "wb+") as dest:
+                        for chunk in profile_file.chunks():
+                            dest.write(chunk)
+
+                    profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                    print("Profile saved at:", save_path)
+                    print("Profile URL:", profile_url)
 
                 payload = {
                     "RegistrationId": request.POST.get("RegistrationId", 0),
@@ -375,7 +417,6 @@ def registration_api1(request):
                 payment_id = request.POST.get("PaymentId")
                 bookings_json = request.POST.get("Bookings", "[]")
 
-                import json
                 bookings = json.loads(bookings_json)  # list of {RegistrationId, YatraIds}
 
                 print("Booking Request →")
@@ -386,33 +427,70 @@ def registration_api1(request):
                 print("PaymentId:", payment_id)
                 print("Bookings:", bookings)
 
-                # TODO: Save or forward each booking
-                # Example structure
-                result = []
-                for b in bookings:
-                    result.append({
-                        "RegistrationId": b["RegistrationId"],
-                        "YatraIds": b["YatraIds"]
+                # ✅ Handle UPI Screenshot upload
+                upi_file = request.FILES.get("UPIScreenshot")
+                trasection_url = None
+                if upi_file:
+                    ext = os.path.splitext(upi_file.name)[1] or ".jpg"
+                    file_name = f"{uuid.uuid4().hex}{ext}"
+
+                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "trasection")
+                    os.makedirs(img_directory, exist_ok=True)
+                    save_path = os.path.join(img_directory, file_name)
+
+                    with open(save_path, "wb+") as dest:
+                        for chunk in upi_file.chunks():
+                            dest.write(chunk)
+
+                    trasection_url = f"https://gyaagl.club/GoldVault/static/assets/trasection/{file_name}"
+
+                    print("UPI Screenshot saved at:", save_path)
+                    print("UPI Screenshot URL:", trasection_url)
+
+                # ✅ Call external API for each booking inside a transaction
+                api_url = "https://www.lakshyapratishthan.com/apis/inserttickets"
+                # headers = {"Content-Type": "application/json"}  # adjust if needed
+
+                with transaction.atomic():
+                    api_responses = []
+
+                    for b in bookings:
+                        payload = {
+                            "RegistrationId": b["RegistrationId"],
+                            "UserId": user_id,
+                            "YatraIds": b["YatraIds"],  # list of Yatra IDs
+                            "AmountPaid": amount_paid,
+                            "Discount": discount,
+                            "DiscountReason": discount_reason,
+                            "PaymentId": payment_id or ""
+                        }
+
+                        try:
+                            r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                            api_response = r.json()
+                            print("API Response:", api_response)
+                        except Exception as api_err:
+                            # Force rollback
+                            raise Exception(f"API Error: {str(api_err)}")
+
+                        if api_response.get("message_code") != 1000:
+                            # Force rollback if even one booking fails
+                            raise Exception(api_response.get("message_text", "Booking failed"))
+
+                        api_responses.append(api_response)
+
+                    # ✅ If we reach here → all API calls succeeded
+                    return JsonResponse({
+                        "message_code": 1000,
+                        "message_text": "Tickets booked successfully"
                     })
 
-                return JsonResponse({
-                    "message_code": 1000,
-                    "message_text": "Tickets booked successfully",
-                    "data": {
-                        "UserId": user_id,
-                        "Bookings": result,
-                        "AmountPaid": amount_paid,
-                        "Discount": discount,
-                        "PaymentId": payment_id
-                    }
-                })
-
             except Exception as e:
+                # Rollback automatically happens due to transaction.atomic()
                 return JsonResponse({
                     "message_code": 999,
-                    "message_text": f"Exception in booking: {str(e)}"
+                    "message_text": f"Booking failed: {str(e)}"
                 })
-
 
         elif action == "list_bloodgroup":
             api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
