@@ -454,6 +454,9 @@
   inputMobile.addEventListener('keydown', function(e){ if (e.key==='Enter') doSearch(); });
 
   async function doSearch(){
+    localStorage.clear();
+    console.log("All localStorage cleared on page reload!");
+
     hideMsg();
     const mob = inputMobile.value.trim();
     if (!validMobile(mob)){ showMsg('error','Please enter a valid 10-digit mobile number.'); return; }
@@ -502,10 +505,16 @@
         const area = r.AreaName || '-';
         const gender = r.GenderName || '-';
 
+        // li.innerHTML = `
+        //    <div class="item-line">
+        //    ${regId}&nbsp;&nbsp;${fullName}, ${area}, ${gender}
+        //    </div>
+        // `;
+        
         li.innerHTML = `
-            <div class="item-line">
-            ${regId}&nbsp;&nbsp;${fullName}, ${area}, ${gender}
-            </div>
+          <div class="item-line">
+              ${regId}&nbsp;&nbsp;${fullName}, ${area}, Female
+          </div>
         `;
 
         li.addEventListener('click', () => openActionSheet('update', r, mob));
@@ -1226,8 +1235,15 @@ function renderSelectedYatras(searchResults = null, searchMobile = null) {
         yLine.className = "small text-dark mb-1 d-flex justify-content-between";
 
         if (yData) {
+          // yLine.innerHTML = `
+          //  <span><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</span>
+          //  <span class="fw-bold">₹${yData.fees}</span>
+          // `;
           yLine.innerHTML = `
-            <span><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</span>
+            <div>
+              <div><i class="bi bi-geo-alt-fill me-1 text-primary"></i><strong>${yData.route}</strong></div>
+              <div class="small text-muted"><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</div>
+            </div>
             <span class="fw-bold">₹${yData.fees}</span>
           `;
         } else {
