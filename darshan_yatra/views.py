@@ -361,7 +361,8 @@ def registration_api1(request):
                         gender_name = "Custom"
 
                     # 🔥 FIX: Handle BloodGroup properly
-                    blood_group_name = r.get("BloodGroup", "").strip()
+                    # blood_group_name = r.get("BloodGroup", "").strip()
+                    blood_group_name = (r.get("BloodGroup") or "").strip()
                     blood_group_id = "1"  # Default to "Select"
                     
                     # Map blood group names to IDs
@@ -509,6 +510,44 @@ def registration_api1(request):
                     dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
                 except Exception:
                     pass
+                
+            # ✅ Handle file uploads
+            aadhar_file = request.FILES.get("AadharUpload")
+            profile_file = request.FILES.get("ProfilePicUpload")
+
+            aadhar_url, profile_url = None, None
+
+            # --- Save Aadhar ---
+            if aadhar_file:
+                ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
+                file_name = f"{uuid.uuid4().hex}{ext}"
+                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                os.makedirs(img_directory, exist_ok=True)
+                save_path = os.path.join(img_directory, file_name)
+
+                with open(save_path, "wb+") as dest:
+                    for chunk in aadhar_file.chunks():
+                        dest.write(chunk)
+
+                aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                print("Aadhar saved at:", save_path)
+                print("Aadhar URL:", aadhar_url)
+
+            # --- Save Profile Pic ---
+            if profile_file:
+                ext = os.path.splitext(profile_file.name)[1] or ".jpg"
+                file_name = f"{uuid.uuid4().hex}{ext}"
+                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                os.makedirs(img_directory, exist_ok=True)
+                save_path = os.path.join(img_directory, file_name)
+
+                with open(save_path, "wb+") as dest:
+                    for chunk in profile_file.chunks():
+                        dest.write(chunk)
+
+                profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                print("Profile saved at:", save_path)
+                print("Profile URL:", profile_url)
 
             payload = {
                 "RegistrationId": request.POST.get("RegistrationId", 0),
