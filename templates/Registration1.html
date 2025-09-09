@@ -149,9 +149,12 @@
     <button id="menuBtn" class="navbar-toggler" type="button" style="position:absolute; left:12px;">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <span class="navbar-brand">Welcome - {{ user.first_name }} {{ user.last_name }}</span>
+    <span class="navbar-brand" style="position:absolute; left:50%; transform:translateX(-50%);">
+      Welcome - {{ user.first_name }} {{ user.last_name }}
+    </span>
   </div>
 </nav>
+
 
 <!-- Side Drawer -->
 <div id="drawer" class="drawer">
@@ -161,12 +164,43 @@
     <button onclick="closeDrawer()" class="btn btn-sm position-absolute" style="right:8px; top:8px;"><i class="bi bi-x-lg"></i></button>
   </div>
   <ul>
-    <li><a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-house-door me-2"></i>Home</a></li>
-    <li><a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-geo-alt-fill me-2"></i>Route Master</a></li>
-    <li><a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-map-fill me-2"></i>Area Master</a></li>
-    <li><a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-calendar-event-fill me-2"></i>Yatra Master</a></li>
-    <li><a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-  </ul>
+    <li><a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-house-door me-2"></i> Home</a>
+    </li>
+
+    <li><a href="{% url 'dashboard' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a>
+    </li>
+
+    <li><a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-people-fill me-2"></i> User Management</a>
+    </li>
+
+    <li><a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-geo-alt-fill me-2"></i> Route Master</a>
+    </li>
+
+    <li><a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-map-fill me-2"></i> Area Master</a>
+    </li>
+
+    <li><a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master</a>
+    </li>
+
+    <li><a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-cash-coin me-2"></i> Daily Collection</a>
+    </li>
+
+    <li><a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-printer-fill me-2"></i> Print Report</a>
+    </li>
+
+    <li><a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2">
+        <i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+    </li>
+</ul>
+
 </div>
 
 <!-- main content -->
