@@ -1077,13 +1077,67 @@ def dashboard(request):
 
     return render(request, "dashboard.html", context)
 
-# darshan_yatra/views.py
+
+
+
+
+@csrf_exempt
+def dashboard_api(request):
+    """
+    API endpoint that returns detailed bus and seat information for the seat map toggles.
+    It now correctly represents the number of booked seats.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    if request.method == 'POST':
+        yatra_id = request.POST.get('yatra_id')
+        if not yatra_id:
+            return JsonResponse({"status": "error", "message": "Yatra ID is required."})
+
+        try:
+            # --- THIS IS THE FIX ---
+            # We will use the 'totalrouteyatrabus' API which gives us the booking COUNT per bus.
+
+            summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
+            summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
+            
+            final_bus_details = {}
+
+            if summary_response.status_code == 200:
+                all_buses = summary_response.json().get("message_data", [])
+                
+                # Filter to get only the buses for the yatra we care about
+                buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
+
+                for bus in buses_for_this_yatra:
+                    bus_name = f"Bus {bus.get('BusName', 'N/A')}"
+                    try:
+                        booking_count = int(bus.get("Bookings", 0))
+                    except (ValueError, TypeError):
+                        booking_count = 0
+
+                    # Create a list of booked "seats" based on the count.
+                    # We will fill seats from 2 up to the booking_count + 1.
+                    # Example: if count is 24, it will fill seats 2, 3, ..., 25.
+                    booked_seat_numbers = list(range(2, booking_count + 2))
+                    
+                    final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
+
+            return JsonResponse({"status": "success", "data": {"buses": final_bus_details}})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."})
+
+
 
 # @csrf_exempt
 # def dashboard_api(request):
 #     """
 #     API endpoint that returns detailed bus and seat information for the seat map toggles,
-#     using real API calls.
+#     using REAL API calls.
 #     """
 #     if 'user_id' not in request.session:
 #         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -1094,26 +1148,19 @@ def dashboard(request):
 #             return JsonResponse({"status": "error", "message": "Yatra ID is required."})
 
 #         try:
-#             # --- REAL API INTEGRATION ---
-
-#             # Step 1: Get all bus summaries to find which buses belong to the selected yatra
 #             summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
 #             summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
             
 #             buses_for_this_yatra = []
 #             if summary_response.status_code == 200:
 #                 all_buses = summary_response.json().get("message_data", [])
-#                 # Filter to get only the buses for the yatra we care about
 #                 buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
 
 #             if not buses_for_this_yatra:
-#                 # If no buses found, return an empty dictionary
 #                 return JsonResponse({"status": "success", "data": {"buses": {}}})
 
-#             # This will be our final result, e.g., {"Bus A": {"booked_seats": [1, 5, 8]}}
 #             final_bus_details = {}
             
-#             # Step 2: Loop through each bus and fetch its detailed passenger/ticket list
 #             passenger_api_url = "https://www.lakshyapratishthan.com/apis/routeyatrabustickets"
 #             for bus in buses_for_this_yatra:
 #                 payload = {
@@ -1127,20 +1174,14 @@ def dashboard(request):
 #                 if passenger_response.status_code == 200:
 #                     passengers = passenger_response.json().get("message_data", [])
                     
-#                     # Step 3: Extract just the seat numbers for each bus
 #                     booked_seat_numbers = []
 #                     for passenger in passengers:
-#                         # The API you provided doesn't have a "SeatNo", so we'll use a placeholder.
-#                         # !!! IMPORTANT: You need to confirm the actual key for the seat number.
-#                         # I will assume the key is "SeatNo" for now.
 #                         seat_no = passenger.get("SeatNo") 
 #                         if seat_no is not None:
 #                             try:
-#                                 # Ensure seat number is an integer
 #                                 booked_seat_numbers.append(int(seat_no))
 #                             except (ValueError, TypeError):
-#                                 # Ignore if seat number is not a valid number
-#                                 pass
+#                                 pass 
                     
 #                     bus_name = f"Bus {bus.get('BusName', 'N/A')}"
 #                     final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
@@ -1151,69 +1192,6 @@ def dashboard(request):
 #             return JsonResponse({"status": "error", "message": f"An error occurred: {e}"})
 
 #     return JsonResponse({"status": "error", "message": "Invalid request method."})
-
-
-# darshan_yatra/views.py
-
-@csrf_exempt
-def dashboard_api(request):
-    """
-    API endpoint that returns detailed bus and seat information for the seat map toggles,
-    using REAL API calls.
-    """
-    if 'user_id' not in request.session:
-        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
-
-    if request.method == 'POST':
-        yatra_id = request.POST.get('yatra_id')
-        if not yatra_id:
-            return JsonResponse({"status": "error", "message": "Yatra ID is required."})
-
-        try:
-            summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
-            summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
-            
-            buses_for_this_yatra = []
-            if summary_response.status_code == 200:
-                all_buses = summary_response.json().get("message_data", [])
-                buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
-
-            if not buses_for_this_yatra:
-                return JsonResponse({"status": "success", "data": {"buses": {}}})
-
-            final_bus_details = {}
-            
-            passenger_api_url = "https://www.lakshyapratishthan.com/apis/routeyatrabustickets"
-            for bus in buses_for_this_yatra:
-                payload = {
-                    "YatraRouteId": bus.get("YatraRouteId"),
-                    "YatraId": bus.get("YatraId"),
-                    "YatraBusId": bus.get("YatraBusId")
-                }
-                
-                passenger_response = requests.post(passenger_api_url, json=payload, headers=headers, verify=False, timeout=10)
-                
-                if passenger_response.status_code == 200:
-                    passengers = passenger_response.json().get("message_data", [])
-                    
-                    booked_seat_numbers = []
-                    for passenger in passengers:
-                        seat_no = passenger.get("SeatNo") 
-                        if seat_no is not None:
-                            try:
-                                booked_seat_numbers.append(int(seat_no))
-                            except (ValueError, TypeError):
-                                pass 
-                    
-                    bus_name = f"Bus {bus.get('BusName', 'N/A')}"
-                    final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
-            
-            return JsonResponse({"status": "success", "data": {"buses": final_bus_details}})
-
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": f"An error occurred: {e}"})
-
-    return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 
 @csrf_exempt
