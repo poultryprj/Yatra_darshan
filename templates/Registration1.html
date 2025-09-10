@@ -455,14 +455,34 @@
 
   function validMobile(m){ return /^\d{10}$/.test(m); }
 
-  btnSearch.addEventListener('click', doSearch);
+  // btnSearch.addEventListener('click', doSearch);
+  btnSearch.addEventListener('click', () => {
+    console.log("Clearing local storage before search...");
+
+    // Clear all local storage
+    localStorage.clear();
+
+    // Optional: if using sessionStorage too
+    // sessionStorage.clear();
+
+    console.log("Local storage after clear:", localStorage);
+
+    // Run your search
+    doSearch();
+  });
+
+  
   inputMobile.addEventListener('keydown', function(e){ if (e.key==='Enter') doSearch(); });
 
   async function doSearch(){
-    localStorage.clear();
-    console.log("All localStorage cleared on page reload!");
+    // localStorage.clear();
+    // console.log("All localStorage cleared on page reload!");
 
-    hideMsg();
+    // hideMsg();
+    setTimeout(() => {
+      hideMsg();
+    }, 2000);
+    
     const mob = inputMobile.value.trim();
     if (!validMobile(mob)){ showMsg('error','Please enter a valid 10-digit mobile number.'); return; }
     try {
@@ -518,7 +538,7 @@
         
         li.innerHTML = `
           <div class="item-line">
-              ${regId}&nbsp;&nbsp;${fullName}, ${area}, Female
+            <strong>${fullName}</strong>, ${area}
           </div>
         `;
 
@@ -710,6 +730,21 @@
   // add new click (small icon)
   btnAddNew.addEventListener('click', ()=>{
     const mob = inputMobile.value.trim();
+
+      // 🔥 Check if mobile is empty
+    if (!mob) {
+      alert("Please enter mobile number in search box for new registration.");
+      inputMobile.focus();
+      return; // stop here
+    }
+
+    // 🔥 Check if mobile is not valid 10 digits
+    if (!validMobile(mob)) {
+      alert("Please enter a valid 10-digit mobile number before adding new registration.");
+      inputMobile.focus();
+      return;
+    }
+
     // Only pass mobile if it's valid, otherwise pass null for fresh registration
     const mobileToPass = validMobile(mob) ? mob : null;
     openActionSheet('insert', null, mobileToPass);
@@ -939,7 +974,7 @@ function renderYatras(){
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <strong>${y.YatraDateTime}</strong><br>
-              <small>Fees: ₹${y.YatraFees}</small>
+              <small> ₹${y.YatraFees}</small>
             </div>
             <div class="form-check form-switch">
               <input class="form-check-input yatra-toggle" type="checkbox"
@@ -1052,6 +1087,12 @@ function handleAddYatra() {
   // Hide the yatra selection section
   const section = document.getElementById("yatraSection");
   section.classList.add("d-none");
+   
+  if (section.classList.contains("d-none")) {
+  console.log("1057 close model")  
+  const closeBtn = document.querySelector('.btn-close[data-bs-dismiss="offcanvas"]');
+  if (closeBtn) closeBtn.click();
+  }
   
   // Update button text
   const yatraBtn = document.querySelector('button[data-bs-target="#yatraSection"]') || 
@@ -1063,7 +1104,7 @@ function handleAddYatra() {
   console.log("Yatra selection confirmed and section hidden.");
 }
 </script>
-<script>
+{% comment %} <script>
 document.addEventListener("DOMContentLoaded", () => {
   const paymentMode = document.getElementById('PaymentMode');
   const upiFields = document.getElementById('upiFields');
@@ -1108,6 +1149,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("Discount", document.getElementById("Discount")?.value || "0");
         fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
         fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
+        
 
         // ✅ Append UPI Screenshot file if selected
         const upiFile = document.getElementById("UPIScreenshot")?.files[0];
@@ -1128,6 +1170,102 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.message_code === 1000) {
           alert("✅ Tickets booked successfully!");
           location.reload()
+        } else {
+          alert(`⚠️ Booking failed: ${data.message_text}`);
+        }
+
+      } catch (error) {
+        console.error("Booking error:", error);
+        alert("❌ Failed to book ticket. Please try again.");
+      } finally {
+        btnBookTicket.disabled = false;
+        btnBookTicket.innerText = "Book Ticket";
+      }
+    });
+  }
+});
+</script> {% endcomment %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const paymentMode = document.getElementById('PaymentMode');
+  const upiFields = document.getElementById('upiFields');
+  const btnBookTicket = document.getElementById("btnBookTicket");
+
+  if (paymentMode && upiFields) {
+    paymentMode.addEventListener('change', () => {
+      // Show UPI fields only when "upi" is selected
+      upiFields.classList.toggle('d-none', paymentMode.value !== 'upi');
+    });
+  }
+
+  if (btnBookTicket) {
+    btnBookTicket.addEventListener("click", async () => {
+      try {
+        btnBookTicket.disabled = true;
+        btnBookTicket.innerText = "Booking...";
+
+        const allUsersYatras = getAllUsersYatras();
+        if (!allUsersYatras || Object.keys(allUsersYatras).length === 0) {
+          alert("Please select at least one yatra before booking.");
+          btnBookTicket.disabled = false;
+          btnBookTicket.innerText = "Book Ticket";
+          return;
+        }
+
+        // Collect bookings
+        let bookingData = [];
+        for (const regId in allUsersYatras) {
+          const user = allUsersYatras[regId];
+          if (!user.yatras || user.yatras.length === 0) continue;
+          bookingData.push({
+            RegistrationId: regId,
+            YatraIds: user.yatras.map(y => y.id)
+          });
+        }
+
+        const fd = new FormData();
+        fd.append("action", "book_ticket");
+        fd.append("UserId", "{{ request.session.user_id|default:'1' }}");
+        fd.append("Bookings", JSON.stringify(bookingData));
+        fd.append("AmountPaid", document.getElementById("AmountPayable").value || "0");
+        fd.append("Discount", document.getElementById("Discount")?.value || "0");
+        fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
+        fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
+        fd.append("PaymentMode", paymentMode.value || ""); // cash / upi
+
+        // If UPI selected → send TransactionId + Screenshot
+        if (paymentMode.value === "upi") {
+          const transactionId = document.getElementById("TransactionId")?.value || "";
+          if (!transactionId.trim()) {
+            alert("Please enter UPI Transaction ID.");
+            btnBookTicket.disabled = false;
+            btnBookTicket.innerText = "Book Ticket";
+            return;
+          }
+          fd.append("TransactionId", transactionId);
+
+          const upiFile = document.getElementById("UPIScreenshot")?.files[0];
+          if (!upiFile) {
+            alert("Please upload UPI screenshot.");
+            btnBookTicket.disabled = false;
+            btnBookTicket.innerText = "Book Ticket";
+            return;
+          }
+          fd.append("UPIScreenshot", upiFile);
+        }
+
+        const resp = await fetch("{% url 'registration_api1' %}", {
+          method: "POST",
+          body: fd
+        });
+
+        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+        const data = await resp.json();
+        console.log("Book Ticket Response:", data);
+
+        if (data.message_code === 1000) {
+          alert("✅ Tickets booked successfully!");
+          location.reload();
         } else {
           alert(`⚠️ Booking failed: ${data.message_text}`);
         }
