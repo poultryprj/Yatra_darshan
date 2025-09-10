@@ -424,7 +424,6 @@ def registration_api1(request):
             resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
         
-        
         elif action == "book_ticket":
             try:
                 user_id = request.POST.get("UserId")
@@ -432,9 +431,19 @@ def registration_api1(request):
                 discount = request.POST.get("Discount", 0)
                 discount_reason = request.POST.get("DiscountReason", "")
                 payment_id = request.POST.get("PaymentId")
-                bookings_json = request.POST.get("Bookings", "[]")
 
-                bookings = json.loads(bookings_json)  # list of {RegistrationId, YatraIds}
+                # 🔹 Normalize Payment Mode
+                payment_mode_raw = request.POST.get("PaymentMode", "").lower()
+                if payment_mode_raw == "cash":
+                    payment_mode = 1
+                elif payment_mode_raw == "upi":
+                    payment_mode = 2
+                else:
+                    payment_mode = 1  # fallback
+
+                transaction_id = request.POST.get("TransactionId", "")
+                bookings_json = request.POST.get("Bookings", "[]")
+                bookings = json.loads(bookings_json)
 
                 print("Booking Request →")
                 print("UserId:", user_id)
@@ -442,6 +451,9 @@ def registration_api1(request):
                 print("Discount:", discount)
                 print("DiscountReason:", discount_reason)
                 print("PaymentId:", payment_id)
+                print("PaymentMode Raw:", payment_mode_raw)
+                print("PaymentMode Mapped:", payment_mode)
+                print("TransactionId:", transaction_id)
                 print("Bookings:", bookings)
 
                 # ✅ Handle UPI Screenshot upload
@@ -460,19 +472,15 @@ def registration_api1(request):
                             dest.write(chunk)
 
                     trasection_url = f"https://gyaagl.club/GoldVault/static/assets/trasection/{file_name}"
-
                     print("UPI Screenshot saved at:", save_path)
                     print("UPI Screenshot URL:", trasection_url)
 
-                # ✅ Call external API for each booking inside a transaction
+                # ✅ Call external API
                 api_url = "https://www.lakshyapratishthan.com/apis/inserttickets"
-                # headers = {"Content-Type": "application/json"}  # adjust if needed
 
                 with transaction.atomic():
                     api_responses = []
-
                     for b in bookings:
-                        # Ensure YatraIds is a comma-separated string
                         yatra_ids = b["YatraIds"]
                         if isinstance(yatra_ids, list):
                             yatra_ids = ",".join(str(y) for y in yatra_ids)
@@ -480,37 +488,35 @@ def registration_api1(request):
                         payload = {
                             "RegistrationId": str(b["RegistrationId"]),
                             "UserId": str(user_id),
-                            "YatraIds": yatra_ids,  # ✅ converted to string
+                            "YatraIds": yatra_ids,
                             "AmountPaid": str(amount_paid),
                             "Discount": str(discount),
                             "DiscountReason": str(discount_reason),
-                            "PaymentId": str(payment_id or "")
+                            "PaymentId": str(payment_id or ""),
+                            "PaymentMode": payment_mode,  # ✅ 1 for cash, 2 for UPI
+                            "TransactionId": str(transaction_id or "")
                         }
 
-                        try:
-                            r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
-                            api_response = r.json()
-                            print("API Response:", api_response)
-                        except Exception as api_err:
-                            raise Exception(f"API Error: {str(api_err)}")
+                        r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                        api_response = r.json()
+                        print("API Response:", api_response)
 
                         if api_response.get("message_code") != 1000:
                             raise Exception(api_response.get("message_text", "Booking failed"))
 
                         api_responses.append(api_response)
 
-                    # ✅ If we reach here → all API calls succeeded
                     return JsonResponse({
                         "message_code": 1000,
                         "message_text": "Tickets booked successfully"
                     })
 
             except Exception as e:
-                # Rollback automatically happens due to transaction.atomic()
                 return JsonResponse({
                     "message_code": 999,
-                    "message_text": f"Booking failed: {str(e)}"
+                    "message_text": f"Error: {str(e)}"
                 })
+
 
         elif action == "list_bloodgroup":
             api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
