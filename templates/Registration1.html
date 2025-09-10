@@ -711,99 +711,115 @@
   });
 
   // submit handler
-  regForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
+  regForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    // Validate required fields
-    const requiredFields = ['MobileNo', 'Firstname', 'Middlename', 'Lastname', 'AreaId', 'Address'];
-    for (const fieldId of requiredFields) {
-      const field = document.getElementById(fieldId);
-      if (!field.value.trim()) {
-        const fieldName = field.previousElementSibling.textContent.replace(' *', '');
-        alert(`Please fill ${fieldName}`);
-        field.focus();
-        return;
-      }
+  // ✅ Validate required fields
+  const requiredFields = ['MobileNo', 'Firstname', 'Middlename', 'Lastname', 'AreaId', 'Address'];
+  for (const fieldId of requiredFields) {
+    const field = document.getElementById(fieldId);
+    if (!field.value.trim()) {
+      const fieldName = field.previousElementSibling.textContent.replace(' *', '');
+      alert(`Please fill ${fieldName}`);
+      field.focus();
+      return;
     }
+  }
 
-    const mob = document.getElementById('MobileNo').value.trim();
-    if (!validMobile(mob)){ alert('Mobile must be 10 digits'); return; }
+  const mob = document.getElementById('MobileNo').value.trim();
+  if (!validMobile(mob)) {
+    alert('Mobile must be 10 digits');
+    return;
+  }
 
-    const RegistrationId = document.getElementById('RegistrationId').value || '0';
-    const isInsertMode = RegistrationId === '0';
-    
-    const payload = {
-      RegistrationId,
-      userMobileNo: mob,
-      userFirstname: document.getElementById('Firstname').value.trim(),
-      userMiddlename: document.getElementById('Middlename').value.trim(),
-      userLastname: document.getElementById('Lastname').value.trim(),
-      AreaId: document.getElementById('AreaId').value || '1',
-      Gender: document.getElementById('Gender').value || '1',
-      Address: document.getElementById('Address').value.trim(),
-      userAlternateMobileNo: document.getElementById('AlternateMobileNo').value.trim(),
-      BloodGroup: document.getElementById('BloodGroup').value || '1',
-      DateOfBirth: (function(){ const v=document.getElementById('DateOfBirth').value; if(!v) return ''; const [y,m,d]=v.split('-'); return `${d}/${m}/${y}`; })(),
-      Photo:'', PhotoId:''
-    };
+  const RegistrationId = document.getElementById('RegistrationId').value || '0';
+  const isInsertMode = RegistrationId === '0';
 
-    try {
-      const res = await postForm('submit', payload);
-      if (String(res.message_code) === '1000'){
-        showMsg('success', res.message_text || 'Registration saved successfully');
-        
-        // For INSERT mode: Keep the form open and show yatra selection option
-        if (isInsertMode) {
-          // 🔥 CRITICAL FIX: Update localStorage key when we get new RegistrationId
-          const oldUserId = getCurrentUserId(); // This was "0"
-          const newRegistrationId = res.RegistrationId || res.message_data?.RegistrationId;
-          
-          if (newRegistrationId) {
-            document.getElementById('RegistrationId').value = newRegistrationId;
-            
-            // 🔥 Transfer any existing yatra selections from "0" key to new RegistrationId key
-            const allUsersYatras = getAllUsersYatras();
-            if (allUsersYatras["0"]) {
-              allUsersYatras[newRegistrationId] = allUsersYatras["0"];
-              delete allUsersYatras["0"];
-              saveAllUsersYatras(allUsersYatras);
-            }
+  // ✅ Build FormData (includes files & text fields)
+  const fd = new FormData();
+  fd.append("action", "submit");
+  fd.append("RegistrationId", RegistrationId);
+  fd.append("userMobileNo", mob);
+  fd.append("userFirstname", document.getElementById('Firstname').value.trim());
+  fd.append("userMiddlename", document.getElementById('Middlename').value.trim());
+  fd.append("userLastname", document.getElementById('Lastname').value.trim());
+  fd.append("AreaId", document.getElementById('AreaId').value || "1");
+  fd.append("Gender", document.getElementById('Gender').value || "1");
+  fd.append("Address", document.getElementById('Address').value.trim());
+  fd.append("userAlternateMobileNo", document.getElementById('AlternateMobileNo').value.trim());
+  fd.append("BloodGroup", document.getElementById('BloodGroup').value || "1");
+
+  // ✅ Convert DOB to dd/mm/yyyy if exists
+  const dobVal = document.getElementById('DateOfBirth').value;
+  if (dobVal) {
+    const [y, m, d] = dobVal.split("-");
+    fd.append("DateOfBirth", `${d}/${m}/${y}`);
+  } else {
+    fd.append("DateOfBirth", "");
+  }
+
+  // ✅ Append file uploads
+  const aadharFile = document.getElementById("AadharUpload")?.files[0];
+  if (aadharFile) fd.append("AadharUpload", aadharFile);
+
+  const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
+  if (profileFile) fd.append("ProfilePicUpload", profileFile);
+
+  try {
+    const resp = await fetch("{% url 'registration_api1' %}", {
+      method: "POST",
+      body: fd
+    });
+
+    if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+
+    const res = await resp.json();
+
+    if (String(res.message_code) === "1000") {
+      showMsg("success", res.message_text || "Registration saved successfully");
+
+      if (isInsertMode) {
+        const newRegistrationId = res.RegistrationId || res.message_data?.RegistrationId;
+        if (newRegistrationId) {
+          document.getElementById("RegistrationId").value = newRegistrationId;
+
+          // ✅ Transfer yatras from 0 → new ID
+          const allUsersYatras = getAllUsersYatras();
+          if (allUsersYatras["0"]) {
+            allUsersYatras[newRegistrationId] = allUsersYatras["0"];
+            delete allUsersYatras["0"];
+            saveAllUsersYatras(allUsersYatras);
           }
-          
-          // Show success message but keep form open
-          alert('Registration saved successfully! You can now select yatras for this user or close the form.');
-          
-          // Optionally show the yatra selection section automatically
-          const yatraSection = document.getElementById("yatraSection");
-          const yatraBtn = document.querySelector('.btn-outline-primary');
-          if (yatraSection && yatraSection.classList.contains("d-none")) {
-            renderYatras();
-            yatraSection.classList.remove("d-none");
-            if (yatraBtn) {
-              yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
-            }
-          }
-        } else {
-          // For UPDATE mode: Close the form as before
-          offcanvas.hide();
         }
-        
-        // Refresh the search results
-        setTimeout(async ()=> {
-          await doSearch();
-          // Force update selected yatras display after search completes
-          setTimeout(() => {
-            const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
-            renderSelectedYatras(currentSearchResults, inputMobile.value.trim());
-          }, 100);
-        }, 300);
-        
+        alert("Registration saved successfully! You can now select yatras for this user or close the form.");
+
+        const yatraSection = document.getElementById("yatraSection");
+        const yatraBtn = document.querySelector(".btn-outline-primary");
+        if (yatraSection && yatraSection.classList.contains("d-none")) {
+          renderYatras();
+          yatraSection.classList.remove("d-none");
+          if (yatraBtn) yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
+        }
       } else {
-        showMsg('error', res.message_text || 'Save failed');
+        offcanvas.hide(); // update mode
       }
-    } catch (err){
-      console.error(err); showMsg('error','Save error');
+
+      // ✅ Refresh search
+      setTimeout(async () => {
+        await doSearch();
+        setTimeout(() => {
+          const currentSearchResults = JSON.parse(sessionStorage.getItem("lastSearchResults") || "[]");
+          renderSelectedYatras(currentSearchResults, inputMobile.value.trim());
+        }, 100);
+      }, 300);
+
+    } else {
+      showMsg("error", res.message_text || "Save failed");
     }
+  } catch (err) {
+    console.error(err);
+    showMsg("error", "Save error");
+  }
 });
 
   // allow pressing search icon or enter to trigger search
