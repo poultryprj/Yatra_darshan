@@ -463,7 +463,7 @@ def registration_api1(request):
                     ext = os.path.splitext(upi_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
 
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "trasection")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "trasection")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -546,7 +546,7 @@ def registration_api1(request):
             if aadhar_file:
                 ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
                 file_name = f"{uuid.uuid4().hex}{ext}"
-                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
                 os.makedirs(img_directory, exist_ok=True)
                 save_path = os.path.join(img_directory, file_name)
 
@@ -562,7 +562,7 @@ def registration_api1(request):
             if profile_file:
                 ext = os.path.splitext(profile_file.name)[1] or ".jpg"
                 file_name = f"{uuid.uuid4().hex}{ext}"
-                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
                 os.makedirs(img_directory, exist_ok=True)
                 save_path = os.path.join(img_directory, file_name)
 
@@ -589,6 +589,8 @@ def registration_api1(request):
                 "Photo": request.POST.get("Photo", ""),
                 "PhotoId": request.POST.get("PhotoId", ""),
                 "UserId": str(request.session.get("user_id", 0)),
+                "PhotoFileName":profile_url,
+                "IdProofFileName":aadhar_url
             }
             print("358", payload)
             resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
