@@ -143,9 +143,85 @@
     .btn-submit{ background:var(--brand-orange); color:#fff; border:none; border-radius:10px; padding:12px; }
     .btn-submit:hover{ background:var(--brand-orange-dark); }
 
+    #loader {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 99999;
+      background: #6236FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    #loader .loading-icon {
+      width: 42px;
+      height: auto;
+      animation: loadingAnimation 0.5s ease-in-out infinite;
+    }
+
+    #loader.hidden {
+      display: none;
+    }
+
+    @keyframes loadingAnimation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(180deg);
+      }
+    }
+
+
+    body.animationGoBack {
+      overflow: hidden;
+    }
+
+    body.animationGoBack .appHeader,
+    body.animationGoBack .appBottomMenu,
+    body.animationGoBack .extraHeader,
+    body.animationGoBack #appCapsule {
+      transform: translate(100%, 0);
+      transition: all .24s linear;
+    }
+
+    body.animationGoBack:after {
+      content: "";
+      display: block;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: #6236FF;
+      background-image: url("../img/loading-icon.png");
+      background-repeat: no-repeat;
+      background-size: 42px auto;
+      background-position: center center;
+      z-index: 9999;
+      animation: animationGoBack .24s linear;
+    }
+
+    @keyframes animationGoBack {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 0;
+      }
+    }
+
   </style>
 </head>
 <body>
+  <!-- loader -->
+  <div id="loader"style="display: none;">
+      <img src="{% static 'assets/img/loading-icon.png' %}" alt="icon" class="loading-icon">
+  </div>
 
 <!-- Topbar -->
 <nav class="navbar navbar-expand-lg fixed-top">
@@ -332,8 +408,8 @@
 
       <!-- Payment Mode -->
       <div class="floating mt-2">
-        <select id="PaymentMode" placeholder=" ">
-          <option value="">Select Payment Mode</option>
+        <select id="PaymentMode" placeholder=" " required >
+          <option value="">Select Payment Mode*</option>
           <option value="cash">Cash</option>
           <option value="upi">UPI</option>
         </select>
@@ -347,8 +423,8 @@
           <label>UPI Transaction ID</label>
         </div>
         <div class="mt-2">
-          <label class="form-label">Upload UPI Screenshot</label>
-          <input id="UPIScreenshot" type="file" class="form-control" accept="image/*,.pdf">
+          <label class="form-label">Upload UPI Screenshot*</label>
+          <input id="UPIScreenshot" type="file" class="form-control" accept="image/*,.pdf" required >
         </div>
       </div>
 
@@ -865,11 +941,15 @@
   const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
   if (profileFile) fd.append("ProfilePicUpload", profileFile);
 
+  document.getElementById('loader').style.display = 'flex';
+
   try {
     const resp = await fetch("{% url 'registration_api1' %}", {
       method: "POST",
       body: fd
     });
+
+    document.getElementById('loader').style.display = 'none';
 
     if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
 
@@ -917,6 +997,7 @@
       showMsg("error", res.message_text || "Save failed");
     }
   } catch (err) {
+    document.getElementById('loader').style.display = 'none';
     console.error(err);
     showMsg("error", "Save error");
   }
@@ -1020,33 +1101,69 @@ function renderYatras(){
   console.log("Existing yatras for current user:", existingYatras);
 
   routes.forEach(route=>{
+    // Debug: Log the route and its yatras to see the data structure
+    console.log(`Processing route: ${route.YatraRouteName}`);
+    console.log('Route Yatras:', route.Yatras);
+    
+    if (route.Yatras && route.Yatras.length > 0) {
+      console.log('First yatra sample - ALL PROPERTIES:', route.Yatras[0]);
+      console.log('All property names:', Object.keys(route.Yatras[0]));
+      
+      // Check different possible status property names
+      route.Yatras.forEach((y, index) => {
+        console.log(`Yatra ${index} properties:`, {
+          YatraId: y.YatraId,
+          YatraRouteStatus: y.YatraRouteStatus,
+          status: y.status,
+          Status: y.Status,
+          active: y.active,
+          Active: y.Active,
+          isActive: y.isActive,
+          IsActive: y.IsActive,
+          enabled: y.enabled,
+          Enabled: y.Enabled
+        });
+      });
+    }
+    
+    // First, let's show ALL yatras temporarily to see what we get
+    // Remove the status filter for debugging
+    const allYatras = route.Yatras || [];
+    
+    console.log(`Total yatras for ${route.YatraRouteName}:`, allYatras.length);
+    
+    // Skip this entire route if no yatras at all
+    if (!allYatras.length) {
+      console.log(`Skipping route ${route.YatraRouteName} - no yatras at all`);
+      return;
+    }
+    
+    // For now, use all yatras (we'll add filtering back once we know the correct property)
+    const activeYatras = allYatras;
+
     const card = document.createElement("div");
     card.className = "card mb-2 shadow-sm";
 
     let yatraItems = "";
-    if(route.Yatras && route.Yatras.length){
-      route.Yatras.forEach(y=>{
-        // Check if this yatra is already selected
-        const isSelected = existingYatraIds.includes(y.YatraId.toString());
-        const checkedAttr = isSelected ? 'checked' : '';
-        
-        yatraItems += `
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <strong>${y.YatraDateTime}</strong><br>
-              <small> ₹${y.YatraFees}</small>
-            </div>
-            <div class="form-check form-switch">
-              <input class="form-check-input yatra-toggle" type="checkbox"
-                value="${y.YatraId}" data-amount="${y.YatraFees}" 
-                data-route="${route.YatraRouteName}" data-datetime="${y.YatraDateTime}"
-                ${checkedAttr}>
-            </div>
-          </li>`;
-      });
-    } else {
-      yatraItems = `<li class="list-group-item"><em>No yatras available</em></li>`;
-    }
+    activeYatras.forEach(y=>{
+      // Check if this yatra is already selected
+      const isSelected = existingYatraIds.includes(y.YatraId.toString());
+      const checkedAttr = isSelected ? 'checked' : '';
+      
+      yatraItems += `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${y.YatraDateTime}</strong><br>
+            <small> ₹${y.YatraFees}</small>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input yatra-toggle" type="checkbox"
+              value="${y.YatraId}" data-amount="${y.YatraFees}" 
+              data-route="${route.YatraRouteName}" data-datetime="${y.YatraDateTime}"
+              ${checkedAttr}>
+          </div>
+        </li>`;
+    });
 
     card.innerHTML = `
       <div class="card-header bg-light">
@@ -1065,6 +1182,10 @@ function renderYatras(){
   
   // Calculate initial total based on existing selections
   calculateAndDisplayTotal();
+  // Log how many route cards are actually displayed
+  const displayedCards = container.querySelectorAll('.card').length;
+  console.log(`Displayed ${displayedCards} route cards with active yatras`);
+
 }
 
 // Handle individual yatra toggle changes
@@ -1105,7 +1226,9 @@ function handleYatraToggle(event) {
   const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
   const searchMobile = document.getElementById('searchMobile').value.trim();
   renderSelectedYatras(currentSearchResults, searchMobile);
-}
+} 
+
+
 
 // Calculate and display total for current user
 function calculateAndDisplayTotal() {
@@ -1245,6 +1368,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script> {% endcomment %}
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const paymentMode = document.getElementById('PaymentMode');
@@ -1293,15 +1417,23 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
         fd.append("PaymentMode", paymentMode.value || ""); // cash / upi
 
+        // ✅ NEW: Check payment mode selected
+        if (!paymentMode.value) {
+          alert("Please select a payment mode.");
+          btnBookTicket.disabled = false;
+          btnBookTicket.innerText = "Book Ticket";
+          return;
+        }
+
         // If UPI selected → send TransactionId + Screenshot
         if (paymentMode.value === "upi") {
           const transactionId = document.getElementById("TransactionId")?.value || "";
-          if (!transactionId.trim()) {
-            alert("Please enter UPI Transaction ID.");
-            btnBookTicket.disabled = false;
-            btnBookTicket.innerText = "Book Ticket";
-            return;
-          }
+          //if (!transactionId.trim()) {
+          //  alert("Please enter UPI Transaction ID.");
+          //  btnBookTicket.disabled = false;
+          //  btnBookTicket.innerText = "Book Ticket";
+          //  return;
+          // }
           fd.append("TransactionId", transactionId);
 
           const upiFile = document.getElementById("UPIScreenshot")?.files[0];
@@ -1314,10 +1446,14 @@ document.addEventListener("DOMContentLoaded", () => {
           fd.append("UPIScreenshot", upiFile);
         }
 
+        document.getElementById('loader').style.display = 'flex';
+
         const resp = await fetch("{% url 'registration_api1' %}", {
           method: "POST",
           body: fd
         });
+
+        document.getElementById('loader').style.display = 'none';
 
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data = await resp.json();
