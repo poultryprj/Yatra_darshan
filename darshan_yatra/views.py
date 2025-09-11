@@ -185,7 +185,7 @@ def registration_api(request):
                 if aadhar_file:
                     ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -193,7 +193,7 @@ def registration_api(request):
                         for chunk in aadhar_file.chunks():
                             dest.write(chunk)
 
-                    aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}"
                     print("Aadhar saved at:", save_path)
                     print("Aadhar URL:", aadhar_url)
 
@@ -201,7 +201,7 @@ def registration_api(request):
                 if profile_file:
                     ext = os.path.splitext(profile_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -209,7 +209,7 @@ def registration_api(request):
                         for chunk in profile_file.chunks():
                             dest.write(chunk)
 
-                    profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                     print("Profile saved at:", save_path)
                     print("Profile URL:", profile_url)
 
@@ -471,7 +471,7 @@ def registration_api1(request):
                         for chunk in upi_file.chunks():
                             dest.write(chunk)
 
-                    trasection_url = f"https://gyaagl.club/GoldVault/static/assets/trasection/{file_name}"
+                    trasection_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/trasection/{file_name}"
                     print("UPI Screenshot saved at:", save_path)
                     print("UPI Screenshot URL:", trasection_url)
 
@@ -554,7 +554,7 @@ def registration_api1(request):
                     for chunk in aadhar_file.chunks():
                         dest.write(chunk)
 
-                aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}"
                 print("Aadhar saved at:", save_path)
                 print("Aadhar URL:", aadhar_url)
 
@@ -570,7 +570,7 @@ def registration_api1(request):
                     for chunk in profile_file.chunks():
                         dest.write(chunk)
 
-                profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                 print("Profile saved at:", save_path)
                 print("Profile URL:", profile_url)
 
