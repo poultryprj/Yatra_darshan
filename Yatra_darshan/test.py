@@ -122,6 +122,7 @@ USE_TZ = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # STATIC_URL = '/static/'
@@ -137,7 +138,6 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'images'
 
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8003",
     'https://www.lakshyapratishthan.com' ]
@@ -149,4 +149,4 @@ CORS_ORIGIN_WHITELIST = [
     'https://www.lakshyapratishthan.com/' ]
 
 
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/assets/js', 'serviceworker.js')
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'Yatra_darshan/static/assets/js', 'serviceworker.js')
