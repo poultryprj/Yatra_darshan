@@ -444,17 +444,15 @@ def registration_api1(request):
                 transaction_id = request.POST.get("TransactionId", "")
                 bookings_json = request.POST.get("Bookings", "[]")
                 bookings = json.loads(bookings_json)
+                
+                # 🔹 Counts
+                GroupCount = request.POST.get("Count1", "0")
+                CurrentTicket = request.POST.get("Count2", "0")
+                BalanceTicket = request.POST.get("Count3", "0")
 
-                print("Booking Request →")
-                print("UserId:", user_id)
-                print("AmountPaid:", amount_paid)
-                print("Discount:", discount)
-                print("DiscountReason:", discount_reason)
-                print("PaymentId:", payment_id)
-                print("PaymentMode Raw:", payment_mode_raw)
-                print("PaymentMode Mapped:", payment_mode)
-                print("TransactionId:", transaction_id)
-                print("Bookings:", bookings)
+                print("GroupCount:", GroupCount)
+                print("CurrentTicket:", CurrentTicket)
+                print("BalanceTicket:", BalanceTicket)
 
                 # ✅ Handle UPI Screenshot upload
                 upi_file = request.FILES.get("UPIScreenshot")
@@ -494,7 +492,10 @@ def registration_api1(request):
                             "DiscountReason": str(discount_reason),
                             "PaymentId": str(payment_id or ""),
                             "PaymentMode": payment_mode,  # ✅ 1 for cash, 2 for UPI
-                            "TransactionId": str(transaction_id or "")
+                            "TransactionId": str(transaction_id or ""),
+                            "BalanceTicket": BalanceTicket,
+                            "CurrentTicket": CurrentTicket,
+                            "GroupCount": GroupCount
                         }
 
                         r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -506,9 +507,13 @@ def registration_api1(request):
 
                         api_responses.append(api_response)
 
+                    # ✅ Return message_data from last API response
+                    last_message_data = api_responses[-1].get("message_data") if api_responses else {}
+
                     return JsonResponse({
                         "message_code": 1000,
-                        "message_text": "Tickets booked successfully"
+                        "message_text": "Tickets booked successfully",
+                        "message_data": last_message_data
                     })
 
             except Exception as e:
@@ -516,7 +521,6 @@ def registration_api1(request):
                     "message_code": 999,
                     "message_text": f"Error: {str(e)}"
                 })
-
 
         elif action == "list_bloodgroup":
             api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"

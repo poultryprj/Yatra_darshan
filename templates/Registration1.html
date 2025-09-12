@@ -345,6 +345,29 @@
 
 <!-- main content -->
 <div class="container-reg">
+
+  <!-- Row with 3 count inputs -->
+  <!-- Row with 3 count inputs -->
+<div class="row mb-2 align-items-center">
+  <!-- Label -->
+  <div class="col-auto">
+    <label for="Count1" class="col-form-label fw-bold">Group Count</label>
+  </div>
+
+  <!-- 3 inputs -->
+  <div class="col">
+    <div class="d-flex gap-2">
+      <input id="Count1" type="number" class="form-control" value="1">
+      <input id="Count2" type="number" class="form-control" value="1" >
+      <input id="Count3" type="number" class="form-control" value="1" >
+    </div>
+    <!-- ✅ Message area below inputs -->
+    <div id="countMessage" class="mt-2 text-danger fw-bold"></div>
+  </div>
+</div>
+
+
+
   <div class="card-main">
 
     <!-- search + add -->
@@ -1387,6 +1410,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         btnBookTicket.disabled = true;
         btnBookTicket.innerText = "Booking...";
+        
 
         const allUsersYatras = getAllUsersYatras();
         if (!allUsersYatras || Object.keys(allUsersYatras).length === 0) {
@@ -1416,6 +1440,10 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
         fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
         fd.append("PaymentMode", paymentMode.value || ""); // cash / upi
+        // Add Count values
+        fd.append("Count1", document.getElementById("Count1")?.value || "0");
+        fd.append("Count2", document.getElementById("Count2")?.value || "0");
+        fd.append("Count3", document.getElementById("Count3")?.value || "0");
 
         // ✅ NEW: Check payment mode selected
         if (!paymentMode.value) {
@@ -1460,11 +1488,33 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Book Ticket Response:", data);
 
         if (data.message_code === 1000) {
+          // ✅ Fill counts from API response if available
+          if (data.message_data) {
+            const counts = {
+              Count1: data.message_data.GroupCount || 0,
+              Count2: data.message_data.CurrentTicket || 0,
+              Count3: data.message_data.BalanceTicket || 0
+            };
+
+            // Update input values
+            document.getElementById("Count1").value = counts.Count1;
+            document.getElementById("Count2").value = counts.Count2;
+            document.getElementById("Count3").value = counts.Count3;
+
+            // ✅ Save them into sessionStorage immediately
+            Object.keys(counts).forEach(id => {
+              sessionStorage.setItem(id, counts[id]);
+            });
+          }
+
+          console.log("✅ Updated counts saved to sessionStorage:", data.message_data);
+
           alert("✅ Tickets booked successfully!");
           location.reload();
         } else {
           alert(`⚠️ Booking failed: ${data.message_text}`);
         }
+
 
       } catch (error) {
         console.error("Booking error:", error);
@@ -1638,11 +1688,55 @@ function renderSelectedYatras(searchResults = null, searchMobile = null) {
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // ✅ Clear all localStorage on page reload
+  const ids = ["Count1", "Count2", "Count3"];
+  const msgBox = document.getElementById("countMessage");
+
+  // ✅ Restore counts from sessionStorage or default to 1
+  ids.forEach(id => {
+    let savedValue = sessionStorage.getItem(id);
+    if (savedValue === null) {
+      savedValue = 1;
+      sessionStorage.setItem(id, 1);
+    }
+    document.getElementById(id).value = savedValue;
+  });
+
+  // ✅ Check conditions
+  let values = ids.map(id => parseInt(sessionStorage.getItem(id) || 0));
+
+  if (values.every(v => v === 0)) {
+    msgBox.textContent = "Group is Over";
+    values = [1, 1, 1];
+    ids.forEach((id, i) => {
+      document.getElementById(id).value = values[i];
+      sessionStorage.setItem(id, values[i]);
+    });
+    // keep editable
+    ids.forEach(id => (document.getElementById(id).disabled = false));
+  } else if (values[0] > 1) {
+    // disable all if first box > 1
+    ids.forEach(id => (document.getElementById(id).disabled = true));
+    msgBox.textContent = " ";
+  } else {
+    // keep editable in all other cases
+    ids.forEach(id => (document.getElementById(id).disabled = false));
+    msgBox.textContent = "";
+  }
+
+  // ✅ Save on input if editable
+  ids.forEach(id => {
+    document.getElementById(id).addEventListener("input", e => {
+      if (!e.target.disabled) {
+        sessionStorage.setItem(id, e.target.value);
+      }
+    });
+  });
+
+  // ✅ Clear only localStorage, not sessionStorage
   localStorage.clear();
-  console.log("All localStorage cleared on page reload!");
 });
 </script>
+
 
 </body>
 </html>

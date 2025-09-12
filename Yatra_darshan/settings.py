@@ -134,9 +134,9 @@ STATICFILES_DIRS = [
     # BASE_DIR / 'static'
     BASE_DIR / 'Yatra_darshan/static'
 ]
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'images'
-
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8003",
