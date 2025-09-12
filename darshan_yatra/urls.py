@@ -43,5 +43,8 @@ urlpatterns = [
     path('print_report/', views.print_report_page, name='print_report_page'),
     path('print_passenger_list/<int:route_id>/', views.print_passenger_list, name='print_passenger_list'),
 
+    # path('bus_master/', views.bus_master, name='bus_master'),
+    # path('bus_master_api/', views.bus_master_api, name='bus_master_api'),
+
         
 ]

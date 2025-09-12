@@ -69,9 +69,9 @@
     {% for bus_name, passengers in buses.items %}
         {# Outer loop for each bus #}
         
-        {# Inner loop to handle page breaks for every 35 passengers #}
+        {# Inner loop to handle page breaks for every 45 passengers #}
         {% for pax in passengers %}
-            {% if forloop.counter0|divisibleby:35 %}
+            {% if forloop.counter0|divisibleby:45 %}
                 <div class="page-container {% if forloop.parentloop.first and forloop.first %}first-page{% endif %}">
                     
                     <div class="header"><h1>Passenger List</h1></div>
@@ -108,7 +108,7 @@
                             <td class="area-col">{{ pax.AreaName|default:"-" }}</td>
                             <td class="blank-col"></td>
                         </tr>
-            {% if forloop.counter|divisibleby:35 or forloop.last %}
+            {% if forloop.counter|divisibleby:45 or forloop.last %}
                         </tbody>
                     </table>
                 </div>
