@@ -1425,7 +1425,12 @@ def print_passenger_list(request, route_id):
             
         all_passengers = response.json().get("message_data", [])
         
+        bus_filter = request.GET.get('bus', None)
+
         passengers_for_date = [pax for pax in all_passengers if pax.get("YatraDateTime") == yatra_date]
+
+        if bus_filter:
+            passengers_for_date = [pax for pax in passengers_for_date if pax.get("BusName") == bus_filter]
 
         if not passengers_for_date:
             return HttpResponse(f"No passengers found for this route on {yatra_date}.", status=404)

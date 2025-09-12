@@ -10,7 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
-
     <style>
         body { font-family: Arial, sans-serif; background-color: #e9eef2; }
         .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -21,25 +20,17 @@
         .report-icon { font-size: 3rem; color: #ff7b00; margin-bottom: 1rem; }
         .report-card h3 { color: #003399; font-weight: bold; margin-bottom: 0.5rem; }
         .report-card p.lead { color: #6c757d; font-size: 1rem; margin-bottom: 2rem; }
-        
-        /* Style for the input groups */
         .input-group-custom {
-            display: flex; /* Use flexbox for alignment */
-            align-items: center; /* Vertically center the icon and input */
+            display: flex; align-items: center;
             border: 1px solid #ced4da;
-            border-radius: 8px;
-            padding: 0 12px; /* Remove top/bottom padding */
+            border-radius: 8px; padding: 0 12px;
             margin-bottom: 1.5rem;
             transition: border-color 0.2s, box-shadow 0.2s;
-            height: 50px; /* Set a fixed height */
+            height: 50px;
         }
         .input-group-custom:focus-within { border-color: #006633; box-shadow: 0 0 8px rgba(0,102,51,0.2); }
-        
         .input-group-custom .form-control, 
-        .input-group-custom .select2-container {
-            flex-grow: 1; /* Allow input/select to fill the space */
-        }
-
+        .input-group-custom .select2-container { flex-grow: 1; }
         .input-group-custom .form-control, 
         .input-group-custom .select2-container--bootstrap-5 .select2-selection {
             border: none !important;
@@ -49,7 +40,6 @@
             height: 100%;
         }
         .input-group-custom .input-group-text { background: transparent; border: none; color: #003399; font-size: 1.2rem; padding-right: 0.75rem; }
-        
         .btn-generate { background-color: #ff7b00; color: white; font-weight: bold; padding: 12px 20px; border-radius: 8px; }
         .btn-generate:disabled { background-color: #ff7b00; opacity: 0.5; }
     </style>
@@ -68,20 +58,28 @@
     <div class="report-card">
         <div class="report-icon"><i class="bi bi-file-earmark-pdf-fill"></i></div>
         <h3>Generate PDF Report</h3>
-        <p class="lead">Select a date and route to download the complete passenger list for bus operators.</p>
-        
+        <p class="lead">Select a date and route to download the complete passenger list for bus operators.<br>
+        <span style="font-size:0.9em;">
+        For bus-wise print, select a bus (optional) to download PDF for that bus only.
+        </span>
+        </p>
         <div class="input-group-custom">
             <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
             <input type="date" class="form-control" id="dateSelect">
         </div>
-
         <div class="input-group-custom">
             <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
             <select class="form-select" id="printRouteSelect" style="width: 100%;" disabled>
                 <option value="">-- First, select a date --</option>
             </select>
         </div>
-
+        <!-- NEW: Bus select -->
+        <div class="input-group-custom">
+            <span class="input-group-text"><i class="bi bi-bus-front"></i></span>
+            <select class="form-select" id="printBusSelect" style="width: 100%;" disabled>
+                <option value="">-- Select a bus (optional) --</option>
+            </select>
+        </div>
         <button class="btn btn-generate w-100 btn-lg" id="generatePdfBtn" disabled>Download PDF</button>
     </div>
 </div>
@@ -91,64 +89,115 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    // The JavaScript is unchanged and correct
+    // JS logic for enhanced filtering
     const allYatras = JSON.parse(document.getElementById('allYatrasData').textContent);
     const dateSelect = document.getElementById('dateSelect');
     const generatePdfBtn = document.getElementById('generatePdfBtn');
+    const printBusSelect = $('#printBusSelect');
     
     $(document).ready(function() {
-        $('#printRouteSelect').select2({
-            theme: "bootstrap-5",
-            placeholder: "-- First, select a date --"
-        });
+        $('#printRouteSelect').select2({ theme: "bootstrap-5", placeholder: "-- First, select a date --" });
+        printBusSelect.select2({ theme: "bootstrap-5", placeholder: "-- Select a bus (optional) --" });
     });
 
     dateSelect.value = new Date().toISOString().split('T')[0];
-    
+
     function updateRouteOptions() {
         const selectedDate = dateSelect.value;
         const printRouteSelect = $('#printRouteSelect');
         printRouteSelect.empty();
+        printRouteSelect.prop('disabled', true).trigger('change');
         generatePdfBtn.disabled = true;
 
+        printBusSelect.empty();
+        printBusSelect.append(new Option('-- Select a bus (optional) --', '')).trigger('change');
+        printBusSelect.prop('disabled', true).trigger('change');
+        
         if (!selectedDate) {
-            printRouteSelect.prop('disabled', true).trigger('change');
             return;
         }
-
         const [year, month, day] = selectedDate.split('-');
         const formattedDate = `${day}-${month}-${year}`;
         const routesForDate = allYatras.filter(yatra => yatra.YatraDateTime === formattedDate);
+
         const uniqueRoutes = [...new Map(routesForDate.map(item => [item['YatraRouteId'], item])).values()];
         
         if (uniqueRoutes.length > 0) {
-            printRouteSelect.append(new Option('-- Select a route --', '')).trigger('change');
+            printRouteSelect.append(new Option('-- Select a route --', ''));
             uniqueRoutes.forEach(route => {
                 printRouteSelect.append(new Option(route.YatraRouteName, route.YatraRouteId));
             });
             printRouteSelect.prop('disabled', false).trigger('change');
         } else {
-            printRouteSelect.append(new Option('-- No routes on this date --', '')).trigger('change');
+            printRouteSelect.append(new Option('-- No routes on this date --', ''));
             printRouteSelect.prop('disabled', true).trigger('change');
         }
+        // Clear bus select when date changes
+        printBusSelect.empty();
+        printBusSelect.append(new Option('-- Select a bus (optional) --', '')).trigger('change');
+        printBusSelect.prop('disabled', true).trigger('change');
     }
 
     dateSelect.addEventListener('change', updateRouteOptions);
-    
+
+    // Route select change: update bus select options
     $('#printRouteSelect').on('change', function() {
-        generatePdfBtn.disabled = !$(this).val();
+        const selectedRouteId = $(this).val();
+        const selectedDate = dateSelect.value;
+        generatePdfBtn.disabled = !selectedRouteId;
+
+        printBusSelect.empty();
+        printBusSelect.append(new Option('-- Select a bus (optional) --', ''));
+        printBusSelect.prop('disabled', true).trigger('change');
+
+        if (!selectedRouteId || !selectedDate) return;
+
+        const [year, month, day] = selectedDate.split('-');
+        const formattedDate = `${day}-${month}-${year}`;
+        const busesForRoute = allYatras.filter(yatra => 
+            yatra.YatraDateTime === formattedDate && yatra.YatraRouteId == selectedRouteId
+        );
+
+        if (busesForRoute.length > 0) {
+            // Unique buses
+            const busNames = [...new Set(busesForRoute.map(y => y.BusName))];
+            busNames.forEach(busName => {
+                if (busName) {
+                    printBusSelect.append(new Option(busName, busName));
+                }
+            });
+            printBusSelect.prop('disabled', false).trigger('change');
+        } else {
+            printBusSelect.append(new Option('-- No buses --', ''));
+            printBusSelect.prop('disabled', true).trigger('change');
+        }
+    });
+
+    // Enable button only if route select is selected
+    $('#printBusSelect').on('change', function() {
+        // always enabled if route is picked
+        const selectedRouteId = $('#printRouteSelect').val();
+        generatePdfBtn.disabled = !selectedRouteId;
     });
 
     generatePdfBtn.addEventListener('click', () => {
         const selectedRouteId = $('#printRouteSelect').val();
         const selectedDate = dateSelect.value;
+        const selectedBusName = $('#printBusSelect').val();
+
         if (!selectedRouteId || !selectedDate) {
             alert("Please select both a date and a route.");
             return;
         }
+
         const [year, month, day] = selectedDate.split('-');
         const formattedDate = `${day}-${month}-${year}`;
-        const pdfUrl = `/Yatra_darshan/print_passenger_list/${selectedRouteId}/?date=${formattedDate}`;
+        let pdfUrl;
+        if (selectedBusName) {
+            pdfUrl = `/Yatra_darshan/print_passenger_list/${selectedRouteId}/?date=${formattedDate}&bus=${encodeURIComponent(selectedBusName)}`;
+        } else {
+            pdfUrl = `/Yatra_darshan/print_passenger_list/${selectedRouteId}/?date=${formattedDate}`;
+        }
         window.open(pdfUrl, '_blank');
     });
 
