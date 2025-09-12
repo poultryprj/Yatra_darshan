@@ -178,6 +178,7 @@ def registration_api(request):
                  # ✅ Handle file uploads
                 aadhar_file = request.FILES.get("AadharUpload")
                 profile_file = request.FILES.get("ProfilePicUpload")
+                voterId_File = request.FILES.get("VoterIdUpload")
 
                 aadhar_url, profile_url = None, None
 
@@ -212,6 +213,23 @@ def registration_api(request):
                     profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                     print("Profile saved at:", save_path)
                     print("Profile URL:", profile_url)
+                    
+                    
+                # --- Save VoterID Pic ---
+                if voterId_File:
+                    file_name = f"{uuid.uuid4().hex}.png"  # always PNG
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
+                    os.makedirs(img_directory, exist_ok=True)
+                    save_path = os.path.join(img_directory, file_name)
+
+                    # Convert to PNG and save
+                    image = Image.open(voterId_File)
+                    image = image.convert("RGB")  # ensure proper format
+                    image.save(save_path, "PNG")
+
+                    voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}"
+                    print("VoterId saved at:", save_path)
+                    print("VoterId URL:", voterId_url)
 
                 payload = {
                     "RegistrationId": request.POST.get("RegistrationId", 0),
@@ -228,6 +246,9 @@ def registration_api(request):
                     "Photo": request.POST.get("Photo", ""),
                     "PhotoId": request.POST.get("PhotoId", ""),
                     "UserId": request.session.get("user_id", 0),
+                    "ZonePreference": request.POST.get("ZonePreference", 0),
+                    "VoterId":voterId_url,
+                    
                 }
 
                 print("➡️ Calling:", api_url)
@@ -539,7 +560,7 @@ def registration_api1(request):
         elif action == "submit":
             api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
 
-            # Accept DD/MM/YYYY directly from client; if it arrives as yyyy-mm-dd, try to convert.
+            # Accept DD/MM/YYYY directly from client; if it arrives as yyyy-mm-dd, convert.
             dob_in = request.POST.get("DateOfBirth", "")
             dob_final = dob_in
             if dob_in and "-" in dob_in and "/" not in dob_in:
@@ -548,45 +569,84 @@ def registration_api1(request):
                     dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
                 except Exception:
                     pass
-                
+
             # ✅ Handle file uploads
             aadhar_file = request.FILES.get("AadharUpload")
             profile_file = request.FILES.get("ProfilePicUpload")
+            voterId_File = request.FILES.get("VoterIdUpload")
 
-            aadhar_url, profile_url = None, None
+            aadhar_url, profile_url, voterId_url = None, None, None
 
             # --- Save Aadhar ---
             if aadhar_file:
-                ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
-                file_name = f"{uuid.uuid4().hex}{ext}"
+                ext = os.path.splitext(aadhar_file.name)[1].lower()
+                file_name = f"{uuid.uuid4().hex}"
                 img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
                 os.makedirs(img_directory, exist_ok=True)
-                save_path = os.path.join(img_directory, file_name)
 
-                with open(save_path, "wb+") as dest:
-                    for chunk in aadhar_file.chunks():
-                        dest.write(chunk)
+                if ext == ".pdf":
+                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                    with open(save_path, "wb+") as dest:
+                        for chunk in aadhar_file.chunks():
+                            dest.write(chunk)
+                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
+                else:
+                    save_path = os.path.join(img_directory, f"{file_name}.png")
+                    image = Image.open(aadhar_file)
+                    image = image.convert("RGB")
+                    image.save(save_path, "PNG")
+                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.png"
 
-                aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}"
                 print("Aadhar saved at:", save_path)
                 print("Aadhar URL:", aadhar_url)
 
             # --- Save Profile Pic ---
             if profile_file:
-                ext = os.path.splitext(profile_file.name)[1] or ".jpg"
-                file_name = f"{uuid.uuid4().hex}{ext}"
+                ext = os.path.splitext(profile_file.name)[1].lower()
+                file_name = f"{uuid.uuid4().hex}"
                 img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
                 os.makedirs(img_directory, exist_ok=True)
-                save_path = os.path.join(img_directory, file_name)
 
-                with open(save_path, "wb+") as dest:
-                    for chunk in profile_file.chunks():
-                        dest.write(chunk)
+                if ext == ".pdf":
+                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                    with open(save_path, "wb+") as dest:
+                        for chunk in profile_file.chunks():
+                            dest.write(chunk)
+                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.pdf"
+                else:
+                    save_path = os.path.join(img_directory, f"{file_name}.png")
+                    image = Image.open(profile_file)
+                    image = image.convert("RGB")
+                    image.save(save_path, "PNG")
+                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.png"
 
-                profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                 print("Profile saved at:", save_path)
                 print("Profile URL:", profile_url)
 
+            # --- Save VoterID Pic ---
+            if voterId_File:
+                ext = os.path.splitext(voterId_File.name)[1].lower()
+                file_name = f"{uuid.uuid4().hex}"
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
+                os.makedirs(img_directory, exist_ok=True)
+
+                if ext == ".pdf":
+                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                    with open(save_path, "wb+") as dest:
+                        for chunk in voterId_File.chunks():
+                            dest.write(chunk)
+                    voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
+                else:
+                    save_path = os.path.join(img_directory, f"{file_name}.png")
+                    image = Image.open(voterId_File)
+                    image = image.convert("RGB")
+                    image.save(save_path, "PNG")
+                    voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.png"
+
+                print("VoterId saved at:", save_path)
+                print("VoterId URL:", voterId_url)
+
+            # --- Prepare payload ---
             payload = {
                 "RegistrationId": request.POST.get("RegistrationId", 0),
                 "userMobileNo": request.POST.get("userMobileNo"),
@@ -597,15 +657,18 @@ def registration_api1(request):
                 "Gender": request.POST.get("Gender", 1),
                 "Address": request.POST.get("Address", ""),
                 "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
-                "BloodGroup": request.POST.get("BloodGroup", "Select"),  # send text e.g., "O+"
+                "BloodGroup": request.POST.get("BloodGroup", "Select"),
                 "DateOfBirth": dob_final,
                 "Photo": request.POST.get("Photo", ""),
                 "PhotoId": request.POST.get("PhotoId", ""),
                 "UserId": str(request.session.get("user_id", 0)),
-                "PhotoFileName":profile_url,
-                "IdProofFileName":aadhar_url
+                "PhotoFileName": profile_url,
+                "IdProofFileName": aadhar_url,
+                "ZonePreference": request.POST.get("ZonePreference", 0),
+                "VoterId": voterId_url,
             }
             print("358", payload)
+
             resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             if resp.status_code != 200:
                 return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {resp.status_code}"})
