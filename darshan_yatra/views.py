@@ -185,7 +185,7 @@ def registration_api(request):
                 if aadhar_file:
                     ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -193,7 +193,7 @@ def registration_api(request):
                         for chunk in aadhar_file.chunks():
                             dest.write(chunk)
 
-                    aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}"
                     print("Aadhar saved at:", save_path)
                     print("Aadhar URL:", aadhar_url)
 
@@ -201,7 +201,7 @@ def registration_api(request):
                 if profile_file:
                     ext = os.path.splitext(profile_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -209,7 +209,7 @@ def registration_api(request):
                         for chunk in profile_file.chunks():
                             dest.write(chunk)
 
-                    profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                     print("Profile saved at:", save_path)
                     print("Profile URL:", profile_url)
 
@@ -444,17 +444,15 @@ def registration_api1(request):
                 transaction_id = request.POST.get("TransactionId", "")
                 bookings_json = request.POST.get("Bookings", "[]")
                 bookings = json.loads(bookings_json)
+                
+                # 🔹 Counts
+                GroupCount = request.POST.get("Count1", "0")
+                CurrentTicket = request.POST.get("Count2", "0")
+                BalanceTicket = request.POST.get("Count3", "0")
 
-                print("Booking Request →")
-                print("UserId:", user_id)
-                print("AmountPaid:", amount_paid)
-                print("Discount:", discount)
-                print("DiscountReason:", discount_reason)
-                print("PaymentId:", payment_id)
-                print("PaymentMode Raw:", payment_mode_raw)
-                print("PaymentMode Mapped:", payment_mode)
-                print("TransactionId:", transaction_id)
-                print("Bookings:", bookings)
+                print("GroupCount:", GroupCount)
+                print("CurrentTicket:", CurrentTicket)
+                print("BalanceTicket:", BalanceTicket)
 
                 # ✅ Handle UPI Screenshot upload
                 upi_file = request.FILES.get("UPIScreenshot")
@@ -463,7 +461,7 @@ def registration_api1(request):
                     ext = os.path.splitext(upi_file.name)[1] or ".jpg"
                     file_name = f"{uuid.uuid4().hex}{ext}"
 
-                    img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "trasection")
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "trasection")
                     os.makedirs(img_directory, exist_ok=True)
                     save_path = os.path.join(img_directory, file_name)
 
@@ -471,7 +469,7 @@ def registration_api1(request):
                         for chunk in upi_file.chunks():
                             dest.write(chunk)
 
-                    trasection_url = f"https://gyaagl.club/GoldVault/static/assets/trasection/{file_name}"
+                    trasection_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/trasection/{file_name}"
                     print("UPI Screenshot saved at:", save_path)
                     print("UPI Screenshot URL:", trasection_url)
 
@@ -494,7 +492,10 @@ def registration_api1(request):
                             "DiscountReason": str(discount_reason),
                             "PaymentId": str(payment_id or ""),
                             "PaymentMode": payment_mode,  # ✅ 1 for cash, 2 for UPI
-                            "TransactionId": str(transaction_id or "")
+                            "TransactionId": str(transaction_id or ""),
+                            "BalanceTicket": BalanceTicket,
+                            "CurrentTicket": CurrentTicket,
+                            "GroupCount": GroupCount
                         }
 
                         r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -506,9 +507,13 @@ def registration_api1(request):
 
                         api_responses.append(api_response)
 
+                    # ✅ Return message_data from last API response
+                    last_message_data = api_responses[-1].get("message_data") if api_responses else {}
+
                     return JsonResponse({
                         "message_code": 1000,
-                        "message_text": "Tickets booked successfully"
+                        "message_text": "Tickets booked successfully",
+                        "message_data": last_message_data
                     })
 
             except Exception as e:
@@ -516,7 +521,6 @@ def registration_api1(request):
                     "message_code": 999,
                     "message_text": f"Error: {str(e)}"
                 })
-
 
         elif action == "list_bloodgroup":
             api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
@@ -546,7 +550,7 @@ def registration_api1(request):
             if aadhar_file:
                 ext = os.path.splitext(aadhar_file.name)[1] or ".jpg"
                 file_name = f"{uuid.uuid4().hex}{ext}"
-                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "adhar")
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
                 os.makedirs(img_directory, exist_ok=True)
                 save_path = os.path.join(img_directory, file_name)
 
@@ -554,7 +558,7 @@ def registration_api1(request):
                     for chunk in aadhar_file.chunks():
                         dest.write(chunk)
 
-                aadhar_url = f"https://gyaagl.club/GoldVault/static/assets/adhar/{file_name}"
+                aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}"
                 print("Aadhar saved at:", save_path)
                 print("Aadhar URL:", aadhar_url)
 
@@ -562,7 +566,7 @@ def registration_api1(request):
             if profile_file:
                 ext = os.path.splitext(profile_file.name)[1] or ".jpg"
                 file_name = f"{uuid.uuid4().hex}{ext}"
-                img_directory = os.path.join(settings.BASE_DIR, "static", "assets", "profile")
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
                 os.makedirs(img_directory, exist_ok=True)
                 save_path = os.path.join(img_directory, file_name)
 
@@ -570,7 +574,7 @@ def registration_api1(request):
                     for chunk in profile_file.chunks():
                         dest.write(chunk)
 
-                profile_url = f"https://gyaagl.club/GoldVault/static/assets/profile/{file_name}"
+                profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}"
                 print("Profile saved at:", save_path)
                 print("Profile URL:", profile_url)
 
@@ -589,6 +593,8 @@ def registration_api1(request):
                 "Photo": request.POST.get("Photo", ""),
                 "PhotoId": request.POST.get("PhotoId", ""),
                 "UserId": str(request.session.get("user_id", 0)),
+                "PhotoFileName":profile_url,
+                "IdProofFileName":aadhar_url
             }
             print("358", payload)
             resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)

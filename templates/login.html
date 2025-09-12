@@ -106,7 +106,6 @@
 
 </style>
 
-
     <!-- loader -->
 <div id="loader">
     <img src="{% static 'assets/img/loading-icon.png' %}" alt="icon" class="loading-icon">
@@ -173,16 +172,22 @@
                 <!-- Login Button -->
                 <div class="row mt-3">
                     <div class="col-12 mb-2 px-4">
-                        <button type="submit" class="btn btn-success-custom btn-block btn-lg w-100"
-                                style="color: white !important;">
+                        <button type="submit" 
+                                class="btn btn-success-custom btn-block btn-lg w-100"
+                                style="color: white !important;"
+                                onclick="document.getElementById('loader').style.display='flex'; setTimeout(()=>{document.getElementById('loader').style.display='none';},10000);">
                             Log in
                         </button>
+                        {% comment %} <button type="submit" class="btn btn-success-custom btn-block btn-lg w-100"
+                                style="color: white !important;">
+                            Log in
+                        </button> {% endcomment %}
                     </div>
                 </div>
             </form> <!-- ✅ form closed here -->
 
             <!-- Extra buttons (outside form) -->
-            <div class="row mt-1">
+            {% comment %} <div class="row mt-1">
                 <div class="col-12 mb-2 px-4">
                     <button id="installApp" type="button"
                             class="btn btn-success-custom btn-block btn-lg w-100"
@@ -190,7 +195,7 @@
                         Install App
                     </button>
                 </div>
-            </div>
+            </div> {% endcomment %}
 
             <!-- Install App Modal -->
             <div id="pwaInstallModal" class="modal"

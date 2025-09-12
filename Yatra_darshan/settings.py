@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-q@0w8vv8$gk5-)==rowa4fpg!3l0wat_z8kjb@6dp^(wlh#@y2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','lakshya.com', 'www.lakshyapratishthan.com']
 
 
 # Application definition
@@ -134,7 +134,19 @@ STATICFILES_DIRS = [
     # BASE_DIR / 'static'
     BASE_DIR / 'Yatra_darshan/static'
 ]
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'images'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8003",
+    'https://www.lakshyapratishthan.com' ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'https://www.lakshyapratishthan.com' ]
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'https://www.lakshyapratishthan.com/' ]
+
 
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/assets/js', 'serviceworker.js')
