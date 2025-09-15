@@ -1209,78 +1209,14 @@ def dashboard(request):
 
 
 
-
-# @csrf_exempt
-# def dashboard_api(request):
-#     """
-#     API endpoint that returns detailed bus and seat information.
-#     This version FIXES the logic to distribute bookings sequentially.
-#     First, Bus A is filled up to its capacity (45), then Bus B, and so on.
-#     """
-#     if 'user_id' not in request.session:
-#         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
-
-#     if request.method == 'POST':
-#         yatra_id = request.POST.get('yatra_id')
-#         print("1102",yatra_id)
-#         if not yatra_id:
-#             return JsonResponse({"status": "error", "message": "Yatra ID is required."})
-
-#         try:
-#             # 1. Fetch all bus data from the source API
-#             summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
-#             summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
-            
-#             if summary_response.status_code != 200:
-#                 return JsonResponse({"status": "error", "message": "Failed to fetch data from the source API."})
-
-#             all_buses_data = summary_response.json().get("message_data", [])
-            
-#             # 2. Filter for the current yatra and calculate the true total bookings
-#             buses_for_this_yatra = [bus for bus in all_buses_data if bus.get("YatraId") == yatra_id]
-
-#             if not buses_for_this_yatra:
-#                 # No buses found for this yatra, return empty data
-#                 return JsonResponse({"status": "success", "data": {"buses": {}}})
-
-#             total_bookings = sum(int(bus.get("Bookings", 0)) for bus in buses_for_this_yatra)
-            
-#             # 3. Get a unique, sorted list of bus names for sequential filling (e.g., ['Bus A', 'Bus B'])
-#             bus_names = sorted(list(set(f"Bus {bus.get('BusName')}" for bus in buses_for_this_yatra)))
-
-#             # 4. Distribute the total bookings sequentially
-#             remaining_bookings = total_bookings
-#             BUS_CAPACITY = 45  # As specified, each bus has a capacity of 45
-#             final_bus_details = {}
-
-#             for bus_name in bus_names:
-#                 # Determine how many seats to book in the current bus
-#                 bookings_for_this_bus = 0
-#                 if remaining_bookings > 0:
-#                     bookings_for_this_bus = min(remaining_bookings, BUS_CAPACITY)
-#                     remaining_bookings -= bookings_for_this_bus
-                
-#                 # Generate a list of booked seat numbers. The number of items in this list is what the UI uses.
-#                 # `range(2, count + 2)` correctly generates `count` numbers, starting from 2.
-#                 # Your original code had an off-by-one error using `count + 3`.
-#                 booked_seat_numbers = list(range(2, bookings_for_this_bus + 2))
-                
-#                 final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
-
-#             return JsonResponse({"status": "success", "data": {"buses": final_bus_details}})
-
-#         except Exception as e:
-#             return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
-
-#     return JsonResponse({"status": "error", "message": "Invalid request method."})
-
-
+# In views.py
 
 @csrf_exempt
 def dashboard_api(request):
     """
-    API endpoint that returns detailed bus and seat information for the seat map toggles.
-    It now correctly represents the number of booked seats.
+    API endpoint for the seat map.
+    --- THIS VERSION IS NOW ACCURATE ---
+    It fetches the actual list of booked seat numbers.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -1291,9 +1227,6 @@ def dashboard_api(request):
             return JsonResponse({"status": "error", "message": "Yatra ID is required."})
 
         try:
-            # --- THIS IS THE FIX ---
-            # We will use the 'totalrouteyatrabus' API which gives us the booking COUNT per bus.
-
             summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
             summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
             
@@ -1301,21 +1234,30 @@ def dashboard_api(request):
 
             if summary_response.status_code == 200:
                 all_buses = summary_response.json().get("message_data", [])
-                
-                # Filter to get only the buses for the yatra we care about
                 buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
 
+                passenger_api_url = "https://www.lakshyapratishthan.com/apis/routeyatrabustickets"
                 for bus in buses_for_this_yatra:
                     bus_name = f"Bus {bus.get('BusName', 'N/A')}"
-                    try:
-                        booking_count = int(bus.get("Bookings", 0))
-                    except (ValueError, TypeError):
-                        booking_count = 0
-
-                    # Create a list of booked "seats" based on the count.
-                    # We will fill seats from 2 up to the booking_count + 1.
-                    # Example: if count is 24, it will fill seats 2, 3, ..., 25.
-                    booked_seat_numbers = list(range(3, booking_count + 3))
+                    payload = {
+                        "YatraRouteId": bus.get("YatraRouteId"),
+                        "YatraId": bus.get("YatraId"),
+                        "YatraBusId": bus.get("YatraBusId")
+                    }
+                    
+                    passenger_response = requests.post(passenger_api_url, json=payload, headers=headers, verify=False, timeout=10)
+                    
+                    booked_seat_numbers = [] # Start with an empty list
+                    if passenger_response.status_code == 200:
+                        passengers = passenger_response.json().get("message_data", [])
+                        # Create a list of the ACTUAL seat numbers from the API
+                        for pax in passengers:
+                            try:
+                                # Convert seat number string to an integer for the map
+                                seat_no = int(pax.get("SeatNo"))
+                                booked_seat_numbers.append(seat_no)
+                            except (ValueError, TypeError):
+                                continue # Ignore if SeatNo is not a valid number
                     
                     final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
 
@@ -1325,6 +1267,59 @@ def dashboard_api(request):
             return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
+
+
+
+
+# @csrf_exempt
+# def dashboard_api(request):
+#     """
+#     API endpoint that returns detailed bus and seat information for the seat map toggles.
+#     It now correctly represents the number of booked seats.
+#     """
+#     if 'user_id' not in request.session:
+#         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+#     if request.method == 'POST':
+#         yatra_id = request.POST.get('yatra_id')
+#         if not yatra_id:
+#             return JsonResponse({"status": "error", "message": "Yatra ID is required."})
+
+#         try:
+#             # --- THIS IS THE FIX ---
+#             # We will use the 'totalrouteyatrabus' API which gives us the booking COUNT per bus.
+
+#             summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
+#             summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
+            
+#             final_bus_details = {}
+
+#             if summary_response.status_code == 200:
+#                 all_buses = summary_response.json().get("message_data", [])
+                
+#                 # Filter to get only the buses for the yatra we care about
+#                 buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
+
+#                 for bus in buses_for_this_yatra:
+#                     bus_name = f"Bus {bus.get('BusName', 'N/A')}"
+#                     try:
+#                         booking_count = int(bus.get("Bookings", 0))
+#                     except (ValueError, TypeError):
+#                         booking_count = 0
+
+#                     # Create a list of booked "seats" based on the count.
+#                     # We will fill seats from 2 up to the booking_count + 1.
+#                     # Example: if count is 24, it will fill seats 2, 3, ..., 25.
+#                     booked_seat_numbers = list(range(3, booking_count + 3))
+                    
+#                     final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
+
+#             return JsonResponse({"status": "success", "data": {"buses": final_bus_details}})
+
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
+
+#     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 
 @csrf_exempt
@@ -1360,11 +1355,16 @@ def detailed_report_api(request):
                 if passenger_response.status_code == 200:
                     passengers = passenger_response.json().get("message_data", [])
                     for pax in passengers:
+                        first_name = pax.get("Firstname", "")
+                        middle_name = pax.get("Middlename", "")
+                        last_name = pax.get("Lastname", "")
+                        name_parts = [part for part in [first_name, middle_name, last_name] if part]
+                        full_name = " ".join(name_parts)
                         pax_details = {
                             "RegistrationId": pax.get("RegistrationId"),
-                            "PilgrimName": f"{pax.get('Firstname', '')} {pax.get('Lastname', '')}".strip(),
+                            "PilgrimName": full_name,
                             "BusName": bus.get("BusName", "N/A"),
-                            "SeatNo": pax.get("SeatNo", "N/A"), # Assuming SeatNo comes from this API
+                            "SeatNo": pax.get("SeatNo", "N/A"),
                             "MobileNo": pax.get("MobileNo", "N/A"),
                             "AlternateMobileNo": pax.get("AlternateMobileNo", "N/A")
                         }

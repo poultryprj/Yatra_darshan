@@ -16,7 +16,7 @@
         .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
         .navbar-brand { font-weight: bold; }
-        .container-main { max-width: 800px; margin: 80px auto 40px auto; }
+        .container-main { max-width: 800px; margin: 80px auto 40px auto; padding: 0 0px; }
         .stat-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-align: center; }
         .stat-card .stat-number { font-size: 2.5rem; font-weight: bold; color: #003399; }
         .stat-card .stat-label { font-size: 1rem; color: #6c757d; }
@@ -142,33 +142,42 @@
     }
 
     function renderBusDetails(data, container) {
-        const buses = Object.keys(data.buses);
-        if (buses.length === 0) { container.innerHTML = '<p class="text-center text-muted">No bookings found.</p>'; return; }
+    const buses = Object.keys(data.buses);
+    if (buses.length === 0) { container.innerHTML = '<p class="text-center text-muted">No bookings found.</p>'; return; }
+    
+    let finalHtml = '<div class="list-group list-group-flush">';
+    buses.forEach(busName => {
+        const busInfo = data.buses[busName];
         
-        let finalHtml = '<div class="list-group list-group-flush">';
-        buses.forEach(busName => {
-            const busInfo = data.buses[busName];
-            console.log("151",data.buses);
-            const bookedSeats = new Set(busInfo.booked_seats);
-            console.log(bookedSeats);
-            let seatMapHtml = '<div class="seat-map">';
-            for (let i = 3; i <= 47; i++) {
-                let seatClass = 'available';
-                if (i === 3 || i === 4) {
-                    seatClass = 'reserved';   // Always reserved
-                } else if (bookedSeats.has(i)) {
-                    seatClass = 'booked';     // Only for other seats
-                }
-
-                seatMapHtml += `<div class="seat ${seatClass}">${i-2}</div>`;
+        // busInfo.booked_seats is now an array of real seat numbers, like [1, 2, 7, 8]
+        const bookedSeats = new Set(busInfo.booked_seats); 
+        
+        let seatMapHtml = '<div class="seat-map">';
+        // Assuming total bus capacity is 45 seats (numbered 1 to 45)
+        for (let i = 1; i <= 45; i++) {
+            let seatClass = 'available';
+            // Let's assume seats 1 and 2 are always reserved for drivers/staff
+            if (i === 1 || i === 2) {
+                seatClass = 'reserved';
+            } else if (bookedSeats.has(i)) { // Check if THIS specific seat is in the booked list
+                seatClass = 'booked';
             }
-            seatMapHtml += '</div>';
 
-            finalHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-secondary rounded-pill">${bookedSeats.size} / 45 Booked</span></div><div class="seat-map-container" style="display: none;">${seatMapHtml}</div></div>`;
-        });
-        finalHtml += '</div>';
-        container.innerHTML = finalHtml;
-    }
+            seatMapHtml += `<div class="seat ${seatClass}">${i}</div>`; // Display the real seat number
+        }
+        seatMapHtml += '</div>';
+
+        finalHtml += `<div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center bus-toggle">
+                <span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span>
+                <span class="badge bg-secondary rounded-pill">${bookedSeats.size} / 45 Booked</span>
+            </div>
+            <div class="seat-map-container" style="display: none;">${seatMapHtml}</div>
+        </div>`;
+    });
+    finalHtml += '</div>';
+    container.innerHTML = finalHtml;
+}
 
     // --- SCRIPT FOR SECTION 2: Detailed Booking Report ---
     const reportResultsContainer = document.getElementById('reportResultsContainer');
@@ -283,12 +292,12 @@
             if (booking.RegistrationId) {
                 printButtonHtml = `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}"><i class="bi bi-printer-fill"></i></button>`;
             }
-            const seatNo = index + 1;
+            const seatNo = booking.SeatNo;
             tableHtml += `
                 <tr class="align-middle">
                     <td>
                         <div class="fw-bold">${booking.PilgrimName}</div>
-                        <small class="text-muted">Seat No.: <strong>${seatNo}</strong></small>
+                        <small class="text-muted"> <strong>${busName}</strong> - <strong>${seatNo}</strong></small>
                     </td>
                     <td class="text-end">
                         <div class="btn-group">
