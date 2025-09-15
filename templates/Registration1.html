@@ -513,6 +513,10 @@
           <input id="Address" type="text" placeholder=" " required>
           <label>Address *</label>
         </div>
+          <div class="floating" style="flex:1">
+            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
+            <label>Aadhar No.</label>
+          </div>
       </div>
 
       <!-- Fields to show only in INSERT mode -->
@@ -533,9 +537,15 @@
             <input id="DateOfBirth" type="date" placeholder=" ">
             <label>Date of Birth</label>
           </div>
+           <!-- Zone Preference -->
           <div class="floating" style="flex:1">
-            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
-            <label>Aadhar No.</label>
+            <select id="ZonePreference" placeholder=" ">
+              <option value="0" selected>No Preference</option>
+              <option value="1">Front</option>
+              <option value="2">Middle</option>
+              <option value="3">Back</option>
+            </select>
+            <label>Zone Preference</label>
           </div>
         </div>
       </div>
@@ -548,6 +558,14 @@
         <div class="floating" style="flex:1">
           <input id="ProfilePicUpload" type="file" accept="image/*,.pdf">
           <label>Profile Picture Upload</label>
+        </div>
+      </div>
+
+      <!-- Voter Id Upload -->
+      <div class="d-flex gap-2 mt-1">
+        <div class="floating" style="flex:1">
+          <input type="file" id="VoterIdUpload" name="VoterIdUpload" accept="image/*,.pdf">
+          <label>Voter Id Upload</label>
         </div>
       </div>
 
@@ -964,7 +982,14 @@
   const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
   if (profileFile) fd.append("ProfilePicUpload", profileFile);
 
+  fd.append("ZonePreference", document.getElementById('ZonePreference').value || "0");
+
+  const VoterIdFile = document.getElementById("VoterIdUpload")?.files[0];
+    if (VoterIdFile) fd.append("VoterIdUpload", VoterIdFile);
+
   document.getElementById('loader').style.display = 'flex';
+
+
 
   try {
     const resp = await fetch("{% url 'registration_api1' %}", {
