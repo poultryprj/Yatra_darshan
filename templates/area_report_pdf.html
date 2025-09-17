@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Area Report</title>
+    <style>
+        @page { size: a4 portrait; margin: 1.5cm; }
+        body { font-family: "Helvetica", sans-serif; font-size: 10pt; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 18pt; }
+        .header h3 { margin: 5px 0; font-size: 12pt; font-weight: normal; color: #333; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #999; padding: 6px; text-align: left; word-wrap: break-word; }
+        th { background-color: #e0e0e0; font-weight: bold; }
+        .sn-col { width: 5%; text-align: center; }
+        .name-col { width: 25%; }
+        .mobile-col { width: 15%; }
+        .address-col { width: 35%; }
+
+        /* --- MODIFIED LINES --- */
+        .bus-col { width: 8%; }  /* Was 10% */
+        .date-col { width: 12%; } /* Was 10% */
+        /* --- END OF MODIFICATION --- */
+
+        a {
+            color: inherit; /* Makes link color the same as surrounding text */
+            text-decoration: none; /* Removes the underline */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Passenger Report by Area</h1>
+        <h3>Route: {{ route_name }} | Area: {{ area_name }}</h3>
+        <h4>Total Passengers: {{ total_passengers }}</h4>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="sn-col">SN</th>
+                <th class="name-col">Full Name</th>
+                <th class="mobile-col">Mobile No</th>
+                <th class="address-col">Address</th>
+                <th class="bus-col">Bus</th>
+                <th class="date-col">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pax in passengers %}
+                <tr>
+                    <td class="sn-col">{{ forloop.counter }}</td>
+                    <td class="name-col">{{ pax.Firstname|default:"" }} {{ pax.Middlename|default:"" }} {{ pax.Lastname|default:"" }}</td>
+                    <td class="mobile-col">
+                        {% if pax.MobileNo %}
+                            <a href="tel:{{ pax.MobileNo }}">{{ pax.MobileNo }}</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="address-col">{{ pax.Address|default:"-" }}</td>
+                    <td class="bus-col">{{ pax.BusName|default:"-" }}</td>
+                    <td class="date-col" style="text-align: center;">{{ pax.YatraDateTime|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

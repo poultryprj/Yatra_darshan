@@ -63,6 +63,18 @@
         .address-col { width: 25%; }
         .area-col { width: 15%; }
         .blank-col { width: 15%; }
+
+         a {
+            color: inherit; /* Makes link color the same as surrounding text */
+            text-decoration: none; /* Removes the underline */
+        }
+        /* --- END OF ADDED STYLE --- */
+        .sn-col { width: 4%; }
+        .name-col { width: 22%; }
+        .mobile-col { width: 13%; }
+        .address-col { width: 25%; }
+        .area-col { width: 15%; }
+        .blank-col { width: 15%; }
     </style>
 </head>
 <body>
@@ -102,8 +114,20 @@
                         <tr>
                             <td class="sn-col">{{ forloop.counter }}</td>
                             <td class="name-col">{{ pax.Firstname|default:"" }} {{ pax.Middlename|default:"" }} {{ pax.Lastname|default:"" }}</td>
-                            <td class="mobile-col">{{ pax.MobileNo|default:"-" }}</td>
-                            <td class="mobile-col">{{ pax.AlternateMobileNo|default:"-" }}</td>
+                             <td class="mobile-col">
+                                {% if pax.MobileNo %}
+                                    <a href="tel:{{ pax.MobileNo }}">{{ pax.MobileNo }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="mobile-col">
+                                {% if pax.AlternateMobileNo %}
+                                    <a href="tel:{{ pax.AlternateMobileNo }}">{{ pax.AlternateMobileNo }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             <td class="address-col">{{ pax.Address|default:"-" }}</td>
                             <td class="area-col">{{ pax.AreaName|default:"-" }}</td>
                             <td class="blank-col"></td>

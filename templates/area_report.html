@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yatra Darshan - Area Report</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+
+    <style>
+        :root{ --brand-orange: #ff7b00; }
+        body{ background:#f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .navbar{ background:var(--brand-orange); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.75rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: 600; font-size: 1.1rem; }
+        .container-main { max-width: 500px; margin: 70px auto 40px; padding: 0 15px; }
+        
+        .page-header { display: flex; align-items: center; margin-bottom: 1rem; }
+        .page-header-icon { font-size: 2rem; color: #0d6efd; background-color: #e7f1ff; padding: 0.5rem; border-radius: 8px; margin-right: 1rem; }
+        .page-header h3 { font-size: 1.5rem; font-weight: 600; margin: 0; line-height: 1.2; color: #343a40; }
+        .filter-card { background-color: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.07); margin-bottom: 1.5rem; }
+        .passenger-card { background-color: #fff; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+        .passenger-card .card-header { background-color: #fff; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e9ecef; }
+        .passenger-card .card-header h4 { font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: #343a40; }
+        .passenger-card .card-body { padding: 1rem 1.25rem; }
+        .info-badge { background-color: #fee2e2 !important; color: #dc3545 !important; padding: 0.4em 0.8em; font-size: 0.85rem; }
+        
+        .select2-container--bootstrap-5 .select2-selection { min-height: 48px; padding: .5rem 1rem; }
+        .select2-container--bootstrap-5 .select2-dropdown { border-radius: .5rem; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items: center">
+        <a href="{% url 'Registrationpage1' %}" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Area Report</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="filter-card">
+        <div class="mb-3">
+            <label class="form-label fw-bold">1. Select Route</label>
+            <select id="routeSelect" class="form-select">
+                <option value="">-- Please choose a route --</option>
+                {% for route in routes %}
+                    <option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">2. Select Area</label>
+            <select id="areaSelect" class="form-select" disabled>
+                <option value="">-- Select a route first --</option>
+                 {% for area in areas %}
+                    <option value="{{ area.AreaName }}">{{ area.AreaName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-grid">
+            <a id="downloadPdfBtn" href="#" class="btn btn-success disabled" target="_blank">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download PDF
+            </a>
+        </div>
+    </div>
+
+    <div id="searchContainer" class="mb-3 d-none">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by passenger name in this area...">
+        </div>
+    </div>
+
+    <div id="loader" class="text-center my-5 d-none">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    <div id="passengerResults">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle-fill me-2"></i>Please select a route and area to view passengers.
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#routeSelect').select2({ theme: "bootstrap-5", placeholder: "-- Please choose a route --" });
+        $('#areaSelect').select2({ theme: "bootstrap-5", placeholder: "-- Select an Area --" });
+
+        const loader = $('#loader');
+        const passengerResults = $('#passengerResults');
+        const downloadPdfBtn = $('#downloadPdfBtn');
+        const searchContainer = $('#searchContainer');
+        const searchInput = $('#searchInput');
+        
+        let allPassengersForRoute = [];
+
+        $('#routeSelect').on('change', function() {
+            const routeId = $(this).val();
+            resetAreaSelect();
+            searchContainer.addClass('d-none');
+            passengerResults.html('<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill me-2"></i>Select an area to continue.</div>');
+            if (!routeId) return;
+            fetchAllPassengerData(routeId);
+        });
+
+        // --- UPDATED EVENT LISTENER WITH STRICT FILTERING ---
+        $('#areaSelect').on('change', function() {
+            const selectedArea = $(this).val();
+            searchInput.val('');
+            if (!selectedArea) {
+                searchContainer.addClass('d-none');
+                passengerResults.html('<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill me-2"></i>Select an area to view passengers.</div>');
+                downloadPdfBtn.addClass('disabled').attr('href', '#');
+                return;
+            }
+            
+            // Use a strict equality check (===) for a precise match
+            const filteredPassengers = allPassengersForRoute.filter(pax => {
+                return pax.AreaName && pax.AreaName.trim() === selectedArea;
+            });
+            renderPassengers(filteredPassengers);
+            
+            const routeId = $('#routeSelect').val();
+            let pdfUrl = "{% url 'area_report_pdf' route_id=999 area_name='DUMMY' %}";
+            pdfUrl = pdfUrl.replace('999', routeId).replace('DUMMY', encodeURIComponent(selectedArea));
+            downloadPdfBtn.removeClass('disabled').attr('href', pdfUrl);
+        });
+        
+        searchInput.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            const selectedArea = $('#areaSelect').val();
+            if (!selectedArea) return;
+            
+            const areaFilteredPassengers = allPassengersForRoute.filter(pax => pax.AreaName === selectedArea);
+
+            const searchFilteredPassengers = areaFilteredPassengers.filter(pax => {
+                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ').toLowerCase();
+                return fullName.includes(searchTerm);
+            });
+            renderPassengers(searchFilteredPassengers);
+        });
+
+        function fetchAllPassengerData(routeId) {
+            loader.removeClass('d-none');
+            $('#areaSelect').prop('disabled', true).trigger('change');
+            $.ajax({
+                url: "{% url 'area_report_api' %}",
+                method: 'POST',
+                data: { 'route_id': routeId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+                success: function(result) {
+                    if (result.status === 'success') {
+                        allPassengersForRoute = result.data;
+                        $('#areaSelect').prop('disabled', false);
+                    } else { handleError(result.message); }
+                },
+                error: function() { handleError('An unexpected error occurred.'); },
+                complete: function() { loader.addClass('d-none'); }
+            });
+        }
+        
+        function renderPassengers(passengers) {
+            if (!passengers || passengers.length === 0) {
+                const hasPassengersInArea = allPassengersForRoute.some(pax => pax.AreaName === $('#areaSelect').val());
+                if (!hasPassengersInArea) {
+                    downloadPdfBtn.addClass('disabled').attr('href', '#');
+                }
+                searchContainer.toggleClass('d-none', !hasPassengersInArea);
+                
+                let message = `No passengers found for this area.`;
+                if(searchInput.val()){
+                    message = `No passengers matching "<strong>${searchInput.val()}</strong>" found.`;
+                }
+                passengerResults.html(`<div class="alert alert-warning text-center">${message}</div>`);
+                return;
+            }
+
+            searchContainer.removeClass('d-none');
+            let html = `<h5 class="mb-3 text-center">Found ${passengers.length} passenger(s)</h5>`;
+            passengers.forEach(pax => {
+                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ');
+                
+                html += `
+                <div class="card passenger-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>${fullName}</h4>
+                        <span class="badge rounded-pill info-badge">${pax.YatraDateTime}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text mb-2"><i class="bi bi-bus-front-fill me-2"></i><strong>Bus:</strong> ${pax.BusName || 'N/A'}</p>
+                        <p class="card-text mb-2"><i class="bi bi-geo-alt-fill me-2"></i><strong>Address:</strong> ${pax.Address || 'N/A'}</p>
+                        <p class="card-text"><i class="bi bi-phone me-2"></i><strong>Mobile:</strong> <a href="tel:${pax.MobileNo || ''}">${pax.MobileNo || 'N/A'}</a></p>
+                    </div>
+                </div>`;
+            });
+            passengerResults.html(html);
+        }
+
+        function resetAreaSelect() {
+            $('#areaSelect').val(null).trigger('change');
+            $('#areaSelect').prop('disabled', true);
+            downloadPdfBtn.addClass('disabled').attr('href', '#');
+        }
+
+        function handleError(message) {
+            passengerResults.html(`<div class="alert alert-danger text-center">${message}</div>`);
+        }
+    });
+</script>
+
+</body>
+</html>

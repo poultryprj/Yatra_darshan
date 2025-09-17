@@ -43,6 +43,16 @@ urlpatterns = [
     path('print_report/', views.print_report_page, name='print_report_page'),
     path('print_passenger_list/<int:route_id>/', views.print_passenger_list, name='print_passenger_list'),
 
+
+    path('passenger_documents/', views.passenger_documents, name='passenger_documents'),
+    path('passenger_documents_api/', views.passenger_documents_api, name='passenger_documents_api'),
+
+    path('area_report/', views.area_report, name='area_report'),
+    path('area_report_api/', views.area_report_api, name='area_report_api'),
+
+    path('area_report_pdf/<int:route_id>/<str:area_name>/', views.area_report_pdf, name='area_report_pdf'),
+
+
     # path('bus_master/', views.bus_master, name='bus_master'),
     # path('bus_master_api/', views.bus_master_api, name='bus_master_api'),
 

@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yatra Darshan - Passenger Documents</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- ADDED: Select2 CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+
+    <style>
+        :root{ --brand-orange: #ff7b00; }
+        body{ background:#f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .navbar{ background:var(--brand-orange); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.75rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: 600; font-size: 1.1rem; }
+        .container-main { max-width: 450px; margin: 70px auto 40px; padding: 0 15px; }
+        
+        .filter-card { background-color: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.07); margin-bottom: 1.5rem; }
+        .passenger-card { background-color: #fff; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+        .passenger-card .card-header { background-color: #fff; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e9ecef; }
+        .passenger-card .card-header h4 { font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: #343a40; }
+        .passenger-card .card-body { padding: 1rem 1.25rem; }
+        .contact-info { padding-bottom: 1rem; border-bottom: 1px solid #e9ecef; }
+        .doc-links { padding-top: 1rem; }
+        .doc-link { margin-right: 0.5rem; }
+        .seat-badge { background-color: #dc3545 !important; color: #fff !important; padding: 0.4em 0.8em; font-size: 0.85rem; }
+        .print-ticket-icon { text-decoration: none; color: #198754; font-size: 1.5rem; }
+        
+        .select2-container--bootstrap-5 .select2-selection { min-height: 48px; padding: .5rem 1rem; }
+        .select2-container--bootstrap-5 .select2-dropdown { border-radius: .5rem; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'Registrationpage1' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Passenger Documents</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="filter-card">
+        <div class="mb-3">
+            <label class="form-label fw-bold">1. Select Route</label>
+            <select id="routeSelect" class="form-select">
+                <option value="">-- Please choose a route --</option>
+                {% for route in routes %}
+                    <option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">2. Select Yatra Date</label>
+            <select id="yatraSelect" class="form-select" disabled>
+                <option value="">-- Select a route first --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">3. Select Bus</label>
+            <select id="busSelect" class="form-select" disabled>
+                <option value="">-- Select a yatra date first --</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- NEW: Search box, hidden by default -->
+    <div id="searchContainer" class="mb-3 d-none">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by passenger name...">
+        </div>
+    </div>
+
+    <div id="loader" class="text-center my-5 d-none">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    <div id="passengerResults">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle-fill me-2"></i>Please select filters to view passenger details.
+        </div>
+    </div>
+</div>
+
+<!-- ADDED: jQuery and Select2 JS Libraries -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // --- NEW: INITIALIZE SELECT2 ---
+        $('#routeSelect, #yatraSelect, #busSelect').select2({
+            theme: "bootstrap-5",
+            width: '100%'
+        });
+
+        const loader = $('#loader');
+        const passengerResults = $('#passengerResults');
+        const searchContainer = $('#searchContainer');
+        const searchInput = $('#searchInput');
+        let currentPassengers = [];
+        let filterData = {};
+
+        $('#routeSelect').on('change', function() {
+            const routeId = $(this).val();
+            resetYatraSelect();
+            resetBusSelect();
+            passengerResults.html('<div class="alert alert-info text-center">Select a Yatra date.</div>');
+            searchContainer.addClass('d-none');
+            if (!routeId) return;
+            fetchFilterData(routeId);
+        });
+
+        $('#yatraSelect').on('change', function() {
+            const yatraId = $(this).val();
+            resetBusSelect();
+            passengerResults.html('<div class="alert alert-info text-center">Select a bus.</div>');
+            searchContainer.addClass('d-none');
+            if (!yatraId) return;
+            populateBusSelect(yatraId);
+        });
+
+        $('#busSelect').on('change', function() {
+            const busId = $(this).val();
+            if (!busId) {
+                 passengerResults.html('<div class="alert alert-info text-center">Select a bus.</div>');
+                 searchContainer.addClass('d-none');
+                 return;
+            }
+            fetchPassengerData();
+        });
+
+        // --- NEW: SEARCH INPUT EVENT ---
+        searchInput.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            if (!currentPassengers.length) return;
+
+            const filteredPassengers = currentPassengers.filter(pax => {
+                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ').toLowerCase();
+                return fullName.includes(searchTerm);
+            });
+            renderPassengers(filteredPassengers);
+        });
+
+        passengerResults.on('click', '.print-ticket-icon', function(e) {
+            e.preventDefault();
+            const printIcon = $(this);
+            const originalIconClass = printIcon.html();
+            printIcon.html('<div class="spinner-border spinner-border-sm text-success" role="status"></div>');
+            const regId = printIcon.data('reg-id');
+            
+            $.ajax({
+                url: "{% url 'get_pilgrim_card_api' %}",
+                method: 'POST',
+                data: { 'registration_id': regId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+                success: function(data) {
+                    if (data.message_code === 999 && data.message_data) {
+                        const CARD_IMAGE_BASE_URL = "https://www.lakshyapratishthan.com/apis/cards/";
+                        printImage(CARD_IMAGE_BASE_URL + data.message_data);
+                    } else { alert("Error printing ticket: " + data.message_text); }
+                },
+                error: function() { alert("An error occurred."); },
+                complete: function() { printIcon.html(originalIconClass); }
+            });
+        });
+
+        function fetchFilterData(routeId) {
+            loader.removeClass('d-none');
+            $.ajax({
+                url: "{% url 'passenger_documents_api' %}",
+                method: 'POST',
+                data: { 'action': 'get_filters', 'route_id': routeId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+                success: function(result) {
+                    if (result.status === 'success') {
+                        filterData = result.data;
+                        populateYatraSelect(filterData);
+                    } else { handleError(result.message); }
+                },
+                error: function() { handleError('An unexpected error occurred.'); },
+                complete: function() { loader.addClass('d-none'); }
+            });
+        }
+
+        function fetchPassengerData() {
+            loader.removeClass('d-none');
+            passengerResults.html('');
+            searchContainer.addClass('d-none');
+            searchInput.val('');
+            
+            $.ajax({
+                url: "{% url 'passenger_documents_api' %}",
+                method: 'POST',
+                data: {
+                    'action': 'get_passengers',
+                    'route_id': $('#routeSelect').val(),
+                    'yatra_id': $('#yatraSelect').val(),
+                    'bus_id': $('#busSelect').val(),
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(result) {
+                    if (result.status === 'success') {
+                        currentPassengers = result.data; // Store for searching
+                        renderPassengers(currentPassengers);
+                    } else { handleError(result.message); }
+                },
+                error: function() { handleError('An unexpected error occurred.'); },
+                complete: function() { loader.addClass('d-none'); }
+            });
+        }
+
+        function populateYatraSelect(data) {
+            const yatraSelect = $('#yatraSelect');
+            yatraSelect.html('<option value="">-- Select a Yatra Date --</option>');
+            const yatras = Object.keys(data);
+            if (yatras.length === 0) {
+                yatraSelect.append(new Option('-- No yatras found --', ''));
+            } else {
+                yatras.forEach(yatraId => {
+                    yatraSelect.append(new Option(data[yatraId].date, yatraId));
+                });
+            }
+            yatraSelect.prop('disabled', false).trigger('change.select2');
+        }
+
+        function populateBusSelect(yatraId) {
+            const busSelect = $('#busSelect');
+            const buses = filterData[yatraId]?.buses || [];
+            busSelect.html('<option value="">-- Select a Bus --</option>');
+            if (buses.length === 0) {
+                busSelect.append(new Option('-- No buses found --', ''));
+            } else {
+                const uniqueBuses = {};
+                buses.forEach(bus => { if (!uniqueBuses[bus.name]) uniqueBuses[bus.name] = bus.id; });
+                Object.keys(uniqueBuses).sort().forEach(busName => {
+                    busSelect.append(new Option(`Bus ${busName}`, uniqueBuses[busName]));
+                });
+            }
+            busSelect.prop('disabled', false).trigger('change.select2');
+        }
+
+        function renderPassengers(passengers) {
+            if (!passengers || passengers.length === 0) {
+                searchContainer.addClass('d-none');
+                let message = 'No passengers found for this selection.';
+                if (searchInput.val()) {
+                    message = `No passengers matching "${searchInput.val()}" found.`
+                }
+                passengerResults.html(`<div class="alert alert-warning text-center">${message}</div>`);
+                return;
+            }
+
+            searchContainer.removeClass('d-none');
+            let html = '';
+            passengers.forEach(pax => {
+                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ');
+                
+                let docButtonsHtml = `<a href="${pax.PhotoFileName || '#'}" target="_blank" class="btn btn-sm btn-primary doc-link ${!pax.PhotoFileName ? 'disabled' : ''}" title="Profile"><i class="bi bi-person-circle me-1"></i> Profile</a>`;
+                docButtonsHtml += `<a href="${pax.IdProofFileName || '#'}" target="_blank" class="btn btn-sm btn-secondary doc-link ${!pax.IdProofFileName ? 'disabled' : ''}" title="Aadhar"><i class="bi bi-postcard me-1"></i> Aadhar</a>`;
+                docButtonsHtml += `<a href="${pax.VoterIdProof || '#'}" target="_blank" class="btn btn-sm btn-info text-white doc-link ${!pax.VoterIdProof ? 'disabled' : ''}" title="Voter ID"><i class="bi bi-person-vcard me-1"></i> Voter ID</a>`;
+
+                let printIconHtml = `<a href="#" class="print-ticket-icon" data-reg-id="${pax.RegistrationId}" title="Print Ticket"><i class="bi bi-printer-fill"></i></a>`;
+                
+                let footerContent = `
+                    <div class="doc-links d-flex justify-content-between align-items-center">
+                        <div>${docButtonsHtml}</div>
+                        <div>${printIconHtml}</div>
+                    </div>`;
+
+                html += `
+                <div class="card passenger-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>${fullName}</h4>
+                        <span class="badge rounded-pill seat-badge">Seat: ${pax.SeatNo || 'N/A'}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="contact-info">
+                            <p class="card-text mb-2"><i class="bi bi-phone me-2"></i><strong>Mobile:</strong> <a href="tel:${pax.MobileNo || ''}">${pax.MobileNo || 'N/A'}</a></p>
+                            <p class="card-text"><i class="bi bi-phone-flip me-2"></i><strong>Alternate:</strong> <a href="tel:${pax.AlternateMobileNo || ''}">${pax.AlternateMobileNo || 'N/A'}</a></p>
+                        </div>
+                        ${footerContent}
+                    </div>
+                </div>`;
+            });
+            passengerResults.html(html);
+        }
+        
+        function printImage(url) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Print Pilgrim Card</title><style>@media print{body{margin:0;}img{width:100%;}}</style></head><body>');
+            printWindow.document.write(`<img src="${url}" onload="window.print(); window.close();" onerror="window.close(); alert('Could not load image to print.');">`);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+        }
+
+        function resetYatraSelect() {
+            $('#yatraSelect').html('<option value="">-- Select a route first --</option>').prop('disabled', true).trigger('change.select2');
+        }
+        function resetBusSelect() {
+            $('#busSelect').html('<option value="">-- Select a yatra date first --</option>').prop('disabled', true).trigger('change.select2');
+        }
+        function handleError(message) {
+            passengerResults.html(`<div class="alert alert-danger text-center">${message}</div>`);
+        }
+    });
+</script>
+
+</body>
+</html>

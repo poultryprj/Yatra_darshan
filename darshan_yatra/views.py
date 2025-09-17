@@ -1574,5 +1574,225 @@ def print_passenger_list(request, route_id):
     return HttpResponse("Failed to generate PDF.", status=500)
 
 
+
+def passenger_documents(request):
+    """
+    Renders the page for viewing passenger documents with filters.
+    """
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    routes = []
+    try:
+        route_list_api_url = "https://www.lakshyapratishthan.com/apis/listrouteall"
+        route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
+        if route_response.status_code == 200:
+            all_routes = route_response.json().get("message_data", [])
+            # Filter out the placeholder route with ID "0"
+            routes = [route for route in all_routes if route.get("YatraRouteId") != "0"]
+    except Exception as e:
+        messages.error(request, f"Could not fetch routes: {e}")
+
+    return render(request, "passenger_documents.html", {"routes": routes})
+
+
+
+@csrf_exempt
+def passenger_documents_api(request):
+    """
+    API for the passenger documents page with three-step filtering.
+    - action 'get_filters': Fetches available Yatras and Buses for a given Route.
+    - action 'get_passengers': Fetches passenger list for a specific Route, Yatra, and Bus.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+    action = request.POST.get('action')
+
+    try:
+        # ACTION 1: Get filter options (Yatras and Buses) for a selected Route
+        if action == 'get_filters':
+            route_id = request.POST.get('route_id')
+            if not route_id:
+                return JsonResponse({"status": "error", "message": "Route ID is required."}, status=400)
+
+            summary_api_url = "https://www.lakshyapratishthan.com/apis/totalrouteyatrabus"
+            response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
+            response.raise_for_status()
+
+            all_yatras_summary = response.json().get("message_data", [])
+            
+            filters = {}
+            for item in all_yatras_summary:
+                if str(item.get("YatraRouteId")) == str(route_id):
+                    yatra_id = item["YatraId"]
+                    if yatra_id not in filters:
+                        filters[yatra_id] = {
+                            "date": item["YatraDateTime"],
+                            "buses": []
+                        }
+                    filters[yatra_id]["buses"].append({
+                        "id": item["YatraBusId"],
+                        "name": item["BusName"]
+                    })
+            return JsonResponse({"status": "success", "data": filters})
+
+        # ACTION 2: Get the detailed passenger list using the correct API
+        elif action == 'get_passengers':
+            route_id = request.POST.get('route_id')
+            yatra_id = request.POST.get('yatra_id')
+            bus_id = request.POST.get('bus_id')
+
+            if not all([route_id, yatra_id, bus_id]):
+                return JsonResponse({"status": "error", "message": "Route, Yatra, and Bus IDs are required."}, status=400)
+
+            # THIS IS THE CORRECT API that returns all document fields
+            api_url = "https://www.lakshyapratishthan.com/apis/routeyatrabustickets"
+            payload = { "YatraRouteId": int(route_id), "YatraId": int(yatra_id), "YatraBusId": int(bus_id) }
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            response.raise_for_status()
+
+            passenger_data = response.json().get("message_data", [])
+            return JsonResponse({"status": "success", "data": passenger_data})
+        
+        else:
+            return JsonResponse({"status": "error", "message": "Invalid action specified."}, status=400)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"An unexpected error occurred: {e}"}, status=500)
+    
+
+
+
+def area_report(request):
+    """
+    Renders the page for filtering passengers by Area.
+    It pre-fetches both routes and the master list of areas for the filters.
+    """
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    routes = []
+    areas = []
+
+    # Fetch all routes for the first filter
+    try:
+        route_list_api_url = "https://www.lakshyapratishthan.com/apis/listrouteall"
+        response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
+        if response.status_code == 200:
+            all_routes = response.json().get("message_data", [])
+            routes = [route for route in all_routes if route.get("YatraRouteId") != "0"]
+    except Exception as e:
+        messages.error(request, f"Could not fetch routes: {e}")
+
+    # Fetch all areas for the second filter
+    try:
+        area_list_api_url = "https://www.lakshyapratishthan.com/apis/listarea"
+        response = requests.get(area_list_api_url, headers=headers, verify=False, timeout=10)
+        if response.status_code == 200:
+            areas = response.json().get("message_data", [])
+    except Exception as e:
+        messages.error(request, f"Could not fetch area list: {e}")
+
+    context = {
+        "routes": routes,
+        "areas": areas
+    }
+    return render(request, "area_report.html", context)
+
+
+@csrf_exempt
+def area_report_api(request):
+    """
+    API endpoint that fetches ALL passenger bookings for a given route.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    if request.method == 'POST':
+        route_id = request.POST.get('route_id')
+        if not route_id:
+            return JsonResponse({"status": "error", "message": "Route ID is required."}, status=400)
+
+        try:
+            api_url = "https://www.lakshyapratishthan.com/apis/yatrabookings"
+            payload = {"YatraRouteId": int(route_id)}
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            response.raise_for_status()
+
+            passenger_data = response.json().get("message_data", [])
+            return JsonResponse({"status": "success", "data": passenger_data})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"An error occurred: {e}"}, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+
+def area_report_pdf(request, route_id, area_name):
+    """
+    Fetches passenger data for a specific route and area,
+    then renders it to a downloadable PDF.
+    """
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    try:
+        # Fetch route name for the PDF header (optional but good for context)
+        route_name = "N/A"
+        try:
+            route_list_api_url = "https://www.lakshyapratishthan.com/apis/listrouteall"
+            route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
+            if route_response.status_code == 200:
+                for route in route_response.json().get("message_data", []):
+                    if str(route.get("YatraRouteId")) == str(route_id):
+                        route_name = route.get("YatraRouteName")
+                        break
+        except Exception:
+            pass # Continue even if this fails
+
+        # Fetch all passenger data for the route
+        api_url = "https://www.lakshyapratishthan.com/apis/yatrabookings"
+        payload = {"YatraRouteId": route_id}
+        response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+        
+        if response.status_code != 200:
+            return HttpResponse("Error: Could not fetch passenger data from API.", status=500)
+            
+        all_passengers = response.json().get("message_data", [])
+        
+        # Filter passengers by the selected area name
+        passengers_for_area = [pax for pax in all_passengers if pax.get("AreaName") == area_name]
+
+        if not passengers_for_area:
+            return HttpResponse(f"No passengers found for this area.", status=404)
+
+        context = {
+            'passengers': passengers_for_area,
+            'route_name': route_name,
+            'area_name': area_name,
+            'total_passengers': len(passengers_for_area)
+        }
+
+        template = get_template('area_report_pdf.html')
+        html = template.render(context)
+        
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+        
+        if not pdf.err:
+            response = HttpResponse(result.getvalue(), content_type='application/pdf')
+            safe_area_name = "".join(c for c in area_name if c.isalnum() or c in (' ', '-')).rstrip()
+            response['Content-Disposition'] = f'attachment; filename="Area_Report_{route_name}_{safe_area_name}.pdf"'
+            return response
+
+    except Exception as e:
+        return HttpResponse(f"An error occurred while generating the PDF: {e}", status=500)
+
+    return HttpResponse("Failed to generate PDF.", status=500)
+
 # userMobileNo:9850180648
 # userPassword:999999
