@@ -669,10 +669,19 @@ def registration_api1(request):
                 # "ZonePreference": request.POST.get("ZonePreference", 0),
                 # "VoterId": voterId_url,
             }
-            payload["PhotoFileName"] = profile_url or request.POST.get("PhotoFileName", "")
-            print(request.POST)
-            payload["IdProofFileName"] = aadhar_url or request.POST.get("IdProofFileName", "")
-            payload["VoterId"] = voterId_url or request.POST.get("VoterId", "")
+            registration_id = request.POST.get("RegistrationId", "0")
+            is_insert_mode = registration_id == "0"
+            
+            # 🔥 CRITICAL FIX: For insert mode, ONLY use uploaded files, ignore hidden fields
+            if is_insert_mode:
+                payload["PhotoFileName"] = profile_url or ""
+                payload["IdProofFileName"] = aadhar_url or ""
+                payload["VoterId"] = voterId_url or ""
+            else:
+                # For update mode, use new files if uploaded, otherwise keep old ones
+                payload["PhotoFileName"] = profile_url or request.POST.get("PhotoFileName", "")
+                payload["IdProofFileName"] = aadhar_url or request.POST.get("IdProofFileName", "")
+                payload["VoterId"] = voterId_url or request.POST.get("VoterId", "")
 
             print("358", payload) 
 

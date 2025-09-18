@@ -776,8 +776,13 @@
     regForm.reset();
 
     // 🔥 CRITICAL FIX: Always reset RegistrationId to 0 for insert mode
-    if (mode === 'insert') {
+     if (mode === 'insert') {
         document.getElementById('RegistrationId').value = '0';
+        
+        // 🔥 NEW FIX: Clear hidden fields for insert mode
+        document.getElementById("PhotoFileName").value = "";
+        document.getElementById("IdProofFileName").value = "";
+        document.getElementById("VoterId").value = "";
 
       // 🔥 NEW FIX: Clear any existing yatra selections for new user
         const userId = getCurrentUserId(); // This will be "0" for new users
@@ -878,7 +883,7 @@
           document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
           document.getElementById('Address').value = row.Address || '';
           document.getElementById('AadharNumber').value = row.AadharNumber || '';
-          // Save backend URLs into hidden fields
+          // 🔥 ONLY populate hidden fields in UPDATE mode
           document.getElementById("PhotoFileName").value = row.PhotoFileName || "";
           document.getElementById("IdProofFileName").value = row.IdProofFileName || "";
           document.getElementById("VoterId").value = row.VoterIdProof || "";
@@ -1081,12 +1086,6 @@
 
   // allow pressing search icon or enter to trigger search
   //document.getElementById('btnSearch').addEventListener('click', doSearch);
-
-  // Reset form & clear hidden values
-  regForm.reset();
-  document.getElementById("PhotoFileName").value = "";
-  document.getElementById("IdProofFileName").value = "";
-  document.getElementById("VoterId").value = "";
 
 </script>
 
