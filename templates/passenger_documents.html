@@ -312,6 +312,30 @@
             passengerResults.html(`<div class="alert alert-danger text-center">${message}</div>`);
         }
     });
+// --- DEFAULT SELECTION LOGIC ---
+$(document).ready(function () {
+    const routeSelect = $('#routeSelect');
+
+    // Select the last option if there are only 2 routes (skips placeholder)
+    if (routeSelect.find('option').length > 2) {
+        // If 3 or more options, pick index 2
+        routeSelect.val(routeSelect.find('option').eq(2).val()).trigger('change');
+    } else if (routeSelect.find('option').length === 2) {
+        // If exactly 2 (placeholder + 1 route), pick index 1
+        routeSelect.val(routeSelect.find('option').eq(1).val()).trigger('change');
+    }
+
+    // After Yatra dropdown is populated, auto-select the first available date
+    $(document).on('change.select2', '#yatraSelect', function () {
+        const yatraSelect = $(this);
+        if (yatraSelect.find('option').length > 1 && !yatraSelect.val()) {
+            yatraSelect.val(yatraSelect.find('option').eq(1).val()).trigger('change');
+        }
+    });
+});
+
+
+
 </script>
 
 </body>
