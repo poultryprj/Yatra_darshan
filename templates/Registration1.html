@@ -523,11 +523,17 @@
           <input id="Address" type="text" placeholder=" " required>
           <label>Address *</label>
         </div>
-          <div class="floating" style="flex:1">
-            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
-            <label>Aadhar No.</label>
-          </div>
-      </div>
+        {% comment %} <!-- Zone Preference -->
+        <div class="floating" style="flex:1">
+          <select id="ZonePreference" placeholder=" ">
+            <option value="0" selected>No Preference</option>
+            <option value="1">Front</option>
+            <option value="2">Middle</option>
+            <option value="3">Back</option>
+          </select>
+          <label>Zone Preference</label>
+        </div> {% endcomment %}
+      </div> 
 
       <!-- Fields to show only in INSERT mode -->
       <div id="insertOnlyFields">
@@ -547,37 +553,36 @@
             <input id="DateOfBirth" type="date" placeholder=" ">
             <label>Date of Birth</label>
           </div>
-           <!-- Zone Preference -->
           <div class="floating" style="flex:1">
-            <select id="ZonePreference" placeholder=" ">
-              <option value="0" selected>No Preference</option>
-              <option value="1">Front</option>
-              <option value="2">Middle</option>
-              <option value="3">Back</option>
-            </select>
-            <label>Zone Preference</label>
+            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
+            <label>Aadhar No.</label>
           </div>
         </div>
       </div>
 
-      <div class="d-flex gap-2 mt-1">
-        <div class="floating" style="flex:1">
-          <input id="AadharUpload" type="file" accept="image/*,.pdf">
-          <label>Aadhar Upload</label>
-        </div>
-        <div class="floating" style="flex:1">
-          <input id="ProfilePicUpload" type="file" accept="image/*,.pdf">
-          <label>Profile Picture Upload</label>
-        </div>
+    <div class="d-flex gap-2 mt-1">
+      <div class="floating" style="flex:1">
+        <input id="AadharUpload" type="file" accept="image/*,.pdf">
+        <label>Aadhar Upload</label>
       </div>
+      <div class="floating" style="flex:1">
+        <input id="ProfilePicUpload" type="file" accept="image/*,.pdf">
+        <label>Profile Picture Upload</label>
+      </div>
+    </div>
 
-      <!-- Voter Id Upload -->
-      <div class="d-flex gap-2 mt-1">
-        <div class="floating" style="flex:1">
-          <input type="file" id="VoterIdUpload" name="VoterIdUpload" accept="image/*,.pdf">
-          <label>Voter Id Upload</label>
-        </div>
+    <!-- Voter Id Upload -->
+    <div class="d-flex gap-2 mt-1">
+      <div class="floating" style="flex:1">
+        <input type="file" id="VoterIdUpload" name="VoterIdUpload" accept="image/*,.pdf">
+        <label>Voter Id Upload</label>
       </div>
+    </div>
+
+    <!-- 🔥 Hidden fields to hold old image URLs during update -->
+    <input type="hidden" id="PhotoFileName" name="PhotoFileName" value="">
+    <input type="hidden" id="IdProofFileName" name="IdProofFileName" value="">
+    <input type="hidden" id="VoterId" name="VoterId" value="">
 
       <div class="mt-3 d-grid">
         <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
@@ -873,6 +878,11 @@
           document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
           document.getElementById('Address').value = row.Address || '';
           document.getElementById('AadharNumber').value = row.AadharNumber || '';
+          // Save backend URLs into hidden fields
+          document.getElementById("PhotoFileName").value = row.PhotoFileName || "";
+          document.getElementById("IdProofFileName").value = row.IdProofFileName || "";
+          document.getElementById("VoterId").value = row.VoterIdProof || "";
+          console.log("875",row);
 
           // Set dropdown values after options are loaded
           setTimeout(() => {
@@ -985,21 +995,29 @@
     fd.append("DateOfBirth", "");
   }
 
-  // ✅ Append file uploads
+  // ✅ Append file uploads or fallback to hidden fields
   const aadharFile = document.getElementById("AadharUpload")?.files[0];
-  if (aadharFile) fd.append("AadharUpload", aadharFile);
+  if (aadharFile) {
+    fd.append("AadharUpload", aadharFile);
+  } else {
+    fd.append("IdProofFileName", document.getElementById("IdProofFileName").value || "");
+  }
 
   const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
-  if (profileFile) fd.append("ProfilePicUpload", profileFile);
+  if (profileFile) {
+    fd.append("ProfilePicUpload", profileFile);
+  } else {
+    fd.append("PhotoFileName", document.getElementById("PhotoFileName").value || "");
+  }
 
-  fd.append("ZonePreference", document.getElementById('ZonePreference').value || "0");
-
-  const VoterIdFile = document.getElementById("VoterIdUpload")?.files[0];
-    if (VoterIdFile) fd.append("VoterIdUpload", VoterIdFile);
+  const voterFile = document.getElementById("VoterIdUpload")?.files[0];
+  if (voterFile) {
+    fd.append("VoterIdUpload", voterFile);
+  } else {
+    fd.append("VoterId", document.getElementById("VoterId").value || "");
+  }
 
   document.getElementById('loader').style.display = 'flex';
-
-
 
   try {
     const resp = await fetch("{% url 'registration_api1' %}", {
@@ -1063,6 +1081,12 @@
 
   // allow pressing search icon or enter to trigger search
   //document.getElementById('btnSearch').addEventListener('click', doSearch);
+
+  // Reset form & clear hidden values
+  regForm.reset();
+  document.getElementById("PhotoFileName").value = "";
+  document.getElementById("IdProofFileName").value = "";
+  document.getElementById("VoterId").value = "";
 
 </script>
 

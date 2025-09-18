@@ -246,7 +246,7 @@ def registration_api(request):
                     "Photo": request.POST.get("Photo", ""),
                     "PhotoId": request.POST.get("PhotoId", ""),
                     "UserId": request.session.get("user_id", 0),
-                    "ZonePreference": request.POST.get("ZonePreference", 0),
+                    # "ZonePreference": request.POST.get("ZonePreference", 0),
                     "VoterId":voterId_url,
                     
                 }
@@ -429,6 +429,9 @@ def registration_api1(request):
                         "AreaId": area_id,  # 🔥 Make sure AreaId is included
                         "AreaName": area_name,
                         "Address": r.get("Address"),
+                        "PhotoFileName": r.get("PhotoFileName"),
+                        "IdProofFileName": r.get("IdProofFileName"),
+                        "VoterIdProof": r.get("VoterIdProof"),
                     })
                         
                 return JsonResponse({"message_code": 1000, "message_text": "OK", "message_data": rows})
@@ -662,12 +665,16 @@ def registration_api1(request):
                 "Photo": request.POST.get("Photo", ""),
                 "PhotoId": request.POST.get("PhotoId", ""),
                 "UserId": str(request.session.get("user_id", 0)),
-                "PhotoFileName": profile_url,
-                "IdProofFileName": aadhar_url,
-                "ZonePreference": request.POST.get("ZonePreference", 0),
-                "VoterId": voterId_url,
+                # "IdProofFileName": aadhar_url,
+                # "ZonePreference": request.POST.get("ZonePreference", 0),
+                # "VoterId": voterId_url,
             }
-            print("358", payload)
+            payload["PhotoFileName"] = profile_url or request.POST.get("PhotoFileName", "")
+            print(request.POST)
+            payload["IdProofFileName"] = aadhar_url or request.POST.get("IdProofFileName", "")
+            payload["VoterId"] = voterId_url or request.POST.get("VoterId", "")
+
+            print("358", payload) 
 
             resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             if resp.status_code != 200:
