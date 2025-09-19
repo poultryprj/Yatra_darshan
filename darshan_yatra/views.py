@@ -1810,5 +1810,145 @@ def area_report_pdf(request, route_id, area_name):
 
     return HttpResponse("Failed to generate PDF.", status=500)
 
+
+
+# In views.py
+
+@csrf_exempt
+def send_whatsapp_api(request):
+    """
+    API to send a WhatsApp message with detailed logging for debugging.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    if request.method == 'POST':
+        try:
+            # --- 1. Receive data from the frontend ---
+            reg_id = request.POST.get('registration_id')
+            user_name = request.POST.get('user_name')
+            mobile_no = request.POST.get('mobile_no')
+            yatra_name = request.POST.get('yatra_name')
+            yatra_date = request.POST.get('yatra_date')
+            bus_no = request.POST.get('bus_no')
+            seat_no = request.POST.get('seat_no')
+            custom_message_body = request.POST.get('custom_message_body')
+            user_id = request.session.get("user_id")
+
+            # ✅ --- ADDED FOR DEBUGGING: Print received data ---
+            print("--- WhatsApp API: Data Received from Frontend ---")
+            print(f"Registration ID: {reg_id}, User Name: {user_name}, Mobile: {mobile_no}")
+            print(f"Yatra: {yatra_name}, Date: {yatra_date}, Bus: {bus_no}, Seat: {seat_no}")
+            print("-------------------------------------------------")
+            
+            if not all([reg_id, mobile_no, custom_message_body, user_id]):
+                return JsonResponse({"status": "error", "message": "Missing required data to send message."}, status=400)
+
+            # --- 2. Populate placeholders ---
+            final_message_body = custom_message_body.replace("{{NAME}}", user_name) \
+                                                     .replace("{{YATRANAME}}", yatra_name) \
+                                                     .replace("{{YATRADATE}}", yatra_date) \
+                                                     .replace("{{BUSNO}}", bus_no) \
+                                                     .replace("{{SEATNO}}", seat_no)
+
+            # --- 3. Prepare payload for the external API ---
+            send_api_url = "https://www.lakshyapratishthan.com/apis/addsmsrequest"
+            payload = {
+                "RegistrationId": int(reg_id),
+                "UserId": int(user_id),
+                "SMSTemplateId": 1, # Default template ID
+                "SMSBody": final_message_body,
+                "SMSTo": mobile_no
+            }
+
+            # ✅ --- ADDED FOR DEBUGGING: Print data being sent to external API ---
+            print("--- WhatsApp API: Payload Sent to External API ---")
+            import json
+            print(json.dumps(payload, indent=2))
+            print("--------------------------------------------------")
+
+            # --- 4. Call the external API ---
+            send_response = requests.post(send_api_url, json=payload, headers=headers, verify=False, timeout=15)
+            
+            # ✅ --- ADDED FOR DEBUGGING: Print response from external API ---
+            print(f"--- External API Response --- (Status: {send_response.status_code})")
+            try:
+                print(send_response.json())
+            except:
+                print(send_response.text)
+            print("---------------------------")
+
+
+            if send_response.status_code == 200:
+                response_data = send_response.json()
+                if response_data.get("message_code") == 1000:
+                    return JsonResponse({"status": "success", "message": "Message request sent successfully."})
+                else:
+                    return JsonResponse({"status": "error", "message": response_data.get("message_text", "Provider failed to send message.")})
+            else:
+                return JsonResponse({"status": "error", "message": f"API Error: {send_response.status_code}"})
+
+        except Exception as e:
+            print(f"[WHATSAPP API ERROR] An exception occurred: {str(e)}")
+            return JsonResponse({"status": "error", "message": f"An unexpected server error occurred: {str(e)}"})
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+
+
+
+
+def whatsapp_messaging_page(request):
+    """
+    Renders the dedicated page for sending bulk custom WhatsApp messages.
+    It pre-fetches the list of routes for the initial filter.
+    """
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    routes = []
+    try:
+        route_list_api_url = "https://www.lakshyapratishthan.com/apis/listrouteall"
+        route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
+        if route_response.status_code == 200:
+            all_routes = route_response.json().get("message_data", [])
+            # Filter out the placeholder route with ID "0"
+            routes = [route for route in all_routes if route.get("YatraRouteId") != "0"]
+    except Exception as e:
+        messages.error(request, f"Could not fetch routes: {e}")
+
+    # The new template will be named 'whatsapp.html'
+    return render(request, "whatsapp.html", {"routes": routes})
+
+
+
+
+# In your views.py file, add this new function
+
+@csrf_exempt
+def get_whatsapp_templates_api(request):
+    """
+    A simple proxy view to fetch the list of available SMS/WhatsApp templates
+    from the external API and pass them to the frontend.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+    
+    try:
+        template_api_url = "https://www.lakshyapratishthan.com/apis/listsmstemplate"
+        response = requests.get(template_api_url, headers=headers, verify=False, timeout=10)
+
+        if response.status_code == 200:
+            return JsonResponse(response.json())
+        else:
+            return JsonResponse({"status": "error", "message": "Could not fetch templates."}, status=response.status_code)
+            
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"An unexpected error occurred: {str(e)}"})
+
+
+
+
+
 # userMobileNo:9850180648
 # userPassword:999999

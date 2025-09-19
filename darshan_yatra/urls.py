@@ -56,5 +56,11 @@ urlpatterns = [
     # path('bus_master/', views.bus_master, name='bus_master'),
     # path('bus_master_api/', views.bus_master_api, name='bus_master_api'),
 
+
+    path('send_whatsapp_api/', views.send_whatsapp_api, name='send_whatsapp_api'),
+    path('whatsapp_messaging/', views.whatsapp_messaging_page, name='whatsapp_messaging_page'),
+
+    path('get_whatsapp_templates_api/', views.get_whatsapp_templates_api, name='get_whatsapp_templates_api'),
+
         
 ]
