@@ -21,6 +21,8 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
+API_BASE_URL = "http://127.0.0.1:8000/LakshyaPratishthan/api/"
+
 def login(request):
     if request.method == 'GET':
         return render(request, 'login.html')    
@@ -308,9 +310,11 @@ def Registrationpage1(request):
 
     # If you still need route_yatras later for booking, keep this block
     route_yatras_data = []
-    api_url = "https://www.lakshyapratishthan.com/apis/routeyatradates"
+    # api_url = "https://www.lakshyapratishthan.com/apis/routeyatradates"
+    api_url = f"{API_BASE_URL}routeyatradates/"
     try:
-        resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+        # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+        resp = requests.get(api_url,verify=False)
         if resp.status_code == 200:
             data = resp.json()
             if str(data.get("message_code")) == "1000":
@@ -343,9 +347,11 @@ def registration_api1(request):
     try:
         if action == "search_list":
             mobile = request.POST.get("search")
-            api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
+            # api_url = "https://www.lakshyapratishthan.com/apis/searchregistrations"
+            api_url = f"{API_BASE_URL}searchregistrations/"
             payload = {"search": mobile}
-            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            response = requests.post(api_url, json=payload,verify=False)
 
             if response.status_code != 200:
                 return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {response.status_code}"})
@@ -356,8 +362,10 @@ def registration_api1(request):
                 # 🔥 FETCH AREA LOOKUP TABLE
                 area_lookup = {}
                 try:
-                    area_api_url = "https://www.lakshyapratishthan.com/apis/listarea"
-                    area_resp = requests.get(area_api_url, headers=headers, verify=False, timeout=10)
+                    # area_api_url = "https://www.lakshyapratishthan.com/apis/listarea"
+                    area_api_url = f"{API_BASE_URL}listarea/"
+                    # area_resp = requests.get(area_api_url, headers=headers, verify=False, timeout=10)
+                    area_resp = requests.get(area_api_url,verify=False)
                     if area_resp.status_code == 200:
                         area_data = area_resp.json()
                         if str(area_data.get("message_code")) == "1000":
@@ -439,13 +447,17 @@ def registration_api1(request):
             return JsonResponse({"message_code": 999, "message_text": data.get("message_text", "No data")})
 
         elif action == "list_area":
-            api_url = "https://www.lakshyapratishthan.com/apis/listarea"
-            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            # api_url = "https://www.lakshyapratishthan.com/apis/listarea"
+            api_url = f"{API_BASE_URL}listarea/"
+            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            resp = requests.get(api_url, verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
 
         elif action == "list_gender":
-            api_url = "https://www.lakshyapratishthan.com/apis/listgender"
-            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            # api_url = "https://www.lakshyapratishthan.com/apis/listgender"
+            api_url = f"{API_BASE_URL}listgender/"
+            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            resp = requests.get(api_url,verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
         
         elif action == "book_ticket":
@@ -507,7 +519,8 @@ def registration_api1(request):
                     print("UPI Screenshot URL:", trasection_url)
                     
                 # ✅ Call external API
-                api_url = "https://www.lakshyapratishthan.com/apis/inserttickets"
+                # api_url = "https://www.lakshyapratishthan.com/apis/inserttickets"
+                api_url = f"{API_BASE_URL}inserttickets/"
 
                 with transaction.atomic():
                     api_responses = []
@@ -531,7 +544,8 @@ def registration_api1(request):
                             "GroupCount": GroupCount
                         }
 
-                        r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                        # r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                        r = requests.post(api_url, json=payload,verify=False)
                         api_response = r.json()
                         print("API Response:", api_response)
 
@@ -556,139 +570,134 @@ def registration_api1(request):
                 })
 
         elif action == "list_bloodgroup":
-            api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
-            resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            # api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
+            api_url = f"{API_BASE_URL}listbloodgroup/"
+            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
+            resp = requests.get(api_url,verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
 
         elif action == "submit":
-            api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
+            try:
+                api_url = f"{API_BASE_URL}pilgrimregistration/"
 
-            # Accept DD/MM/YYYY directly from client; if it arrives as yyyy-mm-dd, convert.
-            dob_in = request.POST.get("DateOfBirth", "")
-            dob_final = dob_in
-            if dob_in and "-" in dob_in and "/" not in dob_in:
-                try:
-                    from datetime import datetime
-                    dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
-                except Exception:
-                    pass
+                # --- File upload logic remains the same ---
+                aadhar_file = request.FILES.get("AadharUpload")
+                profile_file = request.FILES.get("ProfilePicUpload")
+                voterId_File = request.FILES.get("VoterIdUpload")
 
-            # ✅ Handle file uploads
-            aadhar_file = request.FILES.get("AadharUpload")
-            profile_file = request.FILES.get("ProfilePicUpload")
-            voterId_File = request.FILES.get("VoterIdUpload")
+                aadhar_url, profile_url, voterId_url = None, None, None
 
-            aadhar_url, profile_url, voterId_url = None, None, None
+                # (Keep all your file saving code here, it is correct)
+                # --- Save Aadhar ---
+                if aadhar_file:
+                    ext = os.path.splitext(aadhar_file.name)[1].lower()
+                    file_name = f"{uuid.uuid4().hex}"
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
+                    os.makedirs(img_directory, exist_ok=True)
+                    if ext == ".pdf":
+                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        with open(save_path, "wb+") as dest:
+                            for chunk in aadhar_file.chunks():
+                                dest.write(chunk)
+                        aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
+                    else:
+                        save_path = os.path.join(img_directory, f"{file_name}.png")
+                        image = Image.open(aadhar_file)
+                        image = image.convert("RGB")
+                        image.save(save_path, "PNG")
+                        aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.png"
 
-            # --- Save Aadhar ---
-            if aadhar_file:
-                ext = os.path.splitext(aadhar_file.name)[1].lower()
-                file_name = f"{uuid.uuid4().hex}"
-                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
-                os.makedirs(img_directory, exist_ok=True)
+                # --- Save Profile Pic ---
+                if profile_file:
+                    ext = os.path.splitext(profile_file.name)[1].lower()
+                    file_name = f"{uuid.uuid4().hex}"
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
+                    os.makedirs(img_directory, exist_ok=True)
+                    if ext == ".pdf":
+                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        with open(save_path, "wb+") as dest:
+                            for chunk in profile_file.chunks():
+                                dest.write(chunk)
+                        profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.pdf"
+                    else:
+                        save_path = os.path.join(img_directory, f"{file_name}.png")
+                        image = Image.open(profile_file)
+                        image = image.convert("RGB")
+                        image.save(save_path, "PNG")
+                        profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.png"
 
-                if ext == ".pdf":
-                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
-                    with open(save_path, "wb+") as dest:
-                        for chunk in aadhar_file.chunks():
-                            dest.write(chunk)
-                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
-                else:
-                    save_path = os.path.join(img_directory, f"{file_name}.png")
-                    image = Image.open(aadhar_file)
-                    image = image.convert("RGB")
-                    image.save(save_path, "PNG")
-                    aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.png"
+                # --- Save VoterID Pic ---
+                if voterId_File:
+                    ext = os.path.splitext(voterId_File.name)[1].lower()
+                    file_name = f"{uuid.uuid4().hex}"
+                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
+                    os.makedirs(img_directory, exist_ok=True)
+                    if ext == ".pdf":
+                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        with open(save_path, "wb+") as dest:
+                            for chunk in voterId_File.chunks():
+                                dest.write(chunk)
+                        voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
+                    else:
+                        save_path = os.path.join(img_directory, f"{file_name}.png")
+                        image = Image.open(voterId_File)
+                        image = image.convert("RGB")
+                        image.save(save_path, "PNG")
+                        voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.png"
+                
+                # --- Intelligent Payload Preparation ---
+                dob_in = request.POST.get("DateOfBirth", "")
+                dob_final = dob_in
+                if dob_in and "-" in dob_in and "/" not in dob_in:
+                    try:
+                        from datetime import datetime
+                        dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except Exception:
+                        pass
 
-                print("Aadhar saved at:", save_path)
-                print("Aadhar URL:", aadhar_url)
+                payload = {
+                    "userMobileNo": request.POST.get("userMobileNo"),
+                    "userFirstname": request.POST.get("userFirstname"),
+                    "userMiddlename": request.POST.get("userMiddlename", ""),
+                    "userLastname": request.POST.get("userLastname"),
+                    "AreaId": request.POST.get("AreaId", "1"),
+                    "Gender": request.POST.get("Gender", "1"),
+                    "Address": request.POST.get("Address", ""),
+                    "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
+                    "BloodGroup": request.POST.get("BloodGroup", "Select"),
+                    "DateOfBirth": dob_final,
+                    "UserId": str(request.session.get("user_id", "0")),
+                    "Photo": profile_url or request.POST.get("PhotoFileName", ""),
+                    "PhotoId": aadhar_url or request.POST.get("IdProofFileName", ""),
+                    "VoterId": voterId_url or request.POST.get("VoterId", ""),
+                }
+                
+                payload["PhotoFileName"] = payload["Photo"]
+                payload["IdProofFileName"] = payload["PhotoId"]
 
-            # --- Save Profile Pic ---
-            if profile_file:
-                ext = os.path.splitext(profile_file.name)[1].lower()
-                file_name = f"{uuid.uuid4().hex}"
-                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
-                os.makedirs(img_directory, exist_ok=True)
+                registration_id = request.POST.get("RegistrationId", "0")
 
-                if ext == ".pdf":
-                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
-                    with open(save_path, "wb+") as dest:
-                        for chunk in profile_file.chunks():
-                            dest.write(chunk)
-                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.pdf"
-                else:
-                    save_path = os.path.join(img_directory, f"{file_name}.png")
-                    image = Image.open(profile_file)
-                    image = image.convert("RGB")
-                    image.save(save_path, "PNG")
-                    profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.png"
+                # ✅ THE CRUCIAL FIX:
+                # If the registration_id is NOT '0', it's an update.
+                # Only then do we add the 'RegistrationId' key to the payload.
+                # If it IS '0', the key is omitted, signaling a NEW registration.
+                if registration_id != "0":
+                    payload["RegistrationId"] = registration_id
 
-                print("Profile saved at:", save_path)
-                print("Profile URL:", profile_url)
+                print("✅ Final Payload being sent to External API:", payload) 
 
-            # --- Save VoterID Pic ---
-            if voterId_File:
-                ext = os.path.splitext(voterId_File.name)[1].lower()
-                file_name = f"{uuid.uuid4().hex}"
-                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
-                os.makedirs(img_directory, exist_ok=True)
+                resp = requests.post(api_url, json=payload, verify=False)
+                
+                if resp.status_code != 200:
+                    return JsonResponse({"message_code": 999, "message_text": f"API HTTP Error {resp.status_code}"})
+                
+                response_data = resp.json()
+                print("✅ Response Received from External API:", response_data)
+                return JsonResponse(response_data, safe=False)
 
-                if ext == ".pdf":
-                    save_path = os.path.join(img_directory, f"{file_name}.pdf")
-                    with open(save_path, "wb+") as dest:
-                        for chunk in voterId_File.chunks():
-                            dest.write(chunk)
-                    voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
-                else:
-                    save_path = os.path.join(img_directory, f"{file_name}.png")
-                    image = Image.open(voterId_File)
-                    image = image.convert("RGB")
-                    image.save(save_path, "PNG")
-                    voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.png"
-
-                print("VoterId saved at:", save_path)
-                print("VoterId URL:", voterId_url)
-
-            # --- Prepare payload ---
-            payload = {
-                "RegistrationId": request.POST.get("RegistrationId", 0),
-                "userMobileNo": request.POST.get("userMobileNo"),
-                "userFirstname": request.POST.get("userFirstname"),
-                "userMiddlename": request.POST.get("userMiddlename", ""),
-                "userLastname": request.POST.get("userLastname"),
-                "AreaId": request.POST.get("AreaId", 1),
-                "Gender": request.POST.get("Gender", 1),
-                "Address": request.POST.get("Address", ""),
-                "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
-                "BloodGroup": request.POST.get("BloodGroup", "Select"),
-                "DateOfBirth": dob_final,
-                "Photo": request.POST.get("Photo", ""),
-                "PhotoId": request.POST.get("PhotoId", ""),
-                "UserId": str(request.session.get("user_id", 0)),
-                # "IdProofFileName": aadhar_url,
-                # "ZonePreference": request.POST.get("ZonePreference", 0),
-                # "VoterId": voterId_url,
-            }
-            registration_id = request.POST.get("RegistrationId", "0")
-            is_insert_mode = registration_id == "0"
-            
-            # 🔥 CRITICAL FIX: For insert mode, ONLY use uploaded files, ignore hidden fields
-            if is_insert_mode:
-                payload["PhotoFileName"] = profile_url or ""
-                payload["IdProofFileName"] = aadhar_url or ""
-                payload["VoterId"] = voterId_url or ""
-            else:
-                # For update mode, use new files if uploaded, otherwise keep old ones
-                payload["PhotoFileName"] = profile_url or request.POST.get("PhotoFileName", "")
-                payload["IdProofFileName"] = aadhar_url or request.POST.get("IdProofFileName", "")
-                payload["VoterId"] = voterId_url or request.POST.get("VoterId", "")
-
-            print("358", payload) 
-
-            resp = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
-            if resp.status_code != 200:
-                return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {resp.status_code}"})
-            return JsonResponse(resp.json(), safe=False)
+            except Exception as e:
+                print(f"❌ Exception in submit action: {str(e)}")
+                return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
 
         else:
             return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
