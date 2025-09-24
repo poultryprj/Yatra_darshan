@@ -10,29 +10,28 @@
         .header h1 { margin: 0; font-size: 18pt; }
         .header h3 { margin: 5px 0; font-size: 12pt; font-weight: normal; color: #333; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #999; padding: 6px; text-align: left; word-wrap: break-word; }
+        th, td { border: 1px solid #999; padding: 6px; text-align: left; word-wrap: break-word; vertical-align: top; }
         th { background-color: #e0e0e0; font-weight: bold; }
+        
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* --- UPDATED COLUMN WIDTHS --- */
         .sn-col { width: 5%; text-align: center; }
         .name-col { width: 25%; }
         .mobile-col { width: 15%; }
-        .address-col { width: 35%; }
-
-        /* --- MODIFIED LINES --- */
-        .bus-col { width: 8%; }  /* Was 10% */
-        .date-col { width: 12%; } /* Was 10% */
-        /* --- END OF MODIFICATION --- */
-
-        a {
-            color: inherit; /* Makes link color the same as surrounding text */
-            text-decoration: none; /* Removes the underline */
-        }
+        .address-col { width: 45%; }
+        .bus-col { width: 10%; }
         
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Passenger Report by Area</h1>
-        <h3>Route: {{ route_name }} | Area: {{ area_name }}</h3>
+        <!-- ADDED YATRA DATE TO THE HEADER -->
+        <h3>Route: {{ route_name }} | Area: {{ area_name }} | Date: {{ passengers.0.YatraDateTime|default:"N/A" }}</h3>
         <h4>Total Passengers: {{ total_passengers }}</h4>
     </div>
 
@@ -44,7 +43,7 @@
                 <th class="mobile-col">Mobile No</th>
                 <th class="address-col">Address</th>
                 <th class="bus-col">Bus</th>
-                <th class="date-col">Date</th>
+                <!-- REMOVED DATE COLUMN -->
             </tr>
         </thead>
         <tbody>
@@ -52,16 +51,22 @@
                 <tr>
                     <td class="sn-col">{{ forloop.counter }}</td>
                     <td class="name-col">{{ pax.Firstname|default:"" }} {{ pax.Middlename|default:"" }} {{ pax.Lastname|default:"" }}</td>
+                    
+                    <!-- MODIFIED MOBILE NUMBER CELL TO INCLUDE ALTERNATE NUMBER -->
                     <td class="mobile-col">
                         {% if pax.MobileNo %}
                             <a href="tel:{{ pax.MobileNo }}">{{ pax.MobileNo }}</a>
                         {% else %}
                             -
                         {% endif %}
+                        <br>
+                        {% if pax.AlternateMobileNo %}
+                            <a href="tel:{{ pax.AlternateMobileNo }}">{{ pax.AlternateMobileNo }}</a>
+                        {% endif %}
                     </td>
+                    
                     <td class="address-col">{{ pax.Address|default:"-" }}</td>
                     <td class="bus-col">{{ pax.BusName|default:"-" }}</td>
-                    <td class="date-col" style="text-align: center;">{{ pax.YatraDateTime|default:"-" }}</td>
                 </tr>
             {% endfor %}
         </tbody>
