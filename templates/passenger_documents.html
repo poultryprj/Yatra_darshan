@@ -259,6 +259,9 @@
                 return;
             }
 
+            const selectedBusText = $('#busSelect option:selected').text(); 
+            const busName = selectedBusText.replace('Bus ', '').trim(); 
+
             searchContainer.removeClass('d-none');
             let html = '';
             passengers.forEach(pax => {
@@ -280,7 +283,7 @@
                 <div class="card passenger-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4>${fullName}</h4>
-                        <span class="badge rounded-pill seat-badge">Seat: ${pax.SeatNo || 'N/A'}</span>
+                        <span class="badge rounded-pill seat-badge">${busName} : ${pax.SeatNo || 'N/A'}</span>
                     </div>
                     <div class="card-body">
                         <div class="contact-info">

@@ -27,12 +27,22 @@
         .navbar { background-color: var(--brand-orange); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
         .navbar-brand { font-weight: bold; }
-        .container-main { max-width: 900px; margin: 70px auto; padding: 10px; }
+        .container-main { max-width: 900px; margin: 70px auto; padding: 10px; padding-bottom: 100px; /* Space for sticky footer */ }
+        
+        .sticky-footer-send {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
         .btn-brand-send { background-color: var(--brand-orange); color: white; font-weight: bold; padding: 12px; font-size: 1.1rem; border: none; }
         .btn-brand-send:hover { background-color: var(--brand-orange-dark); color: white; }
         
-        .passenger-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .passenger-item:last-child { border-bottom: none; }
+        .passenger-item { display: flex; align-items: center; padding: 12px; }
         .avatar {
             width: 40px; height: 40px; border-radius: 50%; background-color: var(--brand-blue);
             color: white; display: flex; align-items: center; justify-content: center;
@@ -44,7 +54,6 @@
         .passenger-checkbox { transform: scale(1.4); margin-left: 15px; flex-shrink: 0; }
         
         .select2-container--bootstrap-5 .select2-dropdown { z-index: 1060; }
-        .card-header { font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -65,74 +74,53 @@
             <h4 class="mb-3" style="color: var(--brand-green);"><i class="bi bi-whatsapp"></i> Bulk WhatsApp Sender</h4>
 
             <!-- Step 1: Filters -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold bg-light">Step 1: Select Recipients</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="routeFilter" class="form-label">Route</label>
-                        <select id="routeFilter" class="form-select">
-                            <option value="">-- Choose a Route --</option>
-                            {% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="yatraFilter" class="form-label">Yatra (Date)</label>
-                        <select id="yatraFilter" class="form-select" disabled><option value="">-- Select Route First --</option></select>
-                    </div>
-                    <div>
-                        <label for="busFilter" class="form-label">Bus</label>
-                        <select id="busFilter" class="form-select" disabled><option value="">-- Select Yatra First --</option></select>
-                    </div>
+            <div class="card-header bg-transparent fw-bold ps-0">Step 1: Select Recipients</div>
+            <div class="p-3 border rounded mb-4">
+                <div class="mb-3">
+                    <label for="routeFilter" class="form-label text-muted">Route</label>
+                    <select id="routeFilter" class="form-select form-select-lg">
+                        <option value="">-- Choose a Route --</option>
+                        {% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="yatraFilter" class="form-label text-muted">Yatra (Date)</label>
+                    <select id="yatraFilter" class="form-select form-select-lg" disabled><option value="">-- Select Route First --</option></select>
+                </div>
+                <div>
+                    <label for="busFilter" class="form-label text-muted">Bus</label>
+                    <select id="busFilter" class="form-select form-select-lg" disabled><option value="">-- Select Yatra First --</option></select>
                 </div>
             </div>
 
             <!-- Message Composer and Recipient List Container -->
             <div id="mainContentContainer" class="d-none">
                 <!-- Step 2: Message Composer -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header fw-bold bg-light">Step 2: Compose Your Message</div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="templateSelector" class="form-label">Select a Template (Optional)</label>
-                            <select id="templateSelector" class="form-select">
-                                <option value="">-- Write a Custom Message --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="customMessageBody" class="form-label">Message Body</label>
-                            <textarea id="customMessageBody" class="form-control" rows="5" placeholder="Type a message or select a template..."></textarea>
-                        </div>
-                        <div class="form-text mb-3">Placeholders like <code>{{NAME}}</code> will be replaced.</div>
-                        <!-- BUTTON HAS BEEN MOVED FROM HERE -->
-                    </div>
+                <div class="card-header bg-transparent fw-bold ps-0">Step 2: Compose Your Message</div>
+                <div class="p-3 border rounded mb-4">
+                    <div class="mb-3"><label for="templateSelector" class="form-label text-muted">Select a Template (Optional)</label><select id="templateSelector" class="form-select form-select-lg"><option value="">-- Write a Custom Message --</option></select></div>
+                    <div><label for="customMessageBody" class="form-label text-muted">Message Body</label><textarea id="customMessageBody" class="form-control" rows="5" placeholder="Type a message or select a template..."></textarea></div>
+                    <small class="form-text text-muted">Placeholders like <code>{{NAME}}</code> will be replaced.</small>
                 </div>
 
                 <!-- Step 3: Recipient List -->
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm">
                     <div class="card-header fw-bold bg-light d-flex justify-content-between align-items-center">
                         <span>Recipients (Selected: <span id="recipientCount">0</span>)</span>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
-                            <label class="form-check-label" for="selectAllCheckbox">Select All</label>
-                        </div>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="selectAllCheckbox"><label class="form-check-label" for="selectAllCheckbox">Select All</label></div>
                     </div>
-                    <div id="passengerTableBody" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Passenger items will be injected here -->
-                    </div>
+                    <div id="passengerTableBody" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
 
-                <!-- ✅ BUTTON IS NOW HERE, AT THE END -->
-                <div class="d-grid">
-                    <button id="btnSendCustomMessage" class="btn btn-brand-send btn-lg"><i class="bi bi-send-fill me-2"></i>Send to Selected</button>
+                <!-- STICKY FOOTER FOR THE SEND BUTTON -->
+                <div class="sticky-footer-send">
+                    <button id="btnSendCustomMessage" class="btn btn-brand-send w-100"><i class="bi bi-send-fill me-2"></i>Send to Selected</button>
                 </div>
             </div>
             
-            <div id="loader" class="text-center my-4 d-none"><div class="spinner-border" style="color: var(--brand-orange);" role="status"></div><p class="mt-2">Fetching...</p></div>
+            <div id="loader" class="text-center my-4 d-none"><div class="spinner-border" style="color: var(--brand-orange);"></div><p class="mt-2">Fetching...</p></div>
             <div id="statusMessage" class="alert text-center d-none"></div>
-             <div id="initialPrompt" class="text-center text-muted p-4">
-                <i class="bi bi-filter-circle fs-1"></i>
-                <p class="mt-2">Please select a Route, Yatra, and Bus to load recipients.</p>
-            </div>
+             <div id="initialPrompt" class="text-center text-muted p-4"><i class="bi bi-filter-circle fs-1"></i><p class="mt-2">Please select a Route, Yatra, and Bus to load recipients.</p></div>
         </div>
     </div>
 </div>
@@ -151,7 +139,6 @@
 <!-- Page-Specific JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- NO LOGIC CHANGES NEEDED ---
     const mainContentContainer = document.getElementById('mainContentContainer');
     const passengerTableBody = document.getElementById('passengerTableBody');
     const loader = document.getElementById('loader');
@@ -168,17 +155,78 @@ document.addEventListener('DOMContentLoaded', function() {
     let yatraDataCache = {};
     let messageTemplates = [];
 
-    $('#routeFilter, #yatraFilter, #busFilter, #templateSelector').select2({ theme: "bootstrap-5" });
+    $('#routeFilter, #yatraFilter, #busFilter, #templateSelector').select2({ theme: "bootstrap-5", containerCssClass: "form-select-lg", dropdownCssClass: "form-select-lg" });
 
     async function loadMessageTemplates() { try { const response = await fetch("{% url 'get_whatsapp_templates_api' %}"); const result = await response.json(); if (result.message_code === 1000 && Array.isArray(result.message_data)) { messageTemplates = result.message_data; const templateSelect = $('#templateSelector'); templateSelect.find('option:not(:first)').remove(); messageTemplates.forEach(template => { templateSelect.append(new Option(template.TemplateTitle, template.TemplateId, false, false)); }); templateSelect.trigger('change'); } } catch (error) { console.error("Failed to load message templates:", error); } }
     loadMessageTemplates();
 
     $('#templateSelector').on('change', function() { const selectedTemplateId = this.value; if (selectedTemplateId) { const selectedTemplate = messageTemplates.find(t => t.TemplateId == selectedTemplateId); if (selectedTemplate) { customMessageBody.value = selectedTemplate.TemplateMessageBody; } } else { customMessageBody.value = ''; } });
-    $('#routeFilter').on('change', async function() {const routeId = this.value; resetFilters(['yatra', 'bus']); hideMainContent(); if (!routeId) return; try {const fd = new FormData(); fd.append('action', 'get_filters'); fd.append('route_id', routeId); const response = await fetch("{% url 'passenger_documents_api' %}", { method: 'POST', body: fd }); const result = await response.json(); if (result.status === 'success') {yatraDataCache = result.data; populateYatraFilter(yatraDataCache);} else {showStatus('Error fetching yatra dates: ' + result.message, 'alert-danger');}} catch (error) {showStatus('An unexpected error occurred.', 'alert-danger');}});
+    $('#routeFilter').on('change', async function() {const routeId = this.value; resetFilters(['yatra', 'bus']); hideMainContent(); if (!routeId) return; try {const fd = new FormData(); fd.append('action', 'get_filters'); fd.append('route_id', routeId); const response = await fetch("{% url 'passenger_documents_api' %}", { method: 'POST', body: fd }); const result = await response.json(); if (result.status === 'success') {yatraDataCache = result.data; populateYatraFilter(yatraDataCache);} else {showStatus('Error fetching yatra dates: ' + result.message);}} catch (error) {showStatus('An unexpected error occurred.');}});
     $('#yatraFilter').on('change', function() {const yatraId = this.value; resetFilters(['bus']); hideMainContent(); if (yatraId && yatraDataCache[yatraId]) {populateBusFilter(yatraDataCache[yatraId].buses);}});
     $('#busFilter').on('change', function() {if (this.value) {fetchAndRenderPassengers();} else {hideMainContent();}});
-    async function fetchAndRenderPassengers() { const routeId = $('#routeFilter').val(); const yatraId = $('#yatraFilter').val(); const busId = $('#busFilter').val(); if (!routeId || !yatraId || !busId) return; showLoader(true); hideMainContent(); initialPrompt.classList.add('d-none'); try { const fd = new FormData(); fd.append('action', 'get_passengers'); fd.append('route_id', routeId); fd.append('yatra_id', yatraId); fd.append('bus_id', busId); const response = await fetch("{% url 'passenger_documents_api' %}", { method: 'POST', body: fd }); const result = await response.json(); if (result.status === 'success') { renderPassengerList(result.data); mainContentContainer.classList.remove('d-none'); showStatus('', true); } else { showStatus('Error fetching passengers: ' + result.message); } } catch (error) { showStatus('An unexpected network error occurred.'); } finally { showLoader(false); } }
+    
+    async function fetchAndRenderPassengers() {
+        const routeId = $('#routeFilter').val();
+        const yatraId = $('#yatraFilter').val();
+        const selectedBusId = $('#busFilter').val();
+        if (!routeId || !yatraId || !selectedBusId) return;
 
+        showLoader(true);
+        hideMainContent();
+        initialPrompt.classList.add('d-none');
+        
+        try {
+            let combinedPassengers = [];
+            if (selectedBusId === 'all') {
+                const busesForYatra = yatraDataCache[yatraId]?.buses || [];
+                const fetchPromises = busesForYatra.map(bus => fetchSingleBus(routeId, yatraId, bus.id));
+                const results = await Promise.all(fetchPromises);
+                results.forEach(passengerList => {
+                    if (passengerList) {
+                        combinedPassengers.push(...passengerList);
+                    }
+                });
+            } else {
+                const singleBusPassengers = await fetchSingleBus(routeId, yatraId, selectedBusId);
+                if (singleBusPassengers) {
+                    combinedPassengers = singleBusPassengers;
+                }
+            }
+            
+            renderPassengerList(combinedPassengers);
+            mainContentContainer.classList.remove('d-none');
+            showStatus('', true);
+
+        } catch (error) {
+            console.error("Error in fetchAndRenderPassengers:", error);
+            showStatus('An unexpected error occurred while fetching passengers.');
+        } finally {
+            showLoader(false);
+        }
+    }
+
+    async function fetchSingleBus(routeId, yatraId, busId) {
+        try {
+            const fd = new FormData(); fd.append('action', 'get_passengers'); fd.append('route_id', routeId); fd.append('yatra_id', yatraId); fd.append('bus_id', busId);
+            const response = await fetch("{% url 'passenger_documents_api' %}", { method: 'POST', body: fd });
+            if (!response.ok) { throw new Error(`HTTP error for bus ${busId}: ${response.status}`); }
+            const result = await response.json();
+            if (result.status === 'success') { return result.data; } 
+            else { console.error(`API error for bus ${busId}:`, result.message); return null; }
+        } catch (error) {
+            console.error(`Network error for bus ${busId}:`, error);
+            return null;
+        }
+    }
+
+    function populateBusFilter(buses) {
+        const busSelect = $('#busFilter');
+        busSelect.empty().append('<option value="">-- Choose a Bus --</option>');
+        buses.forEach(bus => { busSelect.append(new Option(bus.name, bus.id, false, false)); });
+        if (buses.length > 1) { busSelect.append(new Option("All Buses", "all", false, false)); }
+        busSelect.prop('disabled', false).trigger('change');
+    }
+    
     function renderPassengerList(passengers) {
         passengerTableBody.innerHTML = '';
         const validRecipients = passengers.filter(pax => pax.MobileNo && pax.MobileNo.length >= 10);
@@ -190,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="list-group-item passenger-item"
                     data-reg-id="${pax.RegistrationId}" data-name="${fullName}" data-mobile="${pax.MobileNo}"
                     data-yatra-name="${$('#routeFilter option:selected').text()}" data-yatra-date="${$('#yatraFilter option:selected').text()}"
-                    data-bus-no="${$('#busFilter option:selected').text()}" data-seat-no="${pax.SeatNo}">
+                    data-bus-no="${pax.BusName || 'N/A'}" data-seat-no="${pax.SeatNo}">
                     <div class="avatar">${initials}</div>
                     <div class="passenger-details">
                         <div class="passenger-name">${fullName}</div>
@@ -211,7 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmSendBtn.addEventListener('click', async function() { confirmBulkSendModal.hide(); const customText = customMessageBody.value.trim(); const selectedRecipientRows = Array.from(passengerTableBody.querySelectorAll('.row-checkbox:checked')).map(cb => cb.closest('.passenger-item')); let successCount = 0; let failCount = 0; const originalButtonText = btnSendCustomMessage.innerHTML; btnSendCustomMessage.disabled = true; btnSendCustomMessage.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Sending...`; for (const row of selectedRecipientRows) {const success = await sendMessage(row.dataset, customText); if (success) successCount++; else failCount++; await new Promise(resolve => setTimeout(resolve, 200));} btnSendCustomMessage.disabled = false; btnSendCustomMessage.innerHTML = originalButtonText; swal({title: "Bulk Send Complete!", text: `Messages sent to ${selectedRecipientRows.length} recipients.\n\nSuccessful: ${successCount}\nFailed: ${failCount}`, type: "success"}, function(isConfirm){ if(isConfirm){ document.querySelectorAll('.row-checkbox:checked').forEach(c => c.checked=false); selectAllCheckbox.checked=false; updateSelectedCount();}});});
     async function sendMessage(dataset, customText) {try {const fd = new FormData(); fd.append('registration_id', dataset.regId); fd.append('user_name', dataset.name); fd.append('mobile_no', dataset.mobile); fd.append('yatra_name', dataset.yatraName); fd.append('yatra_date', dataset.yatraDate); fd.append('bus_no', dataset.busNo); fd.append('seat_no', dataset.seatNo); fd.append('custom_message_body', customText); const response = await fetch("{% url 'send_whatsapp_api' %}", { method: 'POST', body: fd }); const result = await response.json(); return result.status === 'success';} catch (error) {console.error(`Error sending message to ${dataset.name}:`, error); return false;}}
     function populateYatraFilter(data) {const yatraSelect = $('#yatraFilter'); yatraSelect.empty().append('<option value="">-- Choose a Yatra Date --</option>'); for (const yatraId in data) {yatraSelect.append(new Option(data[yatraId].date, yatraId, false, false));} yatraSelect.prop('disabled', false).trigger('change');}
-    function populateBusFilter(buses) {const busSelect = $('#busFilter'); busSelect.empty().append('<option value="">-- Choose a Bus --</option>'); buses.forEach(bus => {busSelect.append(new Option(bus.name, bus.id, false, false));}); busSelect.prop('disabled', false).trigger('change');}
     function resetFilters(filterNames) {if (filterNames.includes('yatra')) {$('#yatraFilter').empty().append('<option value="">-- Select Route First --</option>').prop('disabled', true).trigger('change');} if (filterNames.includes('bus')) {$('#busFilter').empty().append('<option value="">-- Select Yatra First --</option>').prop('disabled', true).trigger('change');}}
     function showLoader(show) {loader.classList.toggle('d-none', !show); if (show) statusMessage.classList.add('d-none');}
     function showStatus(message, hide = false) {statusMessage.textContent = message; statusMessage.className = `alert ${hide ? 'd-none' : 'alert-danger'} text-center`;}
