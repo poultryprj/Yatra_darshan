@@ -1814,10 +1814,93 @@ def area_report_pdf(request, route_id, area_name):
 
 # In views.py
 
+# @csrf_exempt
+# def send_whatsapp_api(request):
+#     """
+#     API to send a WhatsApp message with detailed logging for debugging.
+#     """
+#     if 'user_id' not in request.session:
+#         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+#     if request.method == 'POST':
+#         try:
+#             # --- 1. Receive data from the frontend ---
+#             reg_id = request.POST.get('registration_id')
+#             user_name = request.POST.get('user_name')
+#             mobile_no = request.POST.get('mobile_no')
+#             yatra_name = request.POST.get('yatra_name')
+#             yatra_date = request.POST.get('yatra_date')
+#             bus_no = request.POST.get('bus_no')
+#             seat_no = request.POST.get('seat_no')
+#             custom_message_body = request.POST.get('custom_message_body')
+#             user_id = request.session.get("user_id")
+
+#             # ✅ --- ADDED FOR DEBUGGING: Print received data ---
+#             print("--- WhatsApp API: Data Received from Frontend ---")
+#             print(f"Registration ID: {reg_id}, User Name: {user_name}, Mobile: {mobile_no}")
+#             print(f"Yatra: {yatra_name}, Date: {yatra_date}, Bus: {bus_no}, Seat: {seat_no}")
+#             print("-------------------------------------------------")
+            
+#             if not all([reg_id, mobile_no, custom_message_body, user_id]):
+#                 return JsonResponse({"status": "error", "message": "Missing required data to send message."}, status=400)
+
+#             # --- 2. Populate placeholders ---
+#             final_message_body = custom_message_body.replace("{{NAME}}", user_name) \
+#                                                      .replace("{{YATRANAME}}", yatra_name) \
+#                                                      .replace("{{YATRADATE}}", yatra_date) \
+#                                                      .replace("{{BUSNO}}", bus_no) \
+#                                                      .replace("{{SEATNO}}", seat_no)
+
+#             # --- 3. Prepare payload for the external API ---
+#             send_api_url = "https://www.lakshyapratishthan.com/apis/addsmsrequest"
+#             payload = {
+#                 "RegistrationId": int(reg_id),
+#                 "UserId": int(user_id),
+#                 "SMSTemplateId": 1, # Default template ID
+#                 "SMSBody": final_message_body,
+#                 "SMSTo": mobile_no
+#             }
+
+#             # ✅ --- ADDED FOR DEBUGGING: Print data being sent to external API ---
+#             print("--- WhatsApp API: Payload Sent to External API ---")
+#             import json
+#             print(json.dumps(payload, indent=2))
+#             print("--------------------------------------------------")
+
+#             # --- 4. Call the external API ---
+#             send_response = requests.post(send_api_url, json=payload, headers=headers, verify=False, timeout=15)
+            
+#             # ✅ --- ADDED FOR DEBUGGING: Print response from external API ---
+#             print(f"--- External API Response --- (Status: {send_response.status_code})")
+#             try:
+#                 print(send_response.json())
+#             except:
+#                 print(send_response.text)
+#             print("---------------------------")
+
+
+#             if send_response.status_code == 200:
+#                 response_data = send_response.json()
+#                 if response_data.get("message_code") == 1000:
+#                     return JsonResponse({"status": "success", "message": "Message request sent successfully."})
+#                 else:
+#                     return JsonResponse({"status": "error", "message": response_data.get("message_text", "Provider failed to send message.")})
+#             else:
+#                 return JsonResponse({"status": "error", "message": f"API Error: {send_response.status_code}"})
+
+#         except Exception as e:
+#             print(f"[WHATSAPP API ERROR] An exception occurred: {str(e)}")
+#             return JsonResponse({"status": "error", "message": f"An unexpected server error occurred: {str(e)}"})
+
+#     return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+
+# In views.py
+
 @csrf_exempt
 def send_whatsapp_api(request):
     """
-    API to send a WhatsApp message with detailed logging for debugging.
+    API to send a WhatsApp message OR a Text Message with detailed logging.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -1834,11 +1917,13 @@ def send_whatsapp_api(request):
             seat_no = request.POST.get('seat_no')
             custom_message_body = request.POST.get('custom_message_body')
             user_id = request.session.get("user_id")
+            #Get the SMS Method from the request, default to 2 (WhatsApp)
+            sms_method = request.POST.get('sms_method', '2')
 
-            # ✅ --- ADDED FOR DEBUGGING: Print received data ---
-            print("--- WhatsApp API: Data Received from Frontend ---")
+            print("--- Message API: Data Received from Frontend ---")
             print(f"Registration ID: {reg_id}, User Name: {user_name}, Mobile: {mobile_no}")
             print(f"Yatra: {yatra_name}, Date: {yatra_date}, Bus: {bus_no}, Seat: {seat_no}")
+            print(f"SMS Method: {sms_method} (1=SMS, 2=WhatsApp)") # Log the method
             print("-------------------------------------------------")
             
             if not all([reg_id, mobile_no, custom_message_body, user_id]):
@@ -1858,11 +1943,13 @@ def send_whatsapp_api(request):
                 "UserId": int(user_id),
                 "SMSTemplateId": 1, # Default template ID
                 "SMSBody": final_message_body,
-                "SMSTo": mobile_no
+                "SMSTo": mobile_no,
+                # Add the SMSMethod parameter to the payload
+                "SMSMethod": int(sms_method)
             }
 
-            # ✅ --- ADDED FOR DEBUGGING: Print data being sent to external API ---
-            print("--- WhatsApp API: Payload Sent to External API ---")
+            # --- Debugging: Print data being sent to external API ---
+            print("--- Message API: Payload Sent to External API ---")
             import json
             print(json.dumps(payload, indent=2))
             print("--------------------------------------------------")
@@ -1870,14 +1957,13 @@ def send_whatsapp_api(request):
             # --- 4. Call the external API ---
             send_response = requests.post(send_api_url, json=payload, headers=headers, verify=False, timeout=15)
             
-            # ✅ --- ADDED FOR DEBUGGING: Print response from external API ---
+            # --- Debugging: Print response from external API ---
             print(f"--- External API Response --- (Status: {send_response.status_code})")
             try:
                 print(send_response.json())
             except:
                 print(send_response.text)
             print("---------------------------")
-
 
             if send_response.status_code == 200:
                 response_data = send_response.json()
@@ -1889,7 +1975,7 @@ def send_whatsapp_api(request):
                 return JsonResponse({"status": "error", "message": f"API Error: {send_response.status_code}"})
 
         except Exception as e:
-            print(f"[WHATSAPP API ERROR] An exception occurred: {str(e)}")
+            print(f"[MESSAGE API ERROR] An exception occurred: {str(e)}")
             return JsonResponse({"status": "error", "message": f"An unexpected server error occurred: {str(e)}"})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
