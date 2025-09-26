@@ -31,7 +31,8 @@ def login(request):
         print("24")
         mobile = request.POST.get('mobile')
         pin = request.POST.get('pin_number')
-        api_url = 'https://www.lakshyapratishthan.com/apis/agentlogin'
+        # api_url = 'https://www.lakshyapratishthan.com/apis/agentlogin'
+        api_url = f"{API_BASE_URL}agentlogin/"
         payload = {
             "userMobileNo": mobile,
             "userPassword": pin,
@@ -45,7 +46,7 @@ def login(request):
                 print(data)
 
                 if data.get("message_code") == 1000:
-                    user_info = data["message_text"][0]
+                    user_info = data["message_data"][0]
                     request.session["user_id"] = user_info["UserId"]
                     request.session["first_name"] = user_info["UserFirstname"]
                     request.session["last_name"] = user_info["UserLastname"]
@@ -543,7 +544,7 @@ def registration_api1(request):
                             "CurrentTicket": CurrentTicket,
                             "GroupCount": GroupCount
                         }
-
+                        print("547",payload)
                         # r = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
                         r = requests.post(api_url, json=payload,verify=False)
                         api_response = r.json()
@@ -688,7 +689,7 @@ def registration_api1(request):
 
                 resp = requests.post(api_url, json=payload, verify=False)
                 
-                if resp.status_code != 200:
+                if resp.status_code not in [200, 201]:
                     return JsonResponse({"message_code": 999, "message_text": f"API HTTP Error {resp.status_code}"})
                 
                 response_data = resp.json()

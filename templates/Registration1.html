@@ -905,6 +905,16 @@
     openActionSheet('insert', null, mobileToPass);
   });
 
+  // A helper to run actions AFTER the offcanvas form closes
+  let postUpdateAction = null;
+  offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
+    // If an action was set, run it now that the form is hidden
+    if (postUpdateAction) {
+        postUpdateAction();
+        postUpdateAction = null; // Reset after running
+    }
+  });
+
   // submit handler
   regForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -928,16 +938,10 @@
     }
 
     const RegistrationId = document.getElementById('RegistrationId').value || '0';
-    
-    // =========================================================
-    // ✅ SOLUTION: ADD THIS LINE TO DEFINE THE isInsertMode VARIABLE
     const isInsertMode = RegistrationId === '0';
-    // =========================================================
 
-    // ✅ Build FormData (includes files & text fields)
-    const fd = new FormData();
+    const fd = new FormData(regForm); // Simplified FormData creation
     fd.append("action", "submit");
-    fd.append("RegistrationId", RegistrationId);
     fd.append("userMobileNo", mob);
     fd.append("userFirstname", document.getElementById('Firstname').value.trim());
     fd.append("userMiddlename", document.getElementById('Middlename').value.trim());
@@ -951,7 +955,6 @@
     const selectedBloodGroupOption = bloodGroupSelect.options[bloodGroupSelect.selectedIndex];
     fd.append("BloodGroup", selectedBloodGroupOption ? selectedBloodGroupOption.text : "Select");
 
-    // ✅ Convert DOB to dd/mm/yyyy if exists
     const dobVal = document.getElementById('DateOfBirth').value;
     if (dobVal) {
       const [y, m, d] = dobVal.split("-");
@@ -960,27 +963,15 @@
       fd.append("DateOfBirth", "");
     }
 
-    // ✅ Append file uploads or fallback to hidden fields
+    // Append files if they exist
     const aadharFile = document.getElementById("AadharUpload")?.files[0];
-    if (aadharFile) {
-      fd.append("AadharUpload", aadharFile);
-    } else {
-      fd.append("IdProofFileName", document.getElementById("IdProofFileName").value || "");
-    }
-
+    if (aadharFile) fd.append("AadharUpload", aadharFile);
+    
     const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
-    if (profileFile) {
-      fd.append("ProfilePicUpload", profileFile);
-    } else {
-      fd.append("PhotoFileName", document.getElementById("PhotoFileName").value || "");
-    }
+    if (profileFile) fd.append("ProfilePicUpload", profileFile);
 
     const voterFile = document.getElementById("VoterIdUpload")?.files[0];
-    if (voterFile) {
-      fd.append("VoterIdUpload", voterFile);
-    } else {
-      fd.append("VoterId", document.getElementById("VoterId").value || "");
-    }
+    if (voterFile) fd.append("VoterIdUpload", voterFile);
 
     document.getElementById('loader').style.display = 'flex';
 
@@ -997,50 +988,47 @@
       const res = await resp.json();
 
       if (String(res.message_code) === "1000") {
-        showMsg("success", res.message_text || "Registration saved successfully");
+        const successMessage = res.message_text || (isInsertMode ? "Registration created successfully!" : "Registration updated successfully!");
 
-        if (isInsertMode) { // <-- This line will now work correctly
-          const newRegistrationId = res.RegistrationId || res.message_data?.RegistrationId;
+        if (isInsertMode) {
+          // For insert, an alert gives immediate feedback while keeping the form open.
+          alert(successMessage);
+
+          const newRegistrationId = res.message_data?.RegistrationId || res.RegistrationId;
           if (newRegistrationId) {
             document.getElementById("RegistrationId").value = newRegistrationId;
+            document.getElementById('regActionBarLabel').textContent = 'Update Registration';
+            modeHint.textContent = "Mode: Update";
+            document.getElementById('insertOnlyFields').style.display = 'none';
 
-            // ✅ Transfer yatras from 0 → new ID
-            const allUsersYatras = getAllUsersYatras();
-            if (allUsersYatras["0"]) {
-              allUsersYatras[newRegistrationId] = allUsersYatras["0"];
-              delete allUsersYatras["0"];
-              saveAllUsersYatras(allUsersYatras);
+            // Show yatra section for the newly created user
+            const yatraSection = document.getElementById("yatraSection");
+            if (yatraSection && yatraSection.classList.contains("d-none")) {
+              renderYatras();
+              yatraSection.classList.remove("d-none");
             }
           }
-          alert("Registration saved successfully! You can now select yatras for this user or close the form.");
+          // Refresh the list on the main page in the background
+          doSearch();
 
-          const yatraSection = document.getElementById("yatraSection");
-          const yatraBtn = document.querySelector(".btn-outline-primary");
-          if (yatraSection && yatraSection.classList.contains("d-none")) {
-            renderYatras();
-            yatraSection.classList.remove("d-none");
-            if (yatraBtn) yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
-          }
         } else {
-          offcanvas.hide(); // update mode
+          // For update, set the action to run AFTER the form closes.
+          postUpdateAction = () => {
+              showMsg("success", successMessage);
+              doSearch(); // Refresh list and show message.
+          };
+          // Now, trigger the form to close.
+          offcanvas.hide();
         }
 
-        // ✅ Refresh search
-        setTimeout(async () => {
-          await doSearch();
-          setTimeout(() => {
-            const currentSearchResults = JSON.parse(sessionStorage.getItem("lastSearchResults") || "[]");
-            renderSelectedYatras(currentSearchResults, inputMobile.value.trim());
-          }, 100);
-        }, 300);
-
       } else {
-        showMsg("error", res.message_text || "Save failed");
+        // For any API error, show a clear alert.
+        alert(`Error: ${res.message_text || "Save operation failed"}`);
       }
     } catch (err) {
       document.getElementById('loader').style.display = 'none';
       console.error(err);
-      showMsg("error", "Save error");
+      alert("A critical error occurred. Please check the console.");
     }
   });
 
