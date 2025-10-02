@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Delivery</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 22px; margin: 0; }
+        .header p { margin: 5px 0 0; opacity: 0.9; }
+        .card-body { padding: 25px; }
+        .error-message { text-align: center; color: #e53e3e; background-color: #fed7d7; padding: 15px; border-radius: 8px; }
+        .member { display: flex; align-items: center; margin-bottom: 15px; }
+        .member .icon { font-size: 20px; color: #667eea; margin-right: 15px; width: 25px; text-align: center; }
+        .member .details .name { font-weight: 600; color: #4a5568; }
+        .member .details .meta { font-size: 13px; color: #a0aec0; }
+        .head-of-family .details .name { color: #2d3748; font-size: 1.1em; }
+        .divider { border-top: 1px dashed #cbd5e0; margin: 25px 0; }
+        #actions-form .actions { display: flex; gap: 15px; }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-delivered { background-color: #38a169; color: white; }
+        .btn-cancel { background-color: #c53030; color: white; }
+        .btn-action:disabled { background-color: #a0aec0; cursor: not-allowed; }
+        #status-message { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+        .status-success { background-color: #c6f6d5; color: #22543d; }
+        .status-error { background-color: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Diwali Kit Delivery</h1>
+            <p>Token No: <strong>{{ token }}</strong></p>
+        </div>
+        <div class="card-body">
+            {% if head %}
+                <h3>Family Details</h3>
+                <div class="member head-of-family">
+                    <span class="icon"><i class="fas fa-user-shield"></i></span>
+                    <div class="details">
+                        <div class="name">{{ head.Firstname }} {{ head.Middlename }} {{ head.Lastname }}</div>
+                        <div class="meta">Head of Family &bull; Mobile: {{ head.MobileNo }}</div>
+                    </div>
+                </div>
+
+                {% if members %}
+                    {% for member in members %}
+                    <div class="member">
+                        <span class="icon"><i class="fas fa-user"></i></span>
+                        <div class="details">
+                            <div class="name">{{ member.Firstname }} {{ member.Middlename }} {{ member.Lastname }}</div>
+                            <div class="meta">Family Member</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="divider"></div>
+
+                <form id="actions-form">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="actions">
+                        <button type="submit" name="status" value="1" class="btn-action btn-delivered">
+                            <i class="fas fa-check-circle"></i> Delivered
+                        </button>
+                        <button type="submit" name="status" value="2" class="btn-action btn-cancel">
+                            <i class="fas fa-times-circle"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="status-message"></div>
+
+            {% else %}
+                <div class="error-message">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                    <p>{{ error|default:"An unknown error occurred." }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const actionsForm = document.getElementById('actions-form');
+    if (!actionsForm) return;
+
+    actionsForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Find which button was clicked
+        const clickedButton = event.submitter;
+        const status = clickedButton.value;
+        const formData = new FormData(actionsForm);
+        formData.set('status', status); // Ensure status is set correctly
+
+        const buttons = actionsForm.querySelectorAll('.btn-action');
+        const statusMessage = document.getElementById('status-message');
+
+        // Disable buttons
+        buttons.forEach(btn => btn.disabled = true);
+        const originalButtonText = clickedButton.innerHTML;
+        clickedButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
+        statusMessage.style.display = 'none';
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            // No need for CSRF token here because of the @csrf_exempt decorator in the view
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusMessage.textContent = data.message;
+                statusMessage.className = 'status-success';
+                statusMessage.style.display = 'block';
+                // Hide the form on success
+                actionsForm.style.display = 'none';
+            } else {
+                statusMessage.textContent = `Error: ${data.message}`;
+                statusMessage.className = 'status-error';
+                statusMessage.style.display = 'block';
+                // Re-enable buttons on failure
+                buttons.forEach(btn => btn.disabled = false);
+                clickedButton.innerHTML = originalButtonText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusMessage.textContent = 'A network error occurred. Please try again.';
+            statusMessage.className = 'status-error';
+            statusMessage.style.display = 'block';
+            // Re-enable buttons on failure
+            buttons.forEach(btn => btn.disabled = false);
+            clickedButton.innerHTML = originalButtonText;
+        });
+    });
+});
+</script>
+
+</body>
+</html>

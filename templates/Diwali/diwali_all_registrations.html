@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Diwali Registrations</title>
+    <!-- Using Bootstrap for the Modal component -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; display: flex; align-items: center; }
+        .back-btn { color: white; font-size: 24px; text-decoration: none; margin-right: 15px; }
+        .header h1 { font-size: 22px; margin: 0; }
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .search-bar { margin-bottom: 20px; position: relative; }
+        .search-bar input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .search-bar .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+        .no-results { text-align: center; padding: 40px; background: white; border-radius: 12px; }
+
+        .accordion-item { background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
+        .accordion-header { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: #f7fafc; border-bottom: 1px solid #e2e8f0; }
+        .accordion-header h2 { font-size: 18px; margin: 0; color: #2d3748; }
+        .accordion-header .ration-no { font-size: 14px; color: #718096; margin-top: 4px; }
+        .accordion-header .chevron { font-size: 16px; color: #a0aec0; transition: transform 0.3s ease; }
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease; padding: 0 20px; }
+        .accordion-item.active .accordion-body { max-height: 1000px; padding: 20px; border-top: 1px solid #e2e8f0; }
+        .accordion-item.active .accordion-header .chevron { transform: rotate(180deg); }
+
+        .member { display: flex; align-items: center; margin-bottom: 15px; }
+        .member .icon { font-size: 20px; color: #667eea; margin-right: 15px; width: 25px; text-align: center; }
+        .member .details .name { font-weight: 600; color: #4a5568; }
+        .member .details .meta { font-size: 13px; color: #a0aec0; }
+
+        /* ✅ --- NEW STYLES FOR ACTION BUTTONS AND MODAL --- */
+        .actions-container {
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px dashed #cbd5e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-view { background-color: #667eea; color: white; }
+        .btn-view:hover { background-color: #5a67d8; }
+
+        .modal-body { text-align: center; }
+        #modalQrImage { max-width: 100%; width: 250px; height: 250px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1>All Registrations</h1>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <i class="fas fa-search icon"></i>
+            <input type="text" id="searchInput" onkeyup="filterFamilies()" placeholder="Search by name or ration card...">
+        </div>
+
+        {% if families %}
+            <div id="familyList">
+            {% for family in families %}
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div>
+                            <h2 class="head-name">{{ family.head.Firstname }} {{ family.head.Middlename }} {{ family.head.Lastname }}</h2>
+                            <span class="ration-no">Ration Card: {{ family.ration_card_no }}</span>
+                        </div>
+                        <i class="fas fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <!-- Member details -->
+                        <div class="member head-of-family">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <div class="details">
+                                <div class="name">{{ family.head.Firstname }} {{ family.head.Middlename }} {{ family.head.Lastname }}</div>
+                                <div class="meta">Head of Family &bull; Mobile: {{ family.head.MobileNo }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if family.members %}
+                            {% for member in family.members %}
+                            <div class="member">
+                                <span class="icon"><i class="fas fa-user"></i></span>
+                                <div class="details">
+                                    <div class="name">{{ member.Firstname }} {{ member.Middlename }} {{ member.Lastname }}</div>
+                                    <div class="meta">Family Member</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                             <p class="text-muted small">No other family members listed.</p>
+                        {% endif %}
+                        
+                        <!-- ✅ --- NEW ACTION BUTTONS SECTION --- -->
+                         
+                        <div class="actions-container">
+                            <p class="me-auto text-muted">Token No: <strong>{{ family.token }}</strong></p>
+                            <button class="btn-action btn-view" 
+                                    data-reg-id="{{ family.head.RegistrationId }}" 
+                                    data-token-no="{{ family.token }}"
+                                    data-head-name="{{ family.head.Firstname }} {{ family.head.Lastname }}">
+                                <i class="fas fa-qrcode"></i> View QR
+                            </button>
+                        </div>
+                         
+                        <!-- The old token-section is now completely removed -->
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+            <div id="noResults" class="no-results" style="display: none;">...</div>
+        {% else %}
+            <div class="no-results">...</div>
+        {% endif %}
+    </div>
+
+    <!-- ✅ --- NEW BOOTSTRAP MODAL FOR QR CODE --- -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrCodeModalLabel">Family Token QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalQrImage" src="" alt="QR Code">
+                    <p>Token No: <strong id="modalTokenNo"></strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="modalShareBtn" class="btn btn-primary"><i class="fas fa-share-alt"></i> Share</button>
+                    <button type="button" id="modalDownloadBtn" class="btn btn-success"><i class="fas fa-download"></i> Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- Accordion Toggle Logic (remains the same) ---
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                accordionItems.forEach(otherItem => otherItem.classList.remove('active'));
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // ✅ --- NEW JAVASCRIPT FOR QR CODE MODAL ---
+        const qrModalEl = document.getElementById('qrCodeModal');
+        const qrModal = new bootstrap.Modal(qrModalEl);
+
+        const modalQrImage = document.getElementById('modalQrImage');
+        const modalTokenNo = document.getElementById('modalTokenNo');
+        const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+        const modalShareBtn = document.getElementById('modalShareBtn');
+
+        // Use event delegation for the view buttons
+        document.getElementById('familyList').addEventListener('click', function(event) {
+            const viewButton = event.target.closest('.btn-view');
+            if (!viewButton) return;
+
+            const regId = viewButton.dataset.regId;
+            const tokenNo = viewButton.dataset.tokenNo;
+            const headName = viewButton.dataset.headName;
+            
+            // Construct the image URL
+            const imageUrl = `/static/assets/img/tokenqr/${regId}.png`;
+
+            // Populate the modal
+            modalQrImage.src = imageUrl;
+            modalTokenNo.textContent = tokenNo;
+            qrModalEl.dataset.imageUrl = imageUrl; // Store for download/share
+            qrModalEl.dataset.tokenNo = tokenNo;
+            qrModalEl.dataset.headName = headName;
+
+            // Show the modal
+            qrModal.show();
+        });
+
+        // Add event listener for the Download button
+        modalDownloadBtn.addEventListener('click', () => {
+            const imageUrl = qrModalEl.dataset.imageUrl;
+            const tokenNo = qrModalEl.dataset.tokenNo;
+            
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `diwali-token-${tokenNo}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Add event listener for the Share button
+        modalShareBtn.addEventListener('click', async () => {
+            const tokenNo = qrModalEl.dataset.tokenNo;
+            const headName = qrModalEl.dataset.headName;
+            
+            const shareData = {
+                title: 'Diwali Kirana Token',
+                text: `Token for ${headName}\nToken No: ${tokenNo}`,
+            };
+
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    alert('Share feature is not supported on this browser. Please take a screenshot to share.');
+                }
+            } catch (err) {
+                console.error("Share failed:", err);
+            }
+        });
+    });
+
+    // --- Filter Function (remains the same) ---
+    function filterFamilies() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const list = document.getElementById("familyList");
+        const items = list ? list.getElementsByClassName("accordion-item") : [];
+        let visibleCount = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            const headName = items[i].querySelector(".head-name");
+            const rationNo = items[i].querySelector(".ration-no");
+            const txtValue = (headName.textContent || headName.innerText) + (rationNo.textContent || rationNo.innerText);
+            
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                items[i].style.display = "";
+                visibleCount++;
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+        
+        const noResultsEl = document.getElementById('noResults');
+        if (noResultsEl) {
+             noResultsEl.style.display = (visibleCount === 0 && items.length > 0) ? '' : 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

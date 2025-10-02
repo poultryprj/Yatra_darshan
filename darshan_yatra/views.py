@@ -1,4 +1,5 @@
 
+import datetime
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, JsonResponse
 import requests
@@ -12,6 +13,8 @@ import os, uuid, json
 from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
+import qrcode
+
 
 headers = {
     "Accept": "application/json, text/plain, */*",
@@ -48,7 +51,7 @@ def login(request):
                     request.session["first_name"] = user_info["UserFirstname"]
                     request.session["last_name"] = user_info["UserLastname"]
                     request.session["user_role"] = user_info["UserRole"]
-                    return redirect('Registrationpage1')
+                    return redirect('home')
                     # messages.success(request, data.get("message_text", "Login successful."))
                 else:
                     messages.error(request, data.get("message_text", "Invalid mobile number or PIN."))
@@ -2009,8 +2012,6 @@ def whatsapp_messaging_page(request):
 
 
 
-# In your views.py file, add this new function
-
 @csrf_exempt
 def get_whatsapp_templates_api(request):
     """
@@ -2038,3 +2039,317 @@ def get_whatsapp_templates_api(request):
 
 # userMobileNo:9850180648
 # userPassword:999999
+
+
+
+
+
+
+
+# ########### Diwali Kirana ####################
+
+def home(request):
+    """
+    Renders the new home page after login.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    user_details = {
+        "first_name": request.session.get("first_name", ""),
+        "last_name": request.session.get("last_name", ""),
+    }
+    
+    return render(request, "home.html", {"user": user_details})
+
+
+def diwali_yatra_page(request):
+    """
+    Renders the placeholder page for Diwali Yatra.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+    
+    return render(request, "Diwali/diwali_yatra.html")
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+
+@csrf_exempt
+def diwali_registration(request):
+    """
+    API proxy for Diwali Kirana registration. Handles:
+    - action 'check_ration': Checks if a ration card exists.
+    - action 'submit': Creates OR Updates the head and family members, including Area and Ration Card Photo.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
+    try:
+        if request.POST.get("action") == "submit":
+            api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
+
+            ration_card_url = None
+            ration_card_file = request.FILES.get("RationCardPhoto")
+            if ration_card_file:
+                ext = os.path.splitext(ration_card_file.name)[1].lower() or '.jpg'
+                file_name = f"ration-{uuid.uuid4().hex}{ext}"
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "ration_cards")
+                os.makedirs(img_directory, exist_ok=True)
+                save_path = os.path.join(img_directory, file_name)
+                with open(save_path, "wb+") as dest:
+                    for chunk in ration_card_file.chunks():
+                        dest.write(chunk)
+                ration_card_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/ration_cards/{file_name}"
+                print(f"Ration Card Photo URL: {ration_card_url}")
+
+            head_details = json.loads(request.POST.get("head"))
+            family_members_data = json.loads(request.POST.get("family"))
+            ration_card_no = request.POST.get("rationCardNo")
+            record_id = request.POST.get("recordId")
+
+            dob_str_head = head_details.get("DateOfBirth", "")
+            if dob_str_head and '-' in dob_str_head:
+                try: dob_str_head = datetime.strptime(dob_str_head, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except Exception: pass
+            
+            head_payload = {
+                "userMobileNo": head_details.get("userMobileNo"),
+                "userAlternateMobileNo": head_details.get("userAlternateMobileNo"),
+                "userFirstname": head_details.get("userFirstname"),
+                "userMiddlename": head_details.get("userMiddlename", ""),
+                "userLastname": head_details.get("userLastname"),
+                "Gender": int(head_details.get("Gender", 1)),
+                "DateOfBirth": dob_str_head,
+                "RationCardNo": ration_card_no,
+                "ParentId": "1",
+                "AreaId": int(head_details.get("AreaId", 1)),
+                "IdProofFileName": ration_card_url or head_details.get("existingRationCardPhoto", ""),
+            }
+
+            if record_id and record_id != "0":
+                head_payload["RegistrationId"] = int(record_id)
+            
+            head_response = requests.post(api_url, json=head_payload, headers=headers, verify=False, timeout=10)
+            
+            if not head_response.ok: return JsonResponse({"status": "error", "message": f"API Error ({head_response.status_code}) for head."})
+            head_data = head_response.json()
+            if head_data.get("message_code") != 1000: return JsonResponse({"status": "error", "message": f"Head registration failed: {head_data.get('message_text')}"})
+            
+            head_reg_id = record_id if (record_id and record_id != "0") else head_data.get("message_data", {}).get("RegistrationId")
+            if not head_reg_id: return JsonResponse({"status": "error", "message": "Could not get Head RegistrationId."})
+
+            family_members = [m for m in family_members_data if m.get("userFirstname", "").strip()]
+            member_results = []
+            for member in family_members:
+                dob_str_member = member.get("DateOfBirth", "").replace('-', '/')
+                member_payload = {
+                    "userMobileNo": head_details.get("userMobileNo"),
+                    "userAlternateMobileNo": head_details.get("userAlternateMobileNo"),
+                    "userFirstname": member.get("userFirstname"),
+                    "userMiddlename": member.get("userMiddlename", ""),
+                    "userLastname": member.get("userLastname"),
+                    "Gender": int(member.get("Gender", 1)),
+                    "DateOfBirth": dob_str_member,
+                    "RationCardNo": ration_card_no,
+                    "ParentId": str(head_reg_id),
+                    "AreaId": int(head_details.get("AreaId", 1)),
+                }
+                
+                member_id = member.get("registrationId")
+                if member_id and member_id != "0":
+                    member_payload["RegistrationId"] = int(member_id)
+
+                member_resp = requests.post(api_url, json=member_payload, headers=headers, verify=False, timeout=10)
+                member_results.append({ "name": f"{member.get('userFirstname')} {member.get('userLastname')}".strip(), "success": member_resp.ok and member_resp.json().get("message_code") == 1000, "response": member_resp.json() if member_resp.ok else {"text": member_resp.text} })
+
+            token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no}, headers=headers, verify=False, timeout=10)
+            print(token_resp.text)
+            token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no}, headers=headers, verify=False, timeout=10)
+            token_no = token_resp.json().get('message_data').get('TokenNo')
+            print(token_no)
+            print(token_resp.text)
+            print(head_data)
+            print(member_results)
+
+            # Path to store QR
+            qr_dir = os.path.join(settings.BASE_DIR, "static", "assets", "img", "tokenqr")
+            os.makedirs(qr_dir, exist_ok=True)
+
+            qr_filename = f"{head_reg_id}.png"
+            qr_path = os.path.join(qr_dir, qr_filename)
+
+            # --- CASE 1: QR already exists → do nothing ---
+            if not os.path.exists(qr_path):
+                # --- CASE 2: QR not found → generate and save ---
+                qr_data = f"https://www.lakshyapratishthan.com/Yatra_darshan/rationcardscan/?t={token_no}"  # your public link
+                qr_img = qrcode.make(qr_data)
+                qr_img.save(qr_path)
+                print("QR generated and saved")
+            else:
+                print("QR already exists, skip generation")
+            return JsonResponse({ "status": "success", "message": "Registration process completed.", "head_registration": head_data, "member_registrations": member_results })
+        
+        elif request.method == "POST":
+            data = json.loads(request.body.decode("utf-8"))
+            action = data.get("action")
+            if action == "check_ration":
+                ration_card_no = data.get("RationCardNo")
+                if not ration_card_no: return JsonResponse({"message_code": 999, "message_text": "Ration Card number is required."})
+                api_url_check = "https://www.lakshyapratishthan.com/apis/checkrationcard"
+                payload = {"RationCardNo": ration_card_no}
+                response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
+                return JsonResponse(response.json())
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"An unexpected error occurred: {str(e)}"}, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+
+
+def diwali_all_registrations(request):
+    """
+    Fetches all Diwali Kirana registrations using the dedicated 'listdiwalikirana' API
+    and renders them in a list.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    all_families = []
+    try:
+        api_url = "https://www.lakshyapratishthan.com/apis/listdiwalikirana"
+
+        payload = {} 
+        
+        print(f"Calling API to list all registrations: {api_url}")
+
+        response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=20)
+        
+        print(f"API Response Status Code: {response.status_code}")
+        try:
+            response_data = response.json()
+            print(f"API Response JSON: {json.dumps(response_data, indent=2)}")
+        except json.JSONDecodeError:
+            print(f"API Response Text: {response.text}")
+            response_data = None
+
+        if response.status_code == 200 and response_data:
+            if response_data.get("message_code") == 1000 and isinstance(response_data.get("message_data"), list):
+                all_records = response_data.get("message_data")
+                
+                families_dict = {}
+                for record in all_records:
+                    ration_card = record.get("RationCardNo")
+                    if ration_card:
+                        if ration_card not in families_dict:
+                            families_dict[ration_card] = []
+                        families_dict[ration_card].append(record)
+                
+                for ration_card, members in families_dict.items():
+                    head = next((m for m in members if m.get("ParentId") in ["1", str(m.get("RegistrationId"))]), members[0])
+                    token_res = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head.get("RegistrationId"),"RationCardNo":ration_card},  headers=headers, verify=False, timeout=20)
+                    print(token_res.text)
+                    token_no = token_res.json().get('message_data').get('TokenNo')
+            
+                    family_data = {
+                        'head': head,
+                        'members': [m for m in members if str(m.get("RegistrationId")) != str(head.get("RegistrationId"))],
+                        'ration_card_no': ration_card,
+                        'token': token_no or "N/A"
+                    }
+                    all_families.append(family_data)
+            else:
+                messages.error(request, f"API returned an error: {response_data.get('message_text', 'No message')}")
+        else:
+            messages.error(request, f"API request failed with status code: {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Could not connect to the API: {str(e)}")
+    except Exception as e:
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+    print(all_families)
+    return render(request, "Diwali/diwali_all_registrations.html", {"families": all_families})
+
+
+
+@csrf_exempt # Use csrf_exempt for simplicity as this is an internal tool action page.
+def rationcardscan(request):
+    """
+    Handles displaying family details from a token and updating their delivery status.
+    - GET: Fetches family details using the 'getfamily' API and renders the page.
+    - POST: Updates the token status using the 'updatestatus' API via AJAX.
+    """
+    # --- HANDLE THE POST REQUEST (from the AJAX form submission) ---
+    if request.method == 'POST':
+        try:
+            token_no = request.POST.get('token')
+            status = request.POST.get('status')
+
+            if not token_no or not status:
+                return JsonResponse({"status": "error", "message": "Token and status are required."}, status=400)
+
+            api_url = "https://www.lakshyapratishthan.com/apis/updatestatus"
+            payload = {
+                "TokenNo": int(token_no),
+                "Status": int(status)
+            }
+            # Assuming 'headers' is a globally defined dictionary for your API auth
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+            if response.ok and response.json().get("message_code") == 1000:
+                return JsonResponse({"status": "success", "message": "Status updated successfully."})
+            else:
+                error_message = response.json().get("message_text", "Failed to update status.")
+                return JsonResponse({"status": "error", "message": error_message}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    # --- HANDLE THE GET REQUEST (when the page is first loaded) ---
+    token = request.GET.get('t') or None
+    if not token:
+        return HttpResponse("<h1>Error: No token found in URL.</h1><p>Please scan the QR code again. The URL should look like /rationcardscan/?t=7</p>")
+
+    context = {
+        "token": token,
+        "head": None,
+        "members": [],
+        "error": None
+    }
+    
+    try:
+        api_url = "https://www.lakshyapratishthan.com/apis/getfamily"
+        payload = {"TokenNo": int(token)}
+        response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+        if response.ok:
+            data = response.json()
+            if data.get("message_code") == 1000 and data.get("message_data"):
+                all_members = data["message_data"]
+                # Find the head of the family (ParentId is "1" or equals their own RegistrationId)
+                head = next((p for p in all_members if p.get("ParentId") == "1" or p.get("ParentId") == p.get("RegistrationId")), None)
+                if head:
+                    context["head"] = head
+                    # The rest are family members
+                    context["members"] = [p for p in all_members if p.get("RegistrationId") != head.get("RegistrationId")]
+                else: # Fallback if no clear head is found
+                    context["head"] = all_members[0]
+                    context["members"] = all_members[1:]
+            else:
+                context["error"] = data.get("message_text", "Could not find family for this token.")
+        else:
+            context["error"] = f"API request failed with status code {response.status_code}."
+
+    except Exception as e:
+        context["error"] = f"An unexpected error occurred: {str(e)}"
+
+    return render(request, 'Diwali/ration_card_scan.html', context)

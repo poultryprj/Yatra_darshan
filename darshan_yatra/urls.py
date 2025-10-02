@@ -62,5 +62,17 @@ urlpatterns = [
 
     path('get_whatsapp_templates_api/', views.get_whatsapp_templates_api, name='get_whatsapp_templates_api'),
 
-        
+# #########  Diwali Yatra ##################
+
+    path('home/', views.home, name='home'),
+    path('diwali_yatra/', views.diwali_yatra_page, name='diwali_yatra_page'),
+
+    path("diwali_registration/", views.diwali_registration, name="diwali_registration"),
+
+
+    path("diwali_all_registrations/",views.diwali_all_registrations,name='diwali_all_registrations'),
+
+    path('rationcardscan/' , views.rationcardscan , name='rationcardscan'),
+
+       
 ]
