@@ -2130,6 +2130,7 @@ def diwali_registration(request):
                 "RationCardNo": ration_card_no,
                 "ParentId": "1",
                 "AreaId": int(head_details.get("AreaId", 1)),
+                "Address": head_details.get("address", ""),
                 "IdProofFileName": ration_card_url or head_details.get("existingRationCardPhoto", ""),
             }
 
@@ -2160,6 +2161,7 @@ def diwali_registration(request):
                     "RationCardNo": ration_card_no,
                     "ParentId": str(head_reg_id),
                     "AreaId": int(head_details.get("AreaId", 1)),
+                    "Address": head_details.get("address", ""),
                 }
                 
                 member_id = member.get("registrationId")
@@ -2169,31 +2171,36 @@ def diwali_registration(request):
                 member_resp = requests.post(api_url, json=member_payload, headers=headers, verify=False, timeout=10)
                 member_results.append({ "name": f"{member.get('userFirstname')} {member.get('userLastname')}".strip(), "success": member_resp.ok and member_resp.json().get("message_code") == 1000, "response": member_resp.json() if member_resp.ok else {"text": member_resp.text} })
 
-            token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no}, headers=headers, verify=False, timeout=10)
-            print(token_resp.text)
+            
             token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no}, headers=headers, verify=False, timeout=10)
             token_no = token_resp.json().get('message_data').get('TokenNo')
+            TokenURL = token_resp.json().get('message_data').get('TokenURL')or None
+            
+
             print(token_no)
             print(token_resp.text)
             print(head_data)
             print(member_results)
+            print(TokenURL,"2184")
 
-            # Path to store QR
-            qr_dir = os.path.join(settings.BASE_DIR, "static", "assets", "img", "tokenqr")
-            os.makedirs(qr_dir, exist_ok=True)
+            if TokenURL:
 
-            qr_filename = f"{head_reg_id}.png"
-            qr_path = os.path.join(qr_dir, qr_filename)
+                # Path to store QR
+                qr_dir = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "img", "tokenqr")
+                os.makedirs(qr_dir, exist_ok=True)
 
-            # --- CASE 1: QR already exists → do nothing ---
-            if not os.path.exists(qr_path):
-                # --- CASE 2: QR not found → generate and save ---
-                qr_data = f"https://www.lakshyapratishthan.com/Yatra_darshan/rationcardscan/?t={token_no}"  # your public link
-                qr_img = qrcode.make(qr_data)
-                qr_img.save(qr_path)
-                print("QR generated and saved")
-            else:
-                print("QR already exists, skip generation")
+                qr_filename = f"{head_reg_id}.png"
+                qr_path = os.path.join(qr_dir, qr_filename)
+
+                # --- CASE 1: QR already exists → do nothing ---
+                if not os.path.exists(qr_path):
+                    # --- CASE 2: QR not found → generate and save ---
+                    qr_data = TokenURL # your public link
+                    qr_img = qrcode.make(qr_data)
+                    qr_img.save(qr_path)
+                    print("QR generated and saved")
+                else:
+                    print("QR already exists, skip generation")
             return JsonResponse({ "status": "success", "message": "Registration process completed.", "head_registration": head_data, "member_registrations": member_results })
         
         elif request.method == "POST":
@@ -2299,7 +2306,7 @@ def rationcardscan(request):
 
             api_url = "https://www.lakshyapratishthan.com/apis/updatestatus"
             payload = {
-                "TokenNo": int(token_no),
+                "TokenQR":(token_no),
                 "Status": int(status)
             }
             # Assuming 'headers' is a globally defined dictionary for your API auth
@@ -2328,7 +2335,7 @@ def rationcardscan(request):
     
     try:
         api_url = "https://www.lakshyapratishthan.com/apis/getfamily"
-        payload = {"TokenNo": int(token)}
+        payload = {"TokenQR":token}
         response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
 
         if response.ok:
