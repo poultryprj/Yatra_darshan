@@ -2121,7 +2121,7 @@ def diwali_registration(request):
             
             head_payload = {
                 "userMobileNo": head_details.get("userMobileNo"),
-                "userAlternateMobileNo": head_details.get("userAlternateMobileNo"),
+                "userAlternateMobileNo": head_details.get("userAlternateMobileNo", ""),
                 "userFirstname": head_details.get("userFirstname"),
                 "userMiddlename": head_details.get("userMiddlename", ""),
                 "userLastname": head_details.get("userLastname"),
@@ -2152,7 +2152,7 @@ def diwali_registration(request):
                 dob_str_member = member.get("DateOfBirth", "").replace('-', '/')
                 member_payload = {
                     "userMobileNo": head_details.get("userMobileNo"),
-                    "userAlternateMobileNo": head_details.get("userAlternateMobileNo"),
+                    "userAlternateMobileNo": head_details.get("userAlternateMobileNo",""),
                     "userFirstname": member.get("userFirstname"),
                     "userMiddlename": member.get("userMiddlename", ""),
                     "userLastname": member.get("userLastname"),
