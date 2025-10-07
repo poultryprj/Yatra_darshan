@@ -202,10 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="mobileNo" placeholder=" " maxlength="10" required><label class="form-label"><i class="fas fa-phone"></i> Mobile</label></div></div>
               <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="altMobileNo" placeholder=" " maxlength="10"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate</label></div></div>
             </div>
-            <div class="form-group">
-                <input type="text" class="form-control" id="tokenNo" placeholder=" ">
-                <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
-            </div>
+            
             <div class="form-group"><select class="form-select" id="areaId" required><option value="" disabled selected></option></select><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label></div>
             <div class="form-group"><textarea class="form-control" id="headAddress" rows="3" placeholder=" " required></textarea><label class="form-label"><i class="fas fa-home"></i> Address</label></div>
 
@@ -242,6 +239,11 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
+<div class="form-group">
+                <input type="text" class="form-control" id="tokenNo" placeholder=" ">
+                <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
+            </div>
+
             
             <button type="submit" class="btn btn-primary w-100 mt-3" id="submitBtn">
                 <i class="fas fa-save"></i>
@@ -261,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="info-grid">
                     <div class="info-item"><i class="fas fa-user"></i> <span>${headName || 'N/A'}</span></div>
                     <div class="info-item"><i class="fas fa-phone"></i> <span>${headRecord.MobileNo || 'N/A'}</span></div>
-                    <div class="info-item"><i class="fas fa-map-marker-alt"></i> <span>${headRecord.AreaName || 'N/A'}</span></div>
+                    <!-- <div class="info-item"><i class="fas fa-map-marker-alt"></i> <span>${headRecord.AreaName || 'N/A'}</span></div> -->
+
                     <div class="info-item"><i class="fas fa-home"></i> <span>${headRecord.Address || 'N/A'}</span></div>
                 </div>
                 <button type="button" class="btn btn-secondary w-100 mt-4" id="btnRegisterAnother">Register Another</button>
@@ -383,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             checkRationInput.value = '';
 
             // ✅ Prepare QR and Token display
-            const qrPath = `/static/assets/img/tokenqr/${res.reg_id}.png`;
+            const qrPath = `/Yatra_darshan/static/assets/img/tokenqr/${res.reg_id}.png`;
             const tokenInfo = `
                 <p><strong>Token No:</strong> ${res.TokenNo}</p>
                 <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
