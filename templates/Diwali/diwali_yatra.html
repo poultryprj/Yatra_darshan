@@ -6,329 +6,422 @@
   <title>Diwali Kirana Registration</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
-    :root { --brand-primary: #667eea; --brand-secondary: #764ba2; --brand-accent: #ff6b35; --text-dark: #2d3748; --text-light: #718096; --bg-light: #f8f9ff; --border-color: #e2e8f0; }
-    * {margin: 0;padding: 0;box-sizing: border-box;} 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-      background: white; 
-      min-height: 100vh;
-      padding: 0;
+    :root {
+      --brand-primary: #667eea;
+      --brand-secondary: #764ba2;
+      --brand-accent: #ff6b35;
+      --text-dark: #2d3748;
+      --text-light: #718096;
+      --border-color: #e2e8f0;
+      --bg-light: #f8f9ff;
     }
-    .container {
-        max-width: 480px; /* Limits width on large screens */
-        margin: 0 auto;   /* Centers the container */
-        background: white;
-        padding: 0; /* Container itself has no padding */
-    }
-    
-    .header {background: linear-gradient(135deg, var(--brand-accent), #f7931e);color: white; padding: 5px;text-align: center;position: relative;}
-    .back-btn {position: absolute;left: 20px;top: 50%;transform: translateY(-50%); background: none;border: none;color: white;width: 40px; height: 40px;border-radius: 50%;cursor: pointer;font-size: 20px; transition: background .2s;}
-    .back-btn:hover { background: rgba(255,255,255,0.4); }
-    .header h1 {font-size: 22px;font-weight: 700;margin-bottom: 5px;} .header p {font-size: 14px;opacity: 0.9;}
-    .content {padding: 25px;}
-    .step-info {background: var(--bg-light);border: 1px solid var(--border-color);border-radius: 12px; padding: 15px;margin-bottom: 25px;display: flex;align-items: center;}
-    .step-icon{background:var(--brand-primary);color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:15px;font-size:16px}
-    .step-text h3{font-size:16px;color:var(--text-dark);margin-bottom:2px} .step-text p{font-size:12px;color:var(--text-light)}
-    .form-group{margin-bottom:20px} .form-label{display:flex;align-items:center;font-weight:650;color:var(--text-dark);margin-bottom:8px;font-size:15px}
-    .form-label i{margin-right:8px;color:red}
-    .form-control{width:100%;padding:12px 16px;border:2px solid var(--border-color);border-radius:10px;font-size:19px;transition:.2s; font-weight: normal;color: #5b02f4;}
-    .form-control:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 3px rgba(102,126,234,.1)}
-    .input-group{display:flex;gap:10px}
-    .btn {padding: 12px 20px;border: none;border-radius: 10px;font-weight: 600;cursor: pointer;transition: all 0.2s;display: inline-flex;align-items: center;justify-content: center;gap: 8px;font-size: 14px;}
-    .btn-primary {background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: white;}
-    .btn-primary:hover {transform: translateY(-1px);box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);}
-    .btn-success {background: #48bb78;color: white;}
-    .btn-sm {padding: 8px 12px; font-size: 12px;}
-    .spinner {width: 14px;height: 14px;border: 2px solid rgba(255,255,255,0.3);border-radius: 50%;border-top-color: white;animation: spin 1s linear infinite;}
-    @keyframes spin {to { transform: rotate(360deg); }}
-    
-    /* Family Member List Design */
-    .members-header {display: flex;justify-content: space-between;align-items: center;margin: 25px 0 10px;}
-    .members-title {font-size: 16px;font-weight: 700;color: var(--text-dark);display: flex;align-items: center;gap: 8px;}
-    #membersList { border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; background-color: var(--bg-light); }
-    .member-item { display: flex; align-items: center; padding: 10px; background-color: white; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .member-item:last-child { margin-bottom: 0; }
-    .member-item .icon { color: var(--brand-primary); margin-right: 12px; }
-    .member-item .name { flex-grow: 1; font-weight: 600; color: var(--text-dark); }
-    .member-item .btn-edit { background: none; border: none; color: var(--text-light); cursor: pointer; padding: 5px; }
-    #noMembersMessage { text-align: center; color: var(--text-light); padding: 20px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-light); }
+    .container { max-width: 480px; margin: 0 auto; background: white; padding: 0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, var(--brand-accent), #f7931e); color: white; padding: 15px; text-align: center; position: relative; }
+    .back-btn { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: white; font-size: 20px; text-decoration: none;}
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+    .header p { font-size: 14px; opacity: 0.9; margin:0; }
+    .content { padding: 25px; }
 
-    /* ✅ KEY CHANGE 2: Media query for mobile devices to remove side space */
-    @media (max-width: 480px) {
-        .container {
-            margin: 0;
-            border-radius: 0;
-            max-width: 100%;
-            box-shadow: none;
-        } 
-        .content {
-            padding: 20px;
-        }
+    /* Floating Animated Labels */
+    .form-group { position: relative; margin-bottom: 25px; animation: slideUp 0.6s ease; }
+    .form-label {
+      position: absolute; top: 16px; left: 16px; background: white; padding: 0 4px; color: var(--text-light);
+      font-size: 16px; font-weight: 600; transition: all 0.3s ease; pointer-events: none; z-index: 1;
+    }
+    .form-control, .form-select {
+      width: 100%; padding: 13px; border: 2px solid var(--border-color); border-radius: 10px;
+      font-size: 16px; transition: 0.3s; color: #5b02f4; background-color: white;
+    }
+    .form-control:focus, .form-select:focus { outline: none; border-color: var(--brand-primary); box-shadow: none; }
+    
+    .form-control:focus + .form-label,
+    .form-control:not(:placeholder-shown) + .form-label,
+    .form-select.has-value + .form-label {
+      top: -10px; left: 12px; font-size: 13px; color: var(--brand-primary);
+    }
+    input[type="file"] + .form-label { top: -10px; left: 12px; font-size: 13px; }
+
+    .btn {
+      padding: 14px 20px; border: none; border-radius: 10px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: white; }
+    .btn-secondary { background-color: var(--text-light); color: white; }
+    .spinner {width: 18px;height: 18px;border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;border-top-color: white;animation: spin 1s linear infinite;}
+
+    #checkSection .form-control { padding-right: 100px !important; }
+    #checkSection .btn-check-append {
+        position: absolute; top: 2px; right: 2px; height: calc(100% - 4px);
+        border-radius: 0 8px 8px 0; width: 90px;
+    }
+    
+    /* Read-Only Display for Existing Record */
+    #existingRecordDisplay {
+      border-radius: 16px;
+      padding: 25px; text-align: center; animation: popIn 0.6s ease;
+      background-color: white;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+      margin-top: 20px;
+    }
+    #existingRecordDisplay .icon {
+      font-size: 32px; color: white; margin-bottom: 15px;
+      width: 60px; height: 60px; border-radius: 50%;
+      background-color: #28a745; display: inline-flex;
+      align-items: center; justify-content: center;
+    }
+    #existingRecordDisplay h3 { font-size: 22px; color: var(--text-dark); font-weight: 700; margin-bottom: 5px; }
+    #existingRecordDisplay p { color: var(--text-light); margin-bottom: 25px;}
+    .info-grid { text-align: left; }
+    .info-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--border-color); }
+    .info-item:last-child { border-bottom: none; }
+    .info-item i { color: var(--brand-primary); width: 24px; margin-right: 15px; text-align: center; font-size: 16px;}
+    .info-item span { color: var(--text-dark); font-weight: 600; }
+
+    @keyframes slideUp { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+    @keyframes popIn { from {opacity:0; transform: scale(0.9);} to {opacity:1; transform: scale(1);} }
+    @keyframes spin {to { transform: rotate(360deg); }}
+
+    textarea.form-control-new,
+    #headAddress { 
+        height: 60px; /* Smaller address box */
+        padding-top: 12px; 
+    }
+
+    /* Fade-out alert style */
+    .info-alert {
+        background-color: #e0f7fa;
+        border: 1px solid #b2ebf2;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #006064;
+        transition: opacity 0.5s ease;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- The rest of your HTML (header, content, form, etc.) remains exactly the same -->
     <div class="header">
         <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1>🪔 Diwali Kirana</h1>
-        <p>Diwali Kit Registration</p>
+        <h1>Diwali Kit Registration</h1>
     </div>
+
     <div class="content">
-        <div class="step-info"><div class="step-icon"><i class="fas fa-id-card"></i></div><div class="step-text"><h3>Verify Ration Card</h3><p>Enter number to check existing records</p></div></div>
-        <form id="diwaliForm" onsubmit="return false;">
-          <input type="hidden" id="recordId" value="0">
-          <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-id-card">     
-                </i> <H6 style="color: #ff6b35;">Ration Card Number</H6></label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="rationCardNo" placeholder="Ration card number" required>
-                    <button type="button" class="btn btn-outline" id="btnCheck"><span class="check-text">Check</span><span class="spinner d-none"></span></button></div></div>
-          <div id="mainForm" class="d-none">
-            <div id="alerts"></div>
-            <div class="form-group"><label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label><input type="text" class="form-control" id="headName" placeholder="Full name" required></div>
-            <div style="display: flex; gap: 10px;"><div class="form-group" style="flex: 1;"><label class="form-label"><i class="fas fa-phone"></i> Mobile Number</label><input type="tel" class="form-control" id="mobileNo" placeholder="10-digit mobile" maxlength="10" required></div><div class="form-group" style="flex: 1;"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate Mobile</label><input type="tel" class="form-control" id="altMobileNo" placeholder="Optional" maxlength="10"></div></div>
-            <div style="display: flex; gap: 10px;"><div class="form-group" style="flex: 1;"><label class="form-label">Gender</label><select class="form-control" id="headGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Custom</option></select></div><div class="form-group" style="flex: 1;"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="headDob"></div></div>
-            <div class="form-group"><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label><select class="form-control" id="areaId" required><option value="">Loading areas...</option></select></div>
+        <div id="alerts"></div>
+
+        <div id="checkSection">
             <div class="form-group">
-                <label class="form-label"><i class="fas fa-home"></i> Address</label>
-                <textarea class="form-control" id="headAddress" rows="3" placeholder="Full address" required></textarea>
+                <input type="text" class="form-control" id="checkRationCardNo" placeholder=" " required>
+                <label class="form-label"><i class="fas fa-id-card"></i> Ration Card Number</label>
+                <button type="button" class="btn btn-primary btn-check-append" id="btnCheck">
+                    <span class="btn-text">Check</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
             </div>
-            <div class="form-group"><label class="form-label"><i class="fas fa-image"></i> Upload Ration Card Photo</label><input type="file" class="form-control" id="rationCardPhoto" accept="image/*,.pdf"><input type="hidden" id="existingRationCardPhoto"></div>
-    
-            <div class="members-header"><div class="members-title"><i class="fas fa-users"></i> Family Members</div><button type="button" class="btn btn-success btn-sm" id="addMemberBtn"><i class="fas fa-plus"></i> Add</button></div>
-            <div id="membersList">
-                <p id="noMembersMessage">No family members added yet.</p>
-            </div>
-            
-            <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%; margin-top: 20px;"><i class="fas fa-save"></i> <span id="submitText">Save Details</span></button>
-          </div>
-        </form>
+        </div>
+
+        <div id="resultContainer"></div>
     </div>
 </div>
-
-<div class="modal fade" id="memberModal" tabindex="-1">
+<!-- ✅ Add this modal HTML at the bottom of your page (before </body>) -->
+<!-- ✅ Updated modal with close button -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="memberModalTitle">Edit Member</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <form id="memberForm">
-          <input type="hidden" id="memberUniqueId"><input type="hidden" id="memberRegId" value="0">
-          <div class="form-group"><label class="form-label">Name</label><input type="text" class="form-control" id="memberName" required></div>
-          <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 1;"><label class="form-label">DOB</label><input type="date" class="form-control" id="memberDob"></div>
-            <div class="form-group" style="flex: 1;"><label class="form-label">Age</label><input type="number" class="form-control" id="memberAge" placeholder="Age" min="0"></div>
-          </div>
-          <div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="memberGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Custom</option></select></div>
-        </form>
+    <div class="modal-content text-center p-3">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-success">Registration Completed Successfully</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger me-auto" id="deleteMemberBtn">Delete</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="saveMemberBtn">Save Changes</button>
+      <div id="tokenInfo" class="mt-2"></div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button id="shareBtn" class="btn btn-primary">Share QR</button>
       </div>
     </div>
   </div>
 </div>
 
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // All of the JavaScript from the previous step remains exactly the same.
-    // No changes are needed in the script.
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('diwaliForm');
-        const rationCardInput = document.getElementById('rationCardNo');
-        const checkBtn = document.getElementById('btnCheck');
-        const mainForm = document.getElementById('mainForm');
-        const areaSelect = document.getElementById('areaId');
-        const addMemberBtn = document.getElementById('addMemberBtn');
-        const membersListContainer = document.getElementById('membersList');
-        const noMembersMessage = document.getElementById('noMembersMessage');
-        const submitBtn = document.getElementById('submitBtn');
-        const alerts = document.getElementById('alerts');
-        
-        const memberModalEl = document.getElementById('memberModal');
-        const memberModal = new bootstrap.Modal(memberModalEl);
-        const memberModalTitle = document.getElementById('memberModalTitle');
-        const memberForm = document.getElementById('memberForm');
-        const memberUniqueIdInput = document.getElementById('memberUniqueId');
-        const memberRegIdInput = document.getElementById('memberRegId');
-        const memberNameInput = document.getElementById('memberName');
-        const memberDobInput = document.getElementById('memberDob');
-        const memberAgeInput = document.getElementById('memberAge');
-        const memberGenderInput = document.getElementById('memberGender');
-        const saveMemberBtn = document.getElementById('saveMemberBtn');
-        const deleteMemberBtn = document.getElementById('deleteMemberBtn');
-        
-        let familyMembers = [];
+document.addEventListener('DOMContentLoaded', () => {
+    const checkBtn = document.getElementById('btnCheck');
+    const checkRationInput = document.getElementById('checkRationCardNo');
+    const resultContainer = document.getElementById('resultContainer');
+    const alertsContainer = document.getElementById('alerts');
 
-        const getCookie = (name) => { let cValue = null; if (document.cookie) { for (const c of document.cookie.split(';')) { const [key, value] = c.trim().split('='); if (key === name) { cValue = decodeURIComponent(value); break; }}} return cValue; }
-        const calculateAge = (bDate) => { if (!(bDate instanceof Date) || isNaN(bDate)) return ''; const today = new Date(); let age = today.getFullYear() - bDate.getFullYear(); const m = today.getMonth() - bDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { age--; } return age >= 0 ? age : ''; }
-        const showAlert = (message, type) => { alerts.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="fas fa-info-circle"></i> ${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`; setTimeout(() => alerts.querySelector('.btn-close')?.click(), 5000); }
-        const toggleSpinner = (show) => { checkBtn.querySelector('.check-text').style.display = show ? 'none' : 'inline'; checkBtn.querySelector('.spinner').style.display = show ? 'inline-block' : 'none'; checkBtn.disabled = show; rationCardInput.disabled = show; }
+    // ✅ --- NEW SCRIPT TO AUTO-LOAD FAMILY DATA FROM URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const rationCardFromUrl = urlParams.get('ration_card');
 
-        const loadAreas = async () => {
-            try {
-                const response = await fetch("{% url 'registration_api1' %}", {
-                    method: 'POST',
-                    headers: {'X-CSRFToken': getCookie("csrftoken")},
-                    body: new URLSearchParams({action: 'list_area'})
-                });
-                const data = await response.json();
-                if (data.message_code === 1000) {
-                    areaSelect.innerHTML = '<option value="">Select Area</option>';
-                    data.message_data.forEach(area => {
-                        areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`;
-                    });
-                } else { areaSelect.innerHTML = '<option value="">Could not load areas</option>'; }
-            } catch (error) { console.error('Error loading areas:', error); areaSelect.innerHTML = '<option value="">Error loading areas</option>'; }
-        };
-        loadAreas();
+        if (rationCardFromUrl) {
+            // 1. Put the ration card number from the URL into the input field
+            rationCardInput.value = rationCardFromUrl;
+            
+            // 2. Automatically click the "Check" button to load the data
+            // We use a small timeout to make sure the page is fully ready.
+            setTimeout(() => {
+                checkBtn.click();
+            }, 100); 
+        }
 
-        const renderFamilyList = () => {
-            membersListContainer.innerHTML = '';
-            if (familyMembers.length === 0) {
-                membersListContainer.appendChild(noMembersMessage);
-                noMembersMessage.style.display = 'block';
-            } else {
-                noMembersMessage.style.display = 'none';
-                familyMembers.forEach(member => {
-                    const item = document.createElement('div');
-                    item.className = 'member-item';
-                    item.dataset.id = member.uniqueId;
-                    item.innerHTML = `
-                        <i class="fas fa-user icon"></i>
-                        <span class="name">${member.name || 'New Member'}</span>
-                        <button type="button" class="btn-edit"><i class="fas fa-pen"></i></button>
-                    `;
-                    membersListContainer.appendChild(item);
-                });
+    const getCookie = (name) => {
+        let cValue = null;
+        if (document.cookie) {
+            for (const c of document.cookie.split(';')) {
+                const [key, value] = c.trim().split('=');
+                if (key === name) { cValue = decodeURIComponent(value); break; }
             }
-        };
+        }
+        return cValue;
+    };
 
-        checkBtn.addEventListener('click', () => { const cardNo = rationCardInput.value.trim(); if (!cardNo) { showAlert('Please enter a ration card number.', 'warning'); return; } toggleSpinner(true); fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")}, body: JSON.stringify({ action: "check_ration", RationCardNo: cardNo })}) .then(res => res.json()).then(data => { if (data.message_code === 1000 && data.message_data && data.message_data.length > 0) { showAlert('Record found! Loading data.', 'success'); loadExistingData(data.message_data); } else { showAlert('New registration. Please fill in the details below.', 'info'); prepareNewForm(); } mainForm.classList.remove('d-none'); }).catch(err => { console.error(err); showAlert('An error occurred.', 'warning'); }).finally(() => toggleSpinner(false)); });
-        
-        addMemberBtn.addEventListener('click', () => {
-            memberModalTitle.textContent = 'Add New Member';
-            memberForm.reset();
-            memberRegIdInput.value = '0';
-            memberUniqueIdInput.value = Date.now();
-            deleteMemberBtn.style.display = 'none';
-            memberModal.show();
-        });
+    const showAlert = (message, type = 'danger') => {
+        alertsContainer.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+    };
 
-        membersListContainer.addEventListener('click', (e) => {
-            const editBtn = e.target.closest('.btn-edit');
-            if (editBtn) {
-                const memberId = editBtn.closest('.member-item').dataset.id;
-                const member = familyMembers.find(m => m.uniqueId == memberId);
-                if (member) {
-                    memberModalTitle.textContent = 'Edit Member';
-                    memberForm.reset();
-                    memberUniqueIdInput.value = member.uniqueId;
-                    memberRegIdInput.value = member.registrationId;
-                    memberNameInput.value = member.name;
-                    memberDobInput.value = member.dob;
-                    memberAgeInput.value = member.age;
-                    memberGenderInput.value = member.gender;
-                    deleteMemberBtn.style.display = 'block';
-                    memberModal.show();
+    const toggleSpinner = (button, show) => {
+        button.disabled = show;
+        const btnText = button.querySelector('.btn-text');
+        const spinner = button.querySelector('.spinner');
+        if (btnText) btnText.style.display = show ? 'none' : 'inline';
+        if (spinner) spinner.style.display = show ? 'inline-block' : 'none';
+    };
+
+    const getRegistrationFormHTML = (rationNo) => `
+        <div class="info-alert">Ration card not found. Please fill the details below to register.</div>
+        <form id="diwaliForm" onsubmit="return false;">
+            <input type="hidden" id="rationCardNo" value="${rationNo}">
+            <div class="form-group"><input type="text" class="form-control" id="headName" placeholder=" " required><label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label></div>
+            <div class="row">
+              <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="mobileNo" placeholder=" " maxlength="10" required><label class="form-label"><i class="fas fa-phone"></i> Mobile</label></div></div>
+              <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="altMobileNo" placeholder=" " maxlength="10"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate</label></div></div>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="tokenNo" placeholder=" ">
+                <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
+            </div>
+            <div class="form-group"><select class="form-select" id="areaId" required><option value="" disabled selected></option></select><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label></div>
+            <div class="form-group"><textarea class="form-control" id="headAddress" rows="3" placeholder=" " required></textarea><label class="form-label"><i class="fas fa-home"></i> Address</label></div>
+
+            
+
+            <div class="form-group"><input type="file" class="form-control" id="rationCardPhoto" accept="image/*,.pdf">
+    <label class="form-label"><i class="fas fa-image"></i> Ration Card Photo</label>
+</div>
+
+<!-- Move optional details here -->
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="toggleOptionalDetails">
+    <label class="form-check-label" for="toggleOptionalDetails">Add Optional Details (Gender/DOB)</label>
+</div>
+
+<div id="optionalDetails" style="display: none;">
+    <div class="row">
+        <div class="col-6">
+            <div class="form-group">
+                <select class="form-select" id="headGender">
+                    <option value="" disabled selected>Gender</option>
+                    <option value="2">Male</option>
+                    <option value="3">Female</option>
+                </select>
+                <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-group">
+                <input type="text" class="form-control" id="headDob" placeholder="Date of Birth" onfocus="(this.type='date')" onblur="(this.type='text')">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> DOB</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+            
+            <button type="submit" class="btn btn-primary w-100 mt-3" id="submitBtn">
+                <i class="fas fa-save"></i>
+                <span class="btn-text">Submit Registration</span>
+                <span class="spinner" style="display:none;"></span>
+            </button>
+        </form>
+    `;
+
+    const getExistingRecordHTML = (headRecord) => {
+        const headName = [headRecord.Firstname, headRecord.Middlename, headRecord.Lastname].filter(Boolean).join(' ');
+        return `
+            <div id="existingRecordDisplay">
+                <div class="icon"><i class="fas fa-check"></i></div>
+                <h3>Record Found</h3>
+                <p>This Ration Card is already registered.</p>
+                <div class="info-grid">
+                    <div class="info-item"><i class="fas fa-user"></i> <span>${headName || 'N/A'}</span></div>
+                    <div class="info-item"><i class="fas fa-phone"></i> <span>${headRecord.MobileNo || 'N/A'}</span></div>
+                    <div class="info-item"><i class="fas fa-map-marker-alt"></i> <span>${headRecord.AreaName || 'N/A'}</span></div>
+                    <div class="info-item"><i class="fas fa-home"></i> <span>${headRecord.Address || 'N/A'}</span></div>
+                </div>
+                <button type="button" class="btn btn-secondary w-100 mt-4" id="btnRegisterAnother">Register Another</button>
+            </div>`;
+    };
+
+    checkBtn.addEventListener('click', () => {
+        const rationNo = checkRationInput.value.trim();
+        if (!rationNo) { showAlert('Please enter a Ration Card number.'); return; }
+        toggleSpinner(checkBtn, true);
+        resultContainer.innerHTML = ''; 
+
+        fetch("{% url 'diwali_registration' %}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")},
+            body: JSON.stringify({ action: "check_ration", RationCardNo: rationNo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message_code === 1000 && data.message_data && data.message_data.length > 0) {
+                const headRecord = data.message_data.find(p => p.ParentId === "1" || p.ParentId === p.RegistrationId) || data.message_data[0];
+                resultContainer.innerHTML = getExistingRecordHTML(headRecord);
+            } else {
+                resultContainer.innerHTML = getRegistrationFormHTML(rationNo);
+                attachFormListeners();
+                loadAreas();
+
+                // Fade-out info alert after 4s
+                const infoAlert = resultContainer.querySelector('.info-alert');
+                if (infoAlert) {
+                    setTimeout(() => {
+                        infoAlert.style.opacity = '0';
+                        setTimeout(() => infoAlert.remove(), 500);
+                    }, 4000);
                 }
             }
-        });
+        })
+        .catch(err => showAlert("An error occurred while checking."))
+        .finally(() => toggleSpinner(checkBtn, false));
+    });
 
-        memberDobInput.addEventListener('change', () => { if (memberDobInput.value) { memberAgeInput.value = calculateAge(new Date(memberDobInput.value)); } else { memberAgeInput.value = ''; } });
-        
-        saveMemberBtn.addEventListener('click', () => {
-            const uniqueId = memberUniqueIdInput.value;
-            const existingMember = familyMembers.find(m => m.uniqueId == uniqueId);
-            if (existingMember) {
-                existingMember.name = memberNameInput.value;
-                existingMember.dob = memberDobInput.value;
-                existingMember.age = memberAgeInput.value;
-                existingMember.gender = memberGenderInput.value;
-            } else {
-                familyMembers.push({ uniqueId: uniqueId, registrationId: '0', name: memberNameInput.value, dob: memberDobInput.value, age: memberAgeInput.value, gender: memberGenderInput.value });
-            }
-            renderFamilyList();
-            memberModal.hide();
-        });
-
-        deleteMemberBtn.addEventListener('click', () => {
-            const uniqueId = memberUniqueIdInput.value;
-            familyMembers = familyMembers.filter(m => m.uniqueId != uniqueId);
-            renderFamilyList();
-            memberModal.hide();
-        });
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
-            const headNameParts = splitName(document.getElementById('headName').value);
-            const headData = { userFirstname: headNameParts.firstname, userMiddlename: headNameParts.middlename, userLastname: headNameParts.lastname, userMobileNo: document.getElementById('mobileNo').value, userAlternateMobileNo: document.getElementById('altMobileNo').value, Gender: document.getElementById('headGender').value, DateOfBirth: document.getElementById('headDob').value, AreaId: areaSelect.value,address: document.getElementById('headAddress').value, existingRationCardPhoto: document.getElementById('existingRationCardPhoto').value };
-            const familyDataForApi = familyMembers.map(member => {
-                const memberNameParts = splitName(member.name);
-                const dobValue = member.dob;
-                let formattedDob = '';
-                if (dobValue) { const [year, month, day] = dobValue.split('-'); formattedDob = `${day}-${month}-${year}`; }
-                return { registrationId: member.registrationId, userFirstname: memberNameParts.firstname, userMiddlename: memberNameParts.middlename, userLastname: memberNameParts.lastname, DateOfBirth: formattedDob, Gender: member.gender };
-            }).filter(member => member.userFirstname.trim() !== '');
-            const formData = new FormData();
-            formData.append('action', 'submit');
-            formData.append('recordId', document.getElementById('recordId').value);
-            formData.append('rationCardNo', rationCardInput.value);
-            formData.append('head', JSON.stringify(headData));
-            formData.append('family', JSON.stringify(familyDataForApi));
-            const rationPhoto = document.getElementById('rationCardPhoto').files[0];
-            if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
-            submitBtn.disabled = true; submitBtn.querySelector('span').textContent = 'Saving...';
-            fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
-            .then(res => res.json()).then(res => {
-                if (res.status === "success") {
-                    showAlert(res.message, "success");
-                    checkBtn.click();
-                } else { showAlert(res.message || "An error occurred.", "warning"); }
-            }).catch(err => { console.error(err); showAlert("A server error occurred.", "warning"); })
-            .finally(() => { submitBtn.disabled = false; submitBtn.querySelector('span').textContent = 'Save Details'; });
-        });
-        
-        function loadExistingData(allRecords) {
-            if (!allRecords || allRecords.length === 0) return;
-            const headRecord = allRecords.find(p => p.ParentId === "1" || p.ParentId === p.RegistrationId) || allRecords[0];
-            if (!headRecord) return;
-            document.getElementById('recordId').value = headRecord.RegistrationId || '0';
-            document.getElementById('headName').value = [headRecord.Firstname, headRecord.Middlename, headRecord.Lastname].filter(Boolean).join(' ');
-            document.getElementById('mobileNo').value = headRecord.MobileNo || '';
-            document.getElementById('altMobileNo').value = headRecord.AlternateMobileNo || '';
-            document.getElementById('headGender').value = (headRecord.Gender && headRecord.Gender !== "0") ? headRecord.Gender : '1';
-            areaSelect.value = headRecord.AreaId || '';
-            document.getElementById('headAddress').value = headRecord.Address || '';
-            document.getElementById('existingRationCardPhoto').value = headRecord.IdProofFileName || '';
-            if (headRecord.DateOfBirth && headRecord.DateOfBirth !== "0") { try { const d = new Date(parseInt(headRecord.DateOfBirth) * 1000); document.getElementById('headDob').value = d.toISOString().split('T')[0]; } catch (e) {} }
-            familyMembers = allRecords.filter(p => p.RegistrationId !== headRecord.RegistrationId).map(member => {
-                let dobForPicker = '', age = '';
-                if (member.DateOfBirth && member.DateOfBirth !== "0") { try { const d = new Date(parseInt(member.DateOfBirth) * 1000); dobForPicker = d.toISOString().split('T')[0]; age = calculateAge(d); } catch (e) {} }
-                return { uniqueId: Date.now() + Math.random(), registrationId: member.RegistrationId, name: [member.Firstname, member.Middlename, member.Lastname].filter(Boolean).join(' '), dob: dobForPicker, age: age, gender: (member.Gender && member.Gender !== "0") ? member.Gender : '1' };
-            });
-            renderFamilyList();
-            document.getElementById('submitText').textContent = 'Update Details';
-            submitBtn.className = 'btn btn-warning';
-        }
-        
-        function prepareNewForm() {
-            form.reset();
-            familyMembers = [];
-            renderFamilyList();
-            document.getElementById('recordId').value = '0';
-            document.getElementById('submitText').textContent = 'Save Details';
-            submitBtn.className = 'btn btn-primary';
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'btnRegisterAnother') {
+            resultContainer.innerHTML = '';
+            checkRationInput.value = '';
+            alertsContainer.innerHTML = ''; 
+            checkRationInput.focus();
         }
     });
+
+    function attachFormListeners() {
+        document.getElementById('diwaliForm').addEventListener('submit', handleFormSubmit);
+        document.querySelectorAll('.form-select').forEach(select => {
+            const updateLabel = () => select.classList.toggle('has-value', !!select.value);
+            select.addEventListener('change', updateLabel);
+            updateLabel();
+        });
+
+        const toggleCheckbox = document.getElementById('toggleOptionalDetails');
+        const optionalDetailsDiv = document.getElementById('optionalDetails');
+        if (toggleCheckbox && optionalDetailsDiv) {
+            toggleCheckbox.addEventListener('change', function() {
+                optionalDetailsDiv.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    }
+
+    const loadAreas = async () => {
+        const areaSelect = document.getElementById('areaId');
+        if (!areaSelect) return;
+        try {
+            const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
+            const data = await response.json();
+            if (data.message_code === 1000) {
+                areaSelect.innerHTML = '<option value="" disabled selected></option>';
+                data.message_data.forEach(area => { areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`; });
+            }
+        } catch (error) { console.error('Error loading areas:', error); }
+    };
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        toggleSpinner(submitBtn, true);
+
+        const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
+        const headNameParts = splitName(document.getElementById('headName').value);
+        
+        const headData = { 
+            userFirstname: headNameParts.firstname, 
+            userMiddlename: headNameParts.middlename, 
+            userLastname: headNameParts.lastname, 
+            userMobileNo: document.getElementById('mobileNo').value, 
+            userAlternateMobileNo: document.getElementById('altMobileNo').value, 
+            AreaId: document.getElementById('areaId').value,
+            address: document.getElementById('headAddress').value ,
+            tokenNo: document.getElementById('tokenNo').value
+        };
+
+        const formData = new FormData();
+        formData.append('action', 'submit');
+        formData.append('rationCardNo', document.getElementById('rationCardNo').value);
+        formData.append('head', JSON.stringify(headData));
+        formData.append('family', JSON.stringify([]));
+        
+        const rationPhoto = document.getElementById('rationCardPhoto').files[0];
+        if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+
+        fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
+        .then(res => res.json())
+        .then(res => {
+            // if (res.status === "success") {
+            //     showAlert(res.message, "success");
+            //     resultContainer.innerHTML = '';
+            //     checkRationInput.value = '';
+            if (res.status === "success") {
+            // ✅ Clear previous data
+            resultContainer.innerHTML = '';
+            checkRationInput.value = '';
+
+            // ✅ Prepare QR and Token display
+            const qrPath = `/static/assets/img/tokenqr/${res.reg_id}.png`;
+            const tokenInfo = `
+                <p><strong>Token No:</strong> ${res.TokenNo}</p>
+                <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
+            `;
+            document.getElementById('tokenInfo').innerHTML = tokenInfo;
+
+            // ✅ Show modal
+            const modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+
+            // ✅ Share QR Image
+            document.getElementById('shareBtn').onclick = async () => {
+                try {
+                    const response = await fetch(qrPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], `${res.reg_id}.png`, { type: blob.type });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Diwali Kirana Token',
+                            text: `Your Token No: ${res.TokenNo}`,
+                        });
+                    } else {
+                        alert("Sharing not supported on this device.");
+                    }
+                } catch (err) {
+                    console.error("Share failed:", err);
+                }
+            };
+            } else { 
+                showAlert(res.message || "An error occurred."); 
+            }
+        })
+        .catch(err => showAlert("A server error occurred."))
+        .finally(() => toggleSpinner(submitBtn, false));
+    }
+});
 </script>
 </body>
 </html>
