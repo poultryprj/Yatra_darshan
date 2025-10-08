@@ -2219,6 +2219,7 @@ def diwali_registration(request):
                 token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no,"TokenNo":TokenNo}, headers=headers, verify=False, timeout=10)
                 if token_resp.ok and token_resp.json().get('message_data'):
                     TokenURL = token_resp.json().get('message_data').get('TokenURL') or None
+                    TokenNo1 = token_resp.json().get('message_data').get('TokenNo') or None
                     if TokenURL:
                         qr_img = qrcode.make(TokenURL)
                         qr_img.save(qr_path)
@@ -2229,7 +2230,7 @@ def diwali_registration(request):
             return JsonResponse({ 
                 "status": "success", 
                 "message": f"Registration process completed.and token is {TokenNo}",
-                "TokenNo":TokenNo,
+                "TokenNo":TokenNo if TokenNo else TokenNo1,
                 "reg_id":head_reg_id, 
                 "head_registration": head_data, 
                 "member_registrations": member_results 
@@ -2305,6 +2306,9 @@ def diwali_all_registrations(request):
                         'token': token_no or "N/A"
                     }
                     all_families.append(family_data)
+
+                all_families.sort(key=lambda x: x['token'] if isinstance(x['token'], int) else -1, reverse=True)
+
             else:
                 messages.error(request, f"API returned an error: {response_data.get('message_text', 'No message')}")
         else:

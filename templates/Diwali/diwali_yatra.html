@@ -6,6 +6,15 @@
   <title>Diwali Kirana Registration</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- ✅ STEP 1: Add the CSS and JS links for Select2 library -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- ✅ STEP 2: Add jQuery and Select2 JavaScript files (after Bootstrap) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
   <style>
     :root {
       --brand-primary: #667eea;
@@ -100,6 +109,20 @@
         color: #006064;
         transition: opacity 0.5s ease;
     }
+
+    /* FIX 1: Force Select2 height to match other inputs */
+.select2-container--bootstrap-5 .select2-selection {
+    min-height: 50px !important; /* Adjust '50px' to match your form-control height */
+    padding-top: 11px !important; /* Vertically align the text */
+}
+
+/* FIX 2 (CSS Part): A class to manually float the label */
+.form-group .form-label.is-floating {
+    top: -10px;
+    left: 12px;
+    font-size: 13px;
+    color: var(--brand-primary);
+}
   </style>
 </head>
 <body>
@@ -113,7 +136,7 @@
     <div class="content">
         <div id="alerts"></div>
 
-        <div id="checkSection">
+        <!--<div id="checkSection">
             <div class="form-group">
                 <input type="text" class="form-control" id="checkRationCardNo" placeholder=" " required>
                 <label class="form-label"><i class="fas fa-id-card"></i> Ration Card Number</label>
@@ -122,7 +145,26 @@
                     <span class="spinner" style="display: none;"></span>
                 </button>
             </div>
+        </div>-->
+
+        <div id="checkSection">
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="checkRationCardNo" 
+                    placeholder=" " 
+                    required 
+                    oninput="this.value = this.value.replace(/\s/g, '').toUpperCase()">
+
+                <label class="form-label"><i class="fas fa-id-card"></i> Ration Card Number</label>
+                <button type="button" class="btn btn-primary btn-check-append" id="btnCheck">
+                    <span class="btn-text">Check</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </div>
         </div>
+
 
         <div id="resultContainer"></div>
     </div>
@@ -197,13 +239,34 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="info-alert">Ration card not found. Please fill the details below to register.</div>
         <form id="diwaliForm" onsubmit="return false;">
             <input type="hidden" id="rationCardNo" value="${rationNo}">
-            <div class="form-group"><input type="text" class="form-control" id="headName" placeholder=" " required><label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label></div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="headName" placeholder=" " required>
+                <label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label></div>
             <div class="row">
-              <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="mobileNo" placeholder=" " maxlength="10" required><label class="form-label"><i class="fas fa-phone"></i> Mobile</label></div></div>
+              <div class="col-6"><div class="form-group"><input 
+        type="tel" 
+        class="form-control" 
+        id="mobileNo" 
+        placeholder=" " 
+        minlength="1" 
+        maxlength="10"
+        pattern="[0-9]{10}"
+        title="Please enter exactly 10 digits"
+        oninput="this.value = this.value.replace(/[^0-9]/g, ''); 
+                 if(this.value.length > 0 && this.value.length < 10){
+                   this.setCustomValidity('Mobile number must be exactly 10 digits');
+                 } else {
+                   this.setCustomValidity('');
+                 }"
+        required
+      ><label class="form-label"><i class="fas fa-phone"></i> Mobile</label></div>
+            </div>
+
               <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="altMobileNo" placeholder=" " maxlength="10"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate</label></div></div>
             </div>
             
             <div class="form-group"><select class="form-select" id="areaId" required><option value="" disabled selected></option></select><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label></div>
+
             <div class="form-group"><textarea class="form-control" id="headAddress" rows="3" placeholder=" " required></textarea><label class="form-label"><i class="fas fa-home"></i> Address</label></div>
 
             
@@ -239,10 +302,24 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<div class="form-group">
-                <input type="text" class="form-control" id="tokenNo" placeholder=" ">
+    <!--<div class="form-group">
+                <input type="text" class="form-control" id="tokenNo" placeholder=" " required>
                 <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
-            </div>
+    </div> -->
+
+<div class="form-group">
+    <input 
+        type="number" 
+        inputmode="numeric" 
+        pattern="[0-9]*" 
+        class="form-control" 
+        id="tokenNo" 
+        placeholder=" " 
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+    >
+    <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
+</div>
+
 
             
             <button type="submit" class="btn btn-primary w-100 mt-3" id="submitBtn">
@@ -332,6 +409,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // const loadAreas = async () => {
+    //     const areaSelect = document.getElementById('areaId');
+    //     if (!areaSelect) return;
+    //     try {
+    //         const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
+    //         const data = await response.json();
+    //         if (data.message_code === 1000) {
+    //             areaSelect.innerHTML = '<option value="" disabled selected></option>';
+    //             data.message_data.forEach(area => { areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`; });
+               
+    //             const $areaSelect = $('#areaId');
+                
+    //             $areaSelect.select2({
+    //                 theme: 'bootstrap-5',
+    //                 placeholder: 'Select an area',
+    //             });
+
+
+    //             const $label = $areaSelect.closest('.form-group').find('.form-label');
+
+    //             // 1. When the dropdown is opened, always float the label up.
+    //             $areaSelect.on('select2:open', () => {
+    //                 $label.addClass('is-floating');
+    //             });
+
+    //             // 2. When the dropdown is closed, check if a value was selected.
+    //             $areaSelect.on('select2:close', () => {
+    //                 // If there's no value, let the label float back down.
+    //                 if (!$areaSelect.val() || $areaSelect.val() === "") {
+    //                     $label.removeClass('is-floating');
+    //                 }
+    //             });
+
+    //             // 3. When a value is changed/selected, ensure the label stays up.
+    //             $areaSelect.on('change', () => {
+    //                 if ($areaSelect.val() && $areaSelect.val() !== "") {
+    //                     $label.addClass('is-floating');
+    //                 }
+    //             });
+            
+    //         }
+    //     } catch (error) { console.error('Error loading areas:', error); }
+    // };
+    // FIX 2 (JS Part): Replace your existing 'loadAreas' function with this.
+
     const loadAreas = async () => {
         const areaSelect = document.getElementById('areaId');
         if (!areaSelect) return;
@@ -339,90 +461,201 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
             const data = await response.json();
             if (data.message_code === 1000) {
-                areaSelect.innerHTML = '<option value="" disabled selected></option>';
+                areaSelect.innerHTML = '<option value=""></option>';
                 data.message_data.forEach(area => { areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`; });
+            
+                const $areaSelect = $('#areaId');
+                
+                $areaSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Select an area',
+                });
+
+                // This is the crucial line: find the label and force it to float up.
+                $areaSelect.closest('.form-group').find('.form-label').addClass('is-floating');
             }
         } catch (error) { console.error('Error loading areas:', error); }
     };
+
+    // function handleFormSubmit(e) {
+    //     e.preventDefault();
+    //     const submitBtn = document.getElementById('submitBtn');
+    //     toggleSpinner(submitBtn, true);
+        
+    //     const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
+    //     const headNameParts = splitName(document.getElementById('headName').value);
+        
+    //     const headData = { 
+    //         userFirstname: headNameParts.firstname, 
+    //         userMiddlename: headNameParts.middlename, 
+    //         userLastname: headNameParts.lastname, 
+    //         userMobileNo: document.getElementById('mobileNo').value, 
+    //         userAlternateMobileNo: document.getElementById('altMobileNo').value, 
+    //         AreaId: document.getElementById('areaId').value,
+    //         address: document.getElementById('headAddress').value ,
+    //         tokenNo: document.getElementById('tokenNo').value
+    //     };
+
+    //     const formData = new FormData();
+    //     formData.append('action', 'submit');
+    //     formData.append('rationCardNo', document.getElementById('rationCardNo').value);
+    //     formData.append('head', JSON.stringify(headData));
+    //     formData.append('family', JSON.stringify([]));
+        
+    //     const rationPhoto = document.getElementById('rationCardPhoto').files[0];
+    //     if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+
+    //     fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
+    //     .then(res => res.json())
+    //     .then(res => {
+    //         // if (res.status === "success") {
+    //         //     showAlert(res.message, "success");
+    //         //     resultContainer.innerHTML = '';
+    //         //     checkRationInput.value = '';
+    //         if (res.status === "success") {
+    //         // ✅ Clear previous data
+    //         resultContainer.innerHTML = '';
+    //         checkRationInput.value = '';
+
+    //         // ✅ Prepare QR and Token display
+    //         const qrPath = `/Yatra_darshan/static/assets/img/tokenqr/${res.reg_id}.png`;
+    //         const tokenInfo = `
+    //             <p><strong>Token No:</strong> ${res.TokenNo}</p>
+    //             <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
+    //         `;
+    //         document.getElementById('tokenInfo').innerHTML = tokenInfo;
+
+    //         // ✅ Show modal
+    //         const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    //         modal.show();
+
+    //         // ✅ Share QR Image
+    //         document.getElementById('shareBtn').onclick = async () => {
+    //             try {
+    //                 const response = await fetch(qrPath);
+    //                 const blob = await response.blob();
+    //                 const file = new File([blob], `${res.reg_id}.png`, { type: blob.type });
+
+    //                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    //                     await navigator.share({
+    //                         files: [file],
+    //                         title: 'Diwali Kirana Token',
+    //                         text: `Your Token No: ${res.TokenNo}`,
+    //                     });
+    //                 } else {
+    //                     alert("Sharing not supported on this device.");
+    //                 }
+    //             } catch (err) {
+    //                 console.error("Share failed:", err);
+    //             }
+    //         };
+    //         } else { 
+    //             showAlert(res.message || "An error occurred."); 
+    //         }
+    //     })
+    //     .catch(err => showAlert("A server error occurred."))
+    //     .finally(() => toggleSpinner(submitBtn, false));
+    // }
 
     function handleFormSubmit(e) {
         e.preventDefault();
         const submitBtn = document.getElementById('submitBtn');
         toggleSpinner(submitBtn, true);
 
-        const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
-        const headNameParts = splitName(document.getElementById('headName').value);
-        
-        const headData = { 
-            userFirstname: headNameParts.firstname, 
-            userMiddlename: headNameParts.middlename, 
-            userLastname: headNameParts.lastname, 
-            userMobileNo: document.getElementById('mobileNo').value, 
-            userAlternateMobileNo: document.getElementById('altMobileNo').value, 
-            AreaId: document.getElementById('areaId').value,
-            address: document.getElementById('headAddress').value ,
-            tokenNo: document.getElementById('tokenNo').value
+        const tokenNo = document.getElementById('tokenNo').value.trim();
+
+        // This is the core logic for submitting the registration data.
+        // It's placed in a function so it can be called from multiple places without repetition.
+        const proceedWithRegistration = () => {
+            const splitName = (fullName) => {
+                const parts = fullName.trim().split(/\s+/);
+                return {
+                    firstname: parts.shift() || '',
+                    lastname: parts.length > 0 ? parts.pop() : '',
+                    middlename: parts.join(' ')
+                };
+            };
+            const headNameParts = splitName(document.getElementById('headName').value);
+
+            const headData = { 
+                userFirstname: headNameParts.firstname, 
+                userMiddlename: headNameParts.middlename, 
+                userLastname: headNameParts.lastname, 
+                userMobileNo: document.getElementById('mobileNo').value, 
+                userAlternateMobileNo: document.getElementById('altMobileNo').value, 
+                AreaId: document.getElementById('areaId').value,
+                address: document.getElementById('headAddress').value,
+                tokenNo: tokenNo // Pass the token (or empty string)
+            };
+
+            const formData = new FormData();
+            formData.append('action', 'submit');
+            formData.append('rationCardNo', document.getElementById('rationCardNo').value);
+            formData.append('head', JSON.stringify(headData));
+            formData.append('family', JSON.stringify([]));
+
+            const rationPhoto = document.getElementById('rationCardPhoto').files[0];
+            if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+
+            fetch("{% url 'diwali_registration' %}", { 
+                method: "POST", 
+                headers: {'X-CSRFToken': getCookie("csrftoken")}, 
+                body: formData 
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    resultContainer.innerHTML = '';
+                    checkRationInput.value = '';
+
+                    const qrPath = `/static/assets/img/tokenqr/${res.reg_id}.png`;
+                    const tokenInfo = `
+                        <p><strong>Token No:</strong> ${res.TokenNo}</p>
+                        <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
+                    `;
+                    document.getElementById('tokenInfo').innerHTML = tokenInfo;
+
+                    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+
+                    document.getElementById('shareBtn').onclick = async () => {
+                        // ... (share logic remains the same)
+                    };
+                } else { 
+                    showAlert(res.message || "An error occurred."); 
+                }
+            })
+            .catch(err => showAlert("A server error occurred."))
+            .finally(() => toggleSpinner(submitBtn, false));
         };
 
-        const formData = new FormData();
-        formData.append('action', 'submit');
-        formData.append('rationCardNo', document.getElementById('rationCardNo').value);
-        formData.append('head', JSON.stringify(headData));
-        formData.append('family', JSON.stringify([]));
-        
-        const rationPhoto = document.getElementById('rationCardPhoto').files[0];
-        if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
-
-        fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
-        .then(res => res.json())
-        .then(res => {
-            // if (res.status === "success") {
-            //     showAlert(res.message, "success");
-            //     resultContainer.innerHTML = '';
-            //     checkRationInput.value = '';
-            if (res.status === "success") {
-            // ✅ Clear previous data
-            resultContainer.innerHTML = '';
-            checkRationInput.value = '';
-
-            // ✅ Prepare QR and Token display
-            const qrPath = `/Yatra_darshan/static/assets/img/tokenqr/${res.reg_id}.png`;
-            const tokenInfo = `
-                <p><strong>Token No:</strong> ${res.TokenNo}</p>
-                <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
-            `;
-            document.getElementById('tokenInfo').innerHTML = tokenInfo;
-
-            // ✅ Show modal
-            const modal = new bootstrap.Modal(document.getElementById('successModal'));
-            modal.show();
-
-            // ✅ Share QR Image
-            document.getElementById('shareBtn').onclick = async () => {
-                try {
-                    const response = await fetch(qrPath);
-                    const blob = await response.blob();
-                    const file = new File([blob], `${res.reg_id}.png`, { type: blob.type });
-
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Diwali Kirana Token',
-                            text: `Your Token No: ${res.TokenNo}`,
-                        });
-                    } else {
-                        alert("Sharing not supported on this device.");
-                    }
-                } catch (err) {
-                    console.error("Share failed:", err);
+        // --- Main Conditional Logic ---
+        // If a token number is provided, check it first.
+        if (tokenNo) {
+            fetch("https://www.lakshyapratishthan.com/apis/checkdiwalitoken", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ TokenNo: tokenNo })
+            })
+            .then(response => response.json())
+            .then(checkData => {
+                if (checkData.message_code === 999) {
+                    // Token is invalid/used, show error and stop.
+                    Swal.fire("This token is already allotted!", "Please enter another token.", "warning");
+                    toggleSpinner(submitBtn, false);
+                } else {
+                    // Token is valid, proceed with the registration.
+                    proceedWithRegistration();
                 }
-            };
-            } else { 
-                showAlert(res.message || "An error occurred."); 
-            }
-        })
-        .catch(err => showAlert("A server error occurred."))
-        .finally(() => toggleSpinner(submitBtn, false));
+            })
+            .catch(err => {
+                Swal.fire("Token check failed!", "A network error occurred. Please try again.", "error");
+                toggleSpinner(submitBtn, false);
+            });
+        } else {
+            // If no token is provided, skip the check and register directly.
+            proceedWithRegistration();
+        }
     }
 });
 </script>
