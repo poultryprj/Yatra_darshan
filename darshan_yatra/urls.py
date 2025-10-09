@@ -8,8 +8,8 @@ urlpatterns = [
 
     path('', views.login, name='login'),
 
-    path('Registrationpage', views.Registrationpage, name='Registrationpage'),
-    path("registration_api/", views.registration_api, name="registration_api"),
+    path('TicketBooking', views.TicketBooking, name='TicketBooking'),
+    path('TicketBookingApi', views.TicketBookingApi, name='TicketBookingApi'),
     
     path('Registrationpage1', views.Registrationpage1, name='Registrationpage1'),
     path("registration_api1/", views.registration_api1, name="registration_api1"),
@@ -53,8 +53,8 @@ urlpatterns = [
     path('area_report_pdf/<int:route_id>/<str:area_name>/', views.area_report_pdf, name='area_report_pdf'),
 
 
-    # path('bus_master/', views.bus_master, name='bus_master'),
-    # path('bus_master_api/', views.bus_master_api, name='bus_master_api'),
+    path('yatra_bus_master/', views.yatra_bus_master, name='yatra_bus_master'),
+    path('yatra_bus_master_api/', views.yatra_bus_master_api, name='yatra_bus_master_api'),
 
 
     path('send_whatsapp_api/', views.send_whatsapp_api, name='send_whatsapp_api'),

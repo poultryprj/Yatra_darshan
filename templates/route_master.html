@@ -1,4 +1,4 @@
-<!-- templates/route_master.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -65,7 +65,14 @@
             <div class="route-row-1">
                 <span class="route-name">{{ route.YatraRouteName }}</span>
                 <div class="route-actions">
-                    {% if route.YatraRouteStatus == "1" %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}
+                    
+                    <!-- **** THIS IS THE FIX **** -->
+                    {% if route.YatraRouteStatus == 1 %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                    
                     <button class="btn btn-sm btn-outline-primary edit-btn"><i class="bi bi-pencil-fill"></i></button>
                 </div>
             </div>

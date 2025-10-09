@@ -6,25 +6,37 @@
     <title>Darshan Yatra - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
-
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
-        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
-        .navbar-brand { font-weight: bold; }
-        .container-main { max-width: 800px; margin: 80px auto 40px auto; padding: 0 0px; }
-        .stat-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-align: center; }
-        .stat-card .stat-number { font-size: 2.5rem; font-weight: bold; color: #003399; }
+        :root{ --brand-orange: #ff7b00; --brand-blue: #003399; }
+        body { font-family: Arial, sans-serif; background-color: #f1f5f9; padding-top: 55px; }
+        .navbar { background: var(--brand-orange); height: 55px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar-brand { color: #fff; font-weight: 600; font-size: 18px; }
+        .navbar-toggler-btn { background-color: transparent; border: 1px solid white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
+        .navbar-toggler-btn .hamburger-icon { color: white; font-size: 1.5rem; }
+        .drawer { position: fixed; top: 55px; left: -100%; width: 75%; max-width: 280px; height: calc(100% - 55px); background: #fff; transition: left .28s; z-index: 1100; box-shadow: 2px 0 8px rgba(0,0,0,.08); overflow: auto; }
+        .drawer.open { left: 0; }
+        .drawer .additional-content { padding: 12px; text-align: center; background: #f8f9fb; position: sticky; top: 0; z-index: 1; }
+        .drawer ul { padding: 12px; margin: 0; }
+        .drawer ul li { list-style: none; margin-bottom: 6px; }
+        .container-main { max-width: 800px; margin: 20px auto 40px auto; padding: 0 15px; }
+        .content-section { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 1.5rem; }
+        .section-title { font-size: 1.2rem; font-weight: bold; color: var(--brand-blue); margin-bottom: 1rem; }
+        .stat-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+        .stat-card .stat-number { font-size: 2.5rem; font-weight: bold; color: #0a2b6d; }
         .stat-card .stat-label { font-size: 1rem; color: #6c757d; }
-        .content-section { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); margin-top: 2rem; }
-        .yatra-toggle, .bus-toggle, .bus-toggle-report, .contact-toggle, .print-btn, .call-btn { cursor: pointer; }
-        .details-content { padding-top: 1rem; border-top: 1px solid #eee; margin-top: 1rem; }
-        .passenger-list { padding-top: 1rem; }
-        .contact-info-card { background-color: #f0f2f5; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid #dee2e6;}
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .menu-item { background-color: #ffffff; border: 1px solid #f0f0f0; border-radius: 12px; padding: 15px 10px; text-align: center; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; }
+        .menu-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .menu-item i { font-size: 1.8rem; margin-bottom: 8px; color: var(--brand-orange); }
+        .menu-item .menu-text { font-size: 0.85rem; color: #333; line-height: 1.3; font-weight: 500; }
+        .yatra-toggle, .bus-toggle, .bus-toggle-report, .contact-toggle { cursor: pointer; }
+        .details-content, .passenger-list { padding-top: 1rem; }
+        .contact-info-card { background-color: #f0f2f5; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid #dee2e6; }
         .seat-map-container { padding: 1rem; background-color: #f8f9fa; border-radius: 8px; margin-top: 0.75rem; }
         .seat-map { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; }
         .seat { aspect-ratio: 1 / 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold; }
@@ -38,18 +50,60 @@
 <body>
 
 <nav class="navbar fixed-top">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a href="{% url 'Registrationpage1' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
-        <span class="navbar-brand mb-0 h1" style="color:white">Dashboard</span>
-        <span style="width: 30px;"></span> 
-    </div>
+  <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
+    <button id="menuBtn" class="navbar-toggler-btn" type="button" style="position:absolute; left:12px;"><i class="bi bi-list hamburger-icon"></i></button>
+    <span class="navbar-brand" style="position:absolute; left:50%; transform:translateX(-50%);">Dashboard</span>
+  </div>
 </nav>
 
+<div id="drawer" class="drawer">
+  <div class="additional-content">
+    <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" width="92" height="92" class="rounded-circle" alt="logo">
+    <div style="margin-top:8px;"><b style="color:#000;">Darshan Yatra</b></div>
+    <button onclick="closeDrawer()" class="btn btn-sm position-absolute" style="right:8px; top:8px;"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <ul>
+    <li><a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-house-door me-2"></i> Home</a></li>
+    <li><a href="{% url 'dashboard' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a></li>
+    {% if request.session.user_role != "2" %}
+        <li><a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-people-fill me-2"></i> User Management</a></li>
+        <li><a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-geo-alt-fill me-2"></i> Route Master</a></li>
+        <li><a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-map-fill me-2"></i> Area Master</a></li>
+        <li><a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-calendar-event-fill me-2"></i> Yatra Master</a></li>
+        <li><a href="{% url 'yatra_bus_master' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-bus-front-fill me-2"></i> Bus Master</a></li>
+    {% endif %}
+    <li><a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-cash-coin me-2"></i> Daily Collection</a></li>
+    <li><a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-printer-fill me-2"></i> Print Report</a></li>
+    <li><a href="{% url 'passenger_documents' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-person-badge me-2"></i> Passenger Docs</a></li>
+    <li><a href="{% url 'area_report' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-pin-map-fill me-2"></i> Area Report</a></li>
+    <li><a href="{% url 'whatsapp_messaging_page' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-whatsapp me-2"></i> WhatsApp SMS</a></li>
+    <li><a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+  </ul>
+</div>
+
 <div class="container-main">
-    <!-- Stats and Yatra Summary -->
     <div class="row g-3">
-        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_registrations }}</div><div class="stat-label">Total Registrations</div></div></div>
-        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_tickets }}</div><div class="stat-label">Total Tickets</div></div></div>
+        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_registrations|default:"0" }}</div><div class="stat-label">Total Registrations</div></div></div>
+        <div class="col-6"><div class="stat-card"><div class="stat-number">{{ total_tickets|default:"0" }}</div><div class="stat-label">Total Tickets</div></div></div>
+    </div>
+    <div class="content-section">
+        <h4 class="section-title">Menu Options</h4>
+        <div class="menu-grid">
+            <a href="{% url 'TicketBooking' %}" class="menu-item"><i class="fa-solid fa-ticket"></i><span class="menu-text">Yatra Ticket<br>Booking</span></a>
+            <a href="#" class="menu-item"><i class="fa-solid fa-magnifying-glass"></i><span class="menu-text">Search<br>Registration</span></a>
+            {% if request.session.user_role != "2" %}
+                <a href="{% url 'user_master' %}" class="menu-item"><i class="fa-solid fa-users-gear"></i><span class="menu-text">User<br>Management</span></a>
+                <a href="{% url 'route_master' %}" class="menu-item"><i class="fa-solid fa-route"></i><span class="menu-text">Route<br>Master</span></a>
+                <a href="{% url 'area_master' %}" class="menu-item"><i class="fa-solid fa-map-location-dot"></i><span class="menu-text">Area<br>Master</span></a>
+                <a href="{% url 'yatra_master' %}" class="menu-item"><i class="fa-solid fa-calendar-days"></i><span class="menu-text">Yatra<br>Master</span></a>
+                <a href="{% url 'yatra_bus_master' %}" class="menu-item"><i class="fa-solid fa-bus"></i><span class="menu-text">Bus<br>Master</span></a>
+            {% endif %}
+            <a href="{% url 'daily_report' %}" class="menu-item"><i class="fa-solid fa-indian-rupee-sign"></i><span class="menu-text">Daily<br>Collection</span></a>
+            <a href="{% url 'print_report_page' %}" class="menu-item"><i class="fa-solid fa-print"></i><span class="menu-text">Print<br>Report</span></a>
+            <a href="{% url 'passenger_documents' %}" class="menu-item"><i class="fa-solid fa-id-card"></i><span class="menu-text">Passenger<br>Docs</span></a>
+            <a href="#" class="menu-item"><i class="fa-solid fa-comments"></i><span class="menu-text"><br>Feedback</span></a>
+            <a href="{% url 'whatsapp_messaging_page' %}" class="menu-item"><i class="bi bi-whatsapp"></i><span class="menu-text">WhatsApp<br>SMS</span></a>
+        </div>
     </div>
     <div class="content-section">
         <h4 class="mb-3 text-primary">Yatra Booking Summary</h4>
@@ -65,56 +119,45 @@
             {% endfor %}
         </div>
     </div>
-
-    <!-- Detailed Booking Report Section -->
     <div class="content-section">
         <h4 class="mb-3 text-primary">Detailed Booking Report</h4>
         <div class="mb-3">
             <label for="reportYatraSelect" class="form-label fw-bold">Select a Yatra to see all bookings</label>
-            <select class="form-select" id="reportYatraSelect" style="width: 100%;">
-                <option value="">-- Please select a trip --</option>
-                {% for yatra in yatras %}
-                <option value="{{ yatra.YatraId }}">{{ yatra.YatraRouteName }} ({{ yatra.YatraDateTime }})</option>
-                {% endfor %}
-            </select>
+            <select class="form-select" id="reportYatraSelect" style="width: 100%;"><option value="">-- Please select a trip --</option>{% for yatra in yatras %}<option value="{{ yatra.YatraId }}">{{ yatra.YatraRouteName }} ({{ yatra.YatraDateTime }})</option>{% endfor %}</select>
         </div>
         <div id="reportResultsContainer" class="mt-4"></div>
     </div>
 </div>
 
-<!-- Call Modal -->
 <div class="modal fade" id="callModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Choose Number to Call</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="callModalBody">
-        <!-- Call options will be injected here -->
-      </div>
-    </div>
-  </div>
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Choose Number to Call</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="callModalBody"></div></div></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const drawer = document.getElementById('drawer');
+    if (menuBtn && drawer) {
+        menuBtn.addEventListener('click', () => drawer.classList.add('open'));
+        function closeDrawer() { drawer.classList.remove('open'); }
+        window.addEventListener('click', (e) => { if (!drawer.contains(e.target) && !menuBtn.contains(e.target)) closeDrawer(); });
+    }
+    $(document).ready(function() { if ($('#reportYatraSelect').length) $('#reportYatraSelect').select2({ theme: "bootstrap-5" }); });
+</script>
+<script>
     const CARD_IMAGE_BASE_URL = "https://www.lakshyapratishthan.com/apis/cards/";
     const callModal = new bootstrap.Modal(document.getElementById('callModal'));
 
-    // --- SCRIPT FOR SECTION 1: Yatra Booking Summary (Seat Maps) ---
     document.getElementById('yatraListContainer').addEventListener('click', function(e) {
         const yatraToggle = e.target.closest('.yatra-toggle');
         if (yatraToggle) {
             const yatraId = yatraToggle.dataset.yatraId;
             const detailsContainer = document.getElementById(`details-${yatraId}`);
             const isHidden = detailsContainer.style.display === 'none';
-            document.querySelectorAll('.details-content').forEach(el => {
-                if (el.id !== `details-${yatraId}`) { el.style.display = 'none'; el.innerHTML = ''; }
-            });
-            if (isHidden) { fetchYatraDetails(yatraId, detailsContainer); } 
+            document.querySelectorAll('.details-content').forEach(el => { if (el.id !== `details-${yatraId}`) { el.style.display = 'none'; el.innerHTML = ''; } });
+            if (isHidden) fetchYatraDetails(yatraId, detailsContainer);
             else { detailsContainer.style.display = 'none'; detailsContainer.innerHTML = ''; }
             return;
         }
@@ -122,9 +165,7 @@
         if (busToggle) {
             const seatMapContainer = busToggle.nextElementSibling;
             const isSeatMapHidden = seatMapContainer.style.display === 'none';
-            busToggle.closest('.details-content').querySelectorAll('.seat-map-container').forEach(el => {
-                if(el !== seatMapContainer) { el.style.display = 'none'; }
-            });
+            busToggle.closest('.details-content').querySelectorAll('.seat-map-container').forEach(el => { if(el !== seatMapContainer) el.style.display = 'none'; });
             seatMapContainer.style.display = isSeatMapHidden ? 'block' : 'none';
         }
     });
@@ -136,56 +177,31 @@
         formData.append('yatra_id', yatraId);
         fetch("{% url 'dashboard_api' %}", { method: 'POST', body: formData })
             .then(res => res.json()).then(result => {
-                if (result.status === 'success') { renderBusDetails(result.data, container); } 
-                else { container.innerHTML = `<p class="text-center text-danger">${result.message}</p>`; }
+                if (result.status === 'success') renderBusDetails(result.data, container);
+                else container.innerHTML = `<p class="text-center text-danger">${result.message}</p>`;
             });
     }
 
     function renderBusDetails(data, container) {
-    const buses = Object.keys(data.buses);
-    if (buses.length === 0) { container.innerHTML = '<p class="text-center text-muted">No bookings found.</p>'; return; }
-    
-    let finalHtml = '<div class="list-group list-group-flush">';
-    buses.forEach(busName => {
-        const busInfo = data.buses[busName];
-        
-        // busInfo.booked_seats is now an array of real seat numbers, like [1, 2, 7, 8]
-        const bookedSeats = new Set(busInfo.booked_seats); 
-        
-        let seatMapHtml = '<div class="seat-map">';
-        // Assuming total bus capacity is 45 seats (numbered 1 to 45)
-        for (let i = 1; i <= 45; i++) {
-            let seatClass = 'available';
-            // Let's assume seats 1 and 2 are always reserved for drivers/staff
-            if (i === 1 || i === 2) {
-                seatClass = 'reserved';
-            } else if (bookedSeats.has(i)) { // Check if THIS specific seat is in the booked list
-                seatClass = 'booked';
+        const buses = Object.keys(data.buses);
+        if (buses.length === 0) { container.innerHTML = '<p class="text-center text-muted">No buses found for this yatra.</p>'; return; }
+        let finalHtml = '<div class="list-group list-group-flush">';
+        buses.forEach(busName => {
+            const busInfo = data.buses[busName];
+            const bookedSeats = new Set(busInfo.booked_seats);
+            let seatMapHtml = '<div class="seat-map">';
+            for (let i = 1; i <= 45; i++) {
+                let seatClass = (i === 1 || i === 2) ? 'reserved' : (bookedSeats.has(i) ? 'booked' : 'available');
+                seatMapHtml += `<div class="seat ${seatClass}">${i}</div>`;
             }
+            seatMapHtml += '</div>';
+            finalHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-secondary rounded-pill">${bookedSeats.size} / 45 Booked</span></div><div class="seat-map-container" style="display: none;">${seatMapHtml}</div></div>`;
+        });
+        finalHtml += '</div>';
+        container.innerHTML = finalHtml;
+    }
 
-            seatMapHtml += `<div class="seat ${seatClass}">${i}</div>`; // Display the real seat number
-        }
-        seatMapHtml += '</div>';
-
-        finalHtml += `<div class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center bus-toggle">
-                <span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span>
-                <span class="badge bg-secondary rounded-pill">${bookedSeats.size} / 45 Booked</span>
-            </div>
-            <div class="seat-map-container" style="display: none;">${seatMapHtml}</div>
-        </div>`;
-    });
-    finalHtml += '</div>';
-    container.innerHTML = finalHtml;
-}
-
-    // --- SCRIPT FOR SECTION 2: Detailed Booking Report ---
     const reportResultsContainer = document.getElementById('reportResultsContainer');
-    
-    $(document).ready(function() {
-        $('#reportYatraSelect').select2({ theme: "bootstrap-5" });
-    });
-
     $('#reportYatraSelect').on('change', function() {
         const yatraId = $(this).val();
         reportResultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
@@ -193,90 +209,57 @@
         let formData = new FormData();
         formData.append('yatra_id', yatraId);
         fetch("{% url 'detailed_report_api' %}", { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(result => {
-                if (result.status === 'success') {
-                    console.log("190",result.data);
-                    renderBookingReport(result.data);
-                } else {
-                    reportResultsContainer.innerHTML = `<p class="text-center text-danger">${result.message}</p>`;
-                }
+            .then(res => res.json()).then(result => {
+                if (result.status === 'success') renderBookingReport(result.data);
+                else reportResultsContainer.innerHTML = `<p class="text-center text-danger">${result.message}</p>`;
             });
     });
 
     reportResultsContainer.addEventListener('click', function(e) {
-        const busToggle = e.target.closest('.bus-toggle-report');
-        if (busToggle) {
-            const passengerListId = busToggle.getAttribute('data-bs-target');
-            const passengerListEl = document.querySelector(passengerListId);
-            document.querySelectorAll('.passenger-list.show').forEach(el => {
-                if (el !== passengerListEl) { new bootstrap.Collapse(el, {toggle: false}).hide(); }
-            });
+        if (e.target.closest('.bus-toggle-report')) {
+            const passengerListId = e.target.closest('.bus-toggle-report').getAttribute('data-bs-target');
+            document.querySelectorAll('.passenger-list.show').forEach(el => { if (`#${el.id}` !== passengerListId) new bootstrap.Collapse(el, {toggle: false}).hide(); });
         }
-        const contactToggle = e.target.closest('.contact-toggle');
-        if (contactToggle) {
-            const contactInfoId = contactToggle.getAttribute('data-bs-target');
-            const contactInfoEl = document.querySelector(contactInfoId);
-            document.querySelectorAll('.contact-info.show').forEach(el => {
-                if (el !== contactInfoEl) { new bootstrap.Collapse(el, {toggle: false}).hide(); }
-            });
+        if (e.target.closest('.contact-toggle')) {
+            const contactInfoId = e.target.closest('.contact-toggle').getAttribute('data-bs-target');
+            document.querySelectorAll('.contact-info.show').forEach(el => { if (`#${el.id}` !== contactInfoId) new bootstrap.Collapse(el, {toggle: false}).hide(); });
         }
         const printButton = e.target.closest('.print-btn');
         if (printButton) {
-            printButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            printButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
             printButton.disabled = true;
-            const regId = printButton.dataset.regId;
             let formData = new FormData();
-            formData.append('registration_id', regId);
+            formData.append('registration_id', printButton.dataset.regId);
             fetch("{% url 'get_pilgrim_card_api' %}", { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.message_code === 999 && data.message_data) {
-                        const imageUrl = CARD_IMAGE_BASE_URL + data.message_data;
-                        printImage(imageUrl);
-                    } else { alert("Error: " + data.message_text); }
-                })
-                .catch(err => alert("An error occurred."))
-                .finally(() => {
-                    printButton.innerHTML = '<i class="bi bi-printer-fill"></i>';
-                    printButton.disabled = false;
-                });
+                .then(res => res.json()).then(data => {
+                    if (data.message_code === 1000 && data.message_data) printImage(CARD_IMAGE_BASE_URL + data.message_data);
+                    else alert("Error: " + data.message_text);
+                }).finally(() => { printButton.innerHTML = '<i class="bi bi-printer-fill"></i>'; printButton.disabled = false; });
         }
         const callButton = e.target.closest('.call-btn');
         if(callButton) {
             const mobile = callButton.dataset.mobile;
             const alternate = callButton.dataset.alternate;
-            const callModalBody = document.getElementById('callModalBody');
-            callModalBody.innerHTML = '';
-            if (mobile && mobile !== 'N/A' && mobile.trim() !== '') {
-                callModalBody.innerHTML += `<a href="tel:${mobile}" class="d-block p-2 call-option fs-5 border-bottom"><i class="bi bi-telephone-fill me-2"></i>Call Mobile: ${mobile}</a>`;
-            }
-            if (alternate && alternate !== 'N/A' && alternate.trim() !== '') {
-                callModalBody.innerHTML += `<a href="tel:${alternate}" class="d-block p-2 call-option fs-5"><i class="bi bi-telephone-fill me-2"></i>Call Alternate: ${alternate}</a>`;
-            }
-            if (!callModalBody.innerHTML) {
-                callModalBody.innerHTML = '<p class="text-muted text-center">No phone numbers available.</p>';
-            }
+            let callHtml = '';
+            if (mobile && mobile.trim()) callHtml += `<a href="tel:${mobile}" class="d-block p-2 call-option fs-5 border-bottom"><i class="bi bi-telephone-fill me-2"></i>Call Mobile: ${mobile}</a>`;
+            if (alternate && alternate.trim()) callHtml += `<a href="tel:${alternate}" class="d-block p-2 call-option fs-5"><i class="bi bi-telephone-fill me-2"></i>Call Alternate: ${alternate}</a>`;
+            document.getElementById('callModalBody').innerHTML = callHtml || '<p class="text-muted text-center">No numbers available.</p>';
             callModal.show();
         }
     });
 
     function renderBookingReport(data) {
         if (!data.bookings || data.bookings.length === 0) {
-            reportResultsContainer.innerHTML = `<div class="alert alert-secondary text-center mt-3">No bookings found for this Yatra.</div>`;
-            return;
+            reportResultsContainer.innerHTML = `<div class="alert alert-secondary text-center mt-3">No bookings found for this Yatra.</div>`; return;
         }
         const buses = data.bookings.reduce((acc, booking) => {
-            if (!acc[booking.BusName]) { acc[booking.BusName] = []; }
-            acc[booking.BusName].push(booking);
-            return acc;
+            (acc[booking.BusName] = acc[booking.BusName] || []).push(booking); return acc;
         }, {});
-        let totalBookings = data.bookings.length;
-        let busHtml = `<h5 class="mb-3">Total Tickets Booked: <span class="badge bg-success">${totalBookings}</span></h5><div class="list-group">`;
+        let busHtml = `<h5 class="mb-3">Total Tickets Booked: <span class="badge bg-success">${data.bookings.length}</span></h5><div class="list-group">`;
         for (const busName in buses) {
             const passengers = buses[busName];
-            const passengerListId = `report-passenger-list-${busName.replace(/\s+/g, '')}`;
-            busHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle-report" data-bs-toggle="collapse" data-bs-target="#${passengerListId}"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-primary rounded-pill">${passengers.length} Booked</span></div><div class="collapse passenger-list" id="${passengerListId}">${renderPassengerReportTable(passengers, busName)}</div></div>`;
+            const pListId = `report-p-list-${busName.replace(/\s+/g, '')}`;
+            busHtml += `<div class="list-group-item"><div class="d-flex justify-content-between align-items-center bus-toggle-report" data-bs-toggle="collapse" data-bs-target="#${pListId}"><span class="fw-bold"><i class="bi bi-bus-front-fill me-2"></i>${busName}</span><span class="badge bg-primary rounded-pill">${passengers.length} Booked</span></div><div class="collapse passenger-list" id="${pListId}">${renderPassengerReportTable(passengers, busName)}</div></div>`;
         }
         busHtml += '</div>';
         reportResultsContainer.innerHTML = busHtml;
@@ -285,40 +268,10 @@
     function renderPassengerReportTable(passengers, busName) {
         let tableHtml = `<div class="table-responsive pt-3"><table class="table table-sm table-hover"><tbody>`;
         passengers.forEach((booking, index) => {
-            const contactId = `contact-info-${busName.replace(/\s+/g, '')}-${index}`;
+            const contactId = `contact-${busName.replace(/\s+/g, '')}-${index}`;
             const mobileNo = booking.MobileNo || '';
             const alternateMobileNo = booking.AlternateMobileNo || '';
-            let printButtonHtml = '';
-            if (booking.RegistrationId) {
-                printButtonHtml = `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}"><i class="bi bi-printer-fill"></i></button>`;
-            }
-            const seatNo = booking.SeatNo;
-            tableHtml += `
-                <tr class="align-middle">
-                    <td>
-                        <div class="fw-bold">${booking.PilgrimName}</div>
-                        <small class="text-muted"> <strong>${busName}</strong> - <strong>${seatNo}</strong></small>
-                    </td>
-                    <td class="text-end">
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-success contact-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#${contactId}"><i class="bi bi-telephone-fill"></i></button>
-                            ${printButtonHtml}
-                        </div>
-                    </td>
-                </tr>
-                <tr class="collapse contact-info" id="${contactId}">
-                    <td colspan="2">
-                        <div class="contact-info-card">
-                            <div><strong>Mobile:</strong> ${mobileNo || 'N/A'}</div>
-                            <div><strong>Alternate:</strong> ${alternateMobileNo || 'N/A'}</div>
-                            <div class="mt-2 btn-group w-100">
-                                <button type="button" class="btn btn-sm btn-success flex-fill call-btn" data-mobile="${mobileNo}" data-alternate="${alternateMobileNo}"><i class="bi bi-telephone-outbound-fill"></i> Call</button>
-                                <a href="sms:${mobileNo.replace(/\D/g, '')}" class="btn btn-sm btn-info flex-fill"><i class="bi bi-chat-text-fill"></i> Text</a>
-                                <a href="https://wa.me/${mobileNo.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-success flex-fill"><i class="bi bi-whatsapp"></i> WhatsApp</a>
-                            </div>
-                        </div>
-                    </td>
-                </tr>`;
+            tableHtml += `<tr class="align-middle"><td><div class="fw-bold">${booking.PilgrimName}</div><small class="text-muted">Seat: <strong>${booking.SeatNo}</strong></small></td><td class="text-end"><div class="btn-group"><button class="btn btn-sm btn-info text-white call-btn" type="button" data-mobile="${mobileNo}" data-alternate="${alternateMobileNo}"><i class="bi bi-telephone-fill"></i></button>${booking.RegistrationId ? `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}"><i class="bi bi-printer-fill"></i></button>` : ''}</div></td></tr>`;
         });
         tableHtml += `</tbody></table></div>`;
         return tableHtml;
@@ -326,9 +279,7 @@
 
     function printImage(url) {
         const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print Pilgrim Card</title><style>@media print{body{margin:0;}img{width:100%;}}</style></head><body>');
-        printWindow.document.write(`<img src="${url}" onload="window.print(); window.close();" onerror="window.close(); alert('Could not load image to print.');">`);
-        printWindow.document.write('</body></html>');
+        printWindow.document.write(`<html><head><title>Print Pilgrim Card</title><style>@media print{body{margin:0;}img{width:100%;}}</style></head><body><img src="${url}" onload="window.print(); window.close();" onerror="window.close(); alert('Could not load image.');"></body></html>`);
         printWindow.document.close();
     }
 </script>

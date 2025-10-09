@@ -261,7 +261,8 @@
             document.getElementById('formUserFirstName').value = row.dataset.firstName;
             document.getElementById('formUserLastName').value = row.dataset.lastName;
             document.getElementById('formUserMobile').value = row.dataset.mobile;
-            document.getElementById('formUserPin').value = row.dataset.pin;
+            document.getElementById('formUserPin').value = '';
+            {% comment %} document.getElementById('formUserPin').placeholder = 'Change Password';   {% endcomment %}
             document.getElementById('formUserRole').value = row.dataset.role;
             document.getElementById('formUserStatus').value = row.dataset.status;
             document.getElementById('modalTitle').textContent = 'Edit User';
