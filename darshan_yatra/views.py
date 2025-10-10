@@ -1814,92 +1814,6 @@ def area_report_pdf(request, route_id, area_name):
     return HttpResponse("Failed to generate PDF.", status=500)
 
 
-
-# In views.py
-
-# @csrf_exempt
-# def send_whatsapp_api(request):
-#     """
-#     API to send a WhatsApp message with detailed logging for debugging.
-#     """
-#     if 'user_id' not in request.session:
-#         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
-
-#     if request.method == 'POST':
-#         try:
-#             # --- 1. Receive data from the frontend ---
-#             reg_id = request.POST.get('registration_id')
-#             user_name = request.POST.get('user_name')
-#             mobile_no = request.POST.get('mobile_no')
-#             yatra_name = request.POST.get('yatra_name')
-#             yatra_date = request.POST.get('yatra_date')
-#             bus_no = request.POST.get('bus_no')
-#             seat_no = request.POST.get('seat_no')
-#             custom_message_body = request.POST.get('custom_message_body')
-#             user_id = request.session.get("user_id")
-
-#             # ✅ --- ADDED FOR DEBUGGING: Print received data ---
-#             print("--- WhatsApp API: Data Received from Frontend ---")
-#             print(f"Registration ID: {reg_id}, User Name: {user_name}, Mobile: {mobile_no}")
-#             print(f"Yatra: {yatra_name}, Date: {yatra_date}, Bus: {bus_no}, Seat: {seat_no}")
-#             print("-------------------------------------------------")
-            
-#             if not all([reg_id, mobile_no, custom_message_body, user_id]):
-#                 return JsonResponse({"status": "error", "message": "Missing required data to send message."}, status=400)
-
-#             # --- 2. Populate placeholders ---
-#             final_message_body = custom_message_body.replace("{{NAME}}", user_name) \
-#                                                      .replace("{{YATRANAME}}", yatra_name) \
-#                                                      .replace("{{YATRADATE}}", yatra_date) \
-#                                                      .replace("{{BUSNO}}", bus_no) \
-#                                                      .replace("{{SEATNO}}", seat_no)
-
-#             # --- 3. Prepare payload for the external API ---
-#             send_api_url = "https://www.lakshyapratishthan.com/apis/addsmsrequest"
-#             payload = {
-#                 "RegistrationId": int(reg_id),
-#                 "UserId": int(user_id),
-#                 "SMSTemplateId": 1, # Default template ID
-#                 "SMSBody": final_message_body,
-#                 "SMSTo": mobile_no
-#             }
-
-#             # ✅ --- ADDED FOR DEBUGGING: Print data being sent to external API ---
-#             print("--- WhatsApp API: Payload Sent to External API ---")
-#             import json
-#             print(json.dumps(payload, indent=2))
-#             print("--------------------------------------------------")
-
-#             # --- 4. Call the external API ---
-#             send_response = requests.post(send_api_url, json=payload, headers=headers, verify=False, timeout=15)
-            
-#             # ✅ --- ADDED FOR DEBUGGING: Print response from external API ---
-#             print(f"--- External API Response --- (Status: {send_response.status_code})")
-#             try:
-#                 print(send_response.json())
-#             except:
-#                 print(send_response.text)
-#             print("---------------------------")
-
-
-#             if send_response.status_code == 200:
-#                 response_data = send_response.json()
-#                 if response_data.get("message_code") == 1000:
-#                     return JsonResponse({"status": "success", "message": "Message request sent successfully."})
-#                 else:
-#                     return JsonResponse({"status": "error", "message": response_data.get("message_text", "Provider failed to send message.")})
-#             else:
-#                 return JsonResponse({"status": "error", "message": f"API Error: {send_response.status_code}"})
-
-#         except Exception as e:
-#             print(f"[WHATSAPP API ERROR] An exception occurred: {str(e)}")
-#             return JsonResponse({"status": "error", "message": f"An unexpected server error occurred: {str(e)}"})
-
-#     return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
-
-
-# In views.py
-
 @csrf_exempt
 def send_whatsapp_api(request):
     """
@@ -2303,11 +2217,13 @@ def diwali_all_registrations(request):
                         'head': head,
                         'members': [m for m in members if str(m.get("RegistrationId")) != str(head.get("RegistrationId"))],
                         'ration_card_no': ration_card,
-                        'token': token_no or "N/A"
+                        'token': token_no or "N/A",
+                        'ration_card_photo': head.get("RationCardPhoto") 
                     }
                     all_families.append(family_data)
 
-                all_families.sort(key=lambda x: x['token'] if isinstance(x['token'], int) else -1, reverse=True)
+                all_families.sort(key=lambda x: int(x['token']) if str(x['token']).isdigit() else 0)
+
 
             else:
                 messages.error(request, f"API returned an error: {response_data.get('message_text', 'No message')}")
@@ -2324,14 +2240,23 @@ def diwali_all_registrations(request):
 
 
 
-@csrf_exempt # Use csrf_exempt for simplicity as this is an internal tool action page.
+from django.shortcuts import render, HttpResponse, redirect
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import requests
+import json
+
+# Assuming 'headers' is defined globally or passed correctly, e.g.:
+headers = {"Content-Type": "application/json"} 
+
+@csrf_exempt
 def rationcardscan(request):
     """
     Handles displaying family details from a token and updating their delivery status.
-    - GET: Fetches family details using the 'getfamily' API and renders the page.
+    - GET: Fetches family details AND their current status, then renders the page.
     - POST: Updates the token status using the 'updatestatus' API via AJAX.
     """
-    # --- HANDLE THE POST REQUEST (from the AJAX form submission) ---
+    # --- POST request logic remains unchanged ---
     if request.method == 'POST':
         try:
             token_no = request.POST.get('token')
@@ -2342,10 +2267,9 @@ def rationcardscan(request):
 
             api_url = "https://www.lakshyapratishthan.com/apis/updatestatus"
             payload = {
-                "TokenQR":(token_no),
+                "TokenQR": token_no,
                 "Status": int(status)
             }
-            # Assuming 'headers' is a globally defined dictionary for your API auth
             response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
 
             if response.ok and response.json().get("message_code") == 1000:
@@ -2357,36 +2281,41 @@ def rationcardscan(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    # --- HANDLE THE GET REQUEST (when the page is first loaded) ---
+    # --- GET request logic is UPDATED ---
     token = request.GET.get('t') or None
     if not token:
-        return HttpResponse("<h1>Error: No token found in URL.</h1><p>Please scan the QR code again. The URL should look like /rationcardscan/?t=7</p>")
+        return HttpResponse("<h1>Error: No token found in URL.</h1><p>Please scan the QR code again.</p>")
 
     context = {
         "token": token,
         "head": None,
         "members": [],
-        "error": None
+        "error": None,
+        "delivery_status": 0  # ✅ New: Default status 0 = Pending
     }
     
     try:
         api_url = "https://www.lakshyapratishthan.com/apis/getfamily"
-        payload = {"TokenQR":token}
+        payload = {"TokenQR": token}
         response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
 
         if response.ok:
             data = response.json()
             if data.get("message_code") == 1000 and data.get("message_data"):
                 all_members = data["message_data"]
-                # Find the head of the family (ParentId is "1" or equals their own RegistrationId)
-                head = next((p for p in all_members if p.get("ParentId") == "1" or p.get("ParentId") == p.get("RegistrationId")), None)
+                head = next((p for p in all_members if p.get("ParentId") == "1" or p.get("ParentId") == p.get("RegistrationId")), all_members[0] if all_members else None)
+                
                 if head:
                     context["head"] = head
-                    # The rest are family members
                     context["members"] = [p for p in all_members if p.get("RegistrationId") != head.get("RegistrationId")]
-                else: # Fallback if no clear head is found
-                    context["head"] = all_members[0]
-                    context["members"] = all_members[1:]
+                    
+                    # ✅ CRITICAL CHANGE: Check the status from the API response.
+                    # The API returns status as a string ("0", "1", "2"), so we check for "1" or "2".
+                    current_status = head.get("Status")
+                    if current_status in ["1", "2"]:
+                        context["delivery_status"] = int(current_status)
+                else:
+                    context["error"] = "No family members found for this token."
             else:
                 context["error"] = data.get("message_text", "Could not find family for this token.")
         else:
@@ -2396,3 +2325,46 @@ def rationcardscan(request):
         context["error"] = f"An unexpected error occurred: {str(e)}"
 
     return render(request, 'Diwali/ration_card_scan.html', context)
+
+
+
+def change_diwali_token(request):
+    """
+    API proxy to change a Diwali Kirana token number.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        old_token = data.get("OldTokenNo")
+        new_token = data.get("NewTokenNo")
+        reg_id = data.get("RegistrationId")
+        print(old_token)
+
+        if not all([old_token, new_token, reg_id]):
+            return JsonResponse({"status": "error", "message": "Missing required data."}, status=400)
+
+        api_url = "https://www.lakshyapratishthan.com/apis/changediwalitoken"
+        payload = {
+            "OldTokenNo": int(old_token),
+            "NewTokenNo": int(new_token),
+            "RegistrationId": int(reg_id)
+        }
+        
+        # Note: 'headers' should be defined globally or passed in. Assuming it's defined elsewhere in your file.
+        response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+
+        if not response.ok:
+            return JsonResponse({"status": "error", "message": f"API server error: {response.status_code}"}, status=502)
+
+        api_data = response.json()
+        if api_data.get("message_code") == 1000:
+            return JsonResponse({"status": "success", "message": api_data.get("message_text", "Token changed successfully.")})
+        else:
+            return JsonResponse({"status": "error", "message": api_data.get("message_text", "Failed to change token.")})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"An unexpected error occurred: {str(e)}"}, status=500)

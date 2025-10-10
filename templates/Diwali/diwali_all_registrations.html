@@ -61,6 +61,24 @@
         background-color: #edf2f7;
     }
 
+    #memberModal .modal-content {
+        background-color: #9ff895; 
+    }
+
+    .btn-view-photo { background-color: #3498db; color: white; } 
+    .btn-view-photo:hover { background-color: #2980b9; }
+
+    /* --- ✅ ADD THIS NEW STYLE FOR THE MODAL IMAGE --- */
+    #modalPhotoImage {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    
+    .modal-body-qr { text-align: center; }
+
+    .btn-change-token { background-color: #1abc9c; color: white; }
+    .btn-change-token:hover { background-color: #16a085; }
 
         
     </style>
@@ -105,7 +123,37 @@
                         {% endfor %}
                         <div class="actions-container">
                             <p class="me-auto text-muted mb-0">Token: <strong>{{ family.token }}</strong></p>
-                            <button class="btn-action btn-edit-family" data-bs-toggle="modal" data-bs-target="#editFamilyModal" data-ration-card="{{ family.ration_card_no }}"><i class="fas fa-edit"></i></button>
+
+                             <!-- --- ✅ ADD THIS BLOCK --- -->
+                            {% if family.ration_card_photo %}
+                            <!-- This HTML will ONLY be rendered if the condition is true -->
+                            <button type="button" class="btn-action btn-view-photo"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#photoModal"
+                                    data-photo-url="{{ family.ration_card_photo }}"
+                                    title="View Ration Card">
+                                <i class="fas fa-id-card"></i>
+                            </button>
+                        {% endif %}
+
+                            {% if request.session.user_role == "1" %}
+
+                            <button class="btn-action btn-change-token"
+                                    data-old-token="{{ family.token }}"
+                                    data-reg-id="{{ family.head.RegistrationId }}"
+                                    title="Change Token Number">
+                                <i class="fas fa-random"></i> <!-- Using a 'random' or 'sync' icon -->
+                            </button>
+                                <button class="btn-action btn-edit-family" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editFamilyModal" 
+                                        data-ration-card="{{ family.ration_card_no }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            {% endif %}
+
+                            <!-- <button class="btn-action btn-edit-family" data-bs-toggle="modal" data-bs-target="#editFamilyModal" data-ration-card="{{ family.ration_card_no }}"><i class="fas fa-edit"></i></button> -->
+                             
                             <!-- <button class="btn-action btn-view" data-reg-id="{{ family.head.RegistrationId }}" data-token-no="{{ family.token }}"><i class="fas fa-qrcode"></i> View QR</button> -->
 
                         </div>
@@ -145,8 +193,8 @@
                                 <div class="col-md-6"><div class="form-group"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate Mobile</label><input type="tel" class="form-control" id="altMobileNo" placeholder="Optional" maxlength="10"></div></div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6"><div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="headGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Other</option></select></div></div>
-                                <div class="col-md-6"><div class="form-group"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="headDob"></div></div>
+                                 <!-- <div class="col-md-6"><div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="headGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Other</option></select></div></div> -->
+                                <!-- <div class="col-md-6"><div class="form-group"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="headDob"></div></div> -->
                             </div>
                             <div class="form-group"><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label><select class="form-control" id="areaId" required><option value="">Loading areas...</option></select></div>
                             <div class="form-group"><label class="form-label"><i class="fas fa-home"></i> Address</label><textarea class="form-control" id="headAddress" rows="2" placeholder="Full address" required></textarea></div>
@@ -173,6 +221,24 @@
 
     <!-- MODAL FOR QR CODE -->
     <div class="modal fade" id="qrCodeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Family Token QR Code</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body modal-body-qr"><img id="modalQrImage" src="" alt="QR Code"><p>Token No: <strong id="modalTokenNo"></strong></p></div><div class="modal-footer"><button type="button" class="btn btn-primary"><i class="fas fa-share-alt"></i> Share</button><button type="button" class="btn btn-success"><i class="fas fa-download"></i> Download</button></div></div></div></div>
+
+     <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="photoModalLabel">Ration Card Photo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhotoImage" src="" alt="Ration Card Photo">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="sharePhotoButton"><i class="fas fa-share-alt"></i> Share Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -213,8 +279,8 @@
         const headNameInput = editFamilyModalEl.querySelector('#headName');
         const mobileNoInput = editFamilyModalEl.querySelector('#mobileNo');
         const altMobileNoInput = editFamilyModalEl.querySelector('#altMobileNo');
-        const headGenderSelect = editFamilyModalEl.querySelector('#headGender');
-        const headDobInput = editFamilyModalEl.querySelector('#headDob');
+        // const headGenderSelect = editFamilyModalEl.querySelector('#headGender'); // Commented out as element is not in HTML
+        // const headDobInput = editFamilyModalEl.querySelector('#headDob'); // Commented out as element is not in HTML
         const headAddressInput = editFamilyModalEl.querySelector('#headAddress');
         const recordIdInput = editFamilyModalEl.querySelector('#recordId');
         const existingPhotoInput = editFamilyModalEl.querySelector('#existingRationCardPhoto');
@@ -264,7 +330,6 @@
             }
         };
 
-        // ✅ FIXED: `checkBtn` listener now uses SweetAlert for errors
         checkBtn.addEventListener('click', () => { 
             const cardNo = rationCardInput.value.trim(); 
             if (!cardNo) return; 
@@ -333,11 +398,11 @@
             memberModal.hide();
         });
 
-        // ✅ FIXED: This is now the one and only submit listener, using SweetAlert
         submitBtn.addEventListener('click', () => {
             const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
             const headNameParts = splitName(headNameInput.value);
-            const headData = { userFirstname: headNameParts.firstname, userMiddlename: headNameParts.middlename, userLastname: headNameParts.lastname, userMobileNo: mobileNoInput.value, userAlternateMobileNo: altMobileNoInput.value, Gender: headGenderSelect.value, DateOfBirth: headDobInput.value, AreaId: areaSelect.value, address: headAddressInput.value, existingRationCardPhoto: existingPhotoInput.value };
+            // ✅ CORRECTED: Removed Gender and DateOfBirth from the headData object because the HTML fields are commented out.
+            const headData = { userFirstname: headNameParts.firstname, userMiddlename: headNameParts.middlename, userLastname: headNameParts.lastname, userMobileNo: mobileNoInput.value, userAlternateMobileNo: altMobileNoInput.value, AreaId: areaSelect.value, address: headAddressInput.value, existingRationCardPhoto: existingPhotoInput.value };
             const familyDataForApi = familyMembers.map(member => { const memberNameParts = splitName(member.name); return { registrationId: member.registrationId, userFirstname: memberNameParts.firstname, userMiddlename: memberNameParts.middlename, userLastname: memberNameParts.lastname, DateOfBirth: member.dob, Gender: member.gender }; }).filter(member => member.userFirstname.trim() !== '');
             const formData = new FormData();
             formData.append('action', 'submit');
@@ -393,11 +458,13 @@
             headNameInput.value = [headRecord.Firstname, headRecord.Middlename, headRecord.Lastname].filter(Boolean).join(' ');
             mobileNoInput.value = headRecord.MobileNo || '';
             altMobileNoInput.value = headRecord.AlternateMobileNo || '';
-            headGenderSelect.value = (headRecord.Gender && headRecord.Gender !== "0") ? headRecord.Gender : '1';
             areaSelect.value = headRecord.AreaId || '';
             headAddressInput.value = headRecord.Address || '';
             existingPhotoInput.value = headRecord.IdProofFileName || '';
-            if (headRecord.DateOfBirth && /^\d+$/.test(headRecord.DateOfBirth) && headRecord.DateOfBirth !== "0") { try { const d = new Date(parseInt(headRecord.DateOfBirth) * 1000); headDobInput.value = d.toISOString().split('T')[0]; } catch (e) {} } else { headDobInput.value = ''; }
+            
+            // ✅ CORRECTED: The lines that tried to set values for the head's commented-out Gender and DOB fields are now also commented out to prevent errors.
+            // headGenderSelect.value = (headRecord.Gender && headRecord.Gender !== "0") ? headRecord.Gender : '1';
+            // if (headRecord.DateOfBirth && /^\d+$/.test(headRecord.DateOfBirth) && headRecord.DateOfBirth !== "0") { try { const d = new Date(parseInt(headRecord.DateOfBirth) * 1000); headDobInput.value = d.toISOString().split('T')[0]; } catch (e) {} } else { headDobInput.value = ''; }
             
             familyMembers = allRecords.filter(p => p.RegistrationId !== headRecord.RegistrationId).map(member => {
                 let dobForPicker = '';
@@ -421,6 +488,149 @@
             renderFamilyList();
         });
     });
+
+    // --- ✅ ADD THE LOGIC FOR THE NEW PHOTO MODAL ---
+    const photoModalEl = document.getElementById('photoModal');
+    const sharePhotoButton = document.getElementById('sharePhotoButton');
+
+    // 1. Logic to set the image source when the modal is about to open
+    if (photoModalEl) {
+        photoModalEl.addEventListener('show.bs.modal', function (event) {
+            // Button that triggered the modal
+            const button = event.relatedTarget;
+            // Extract info from data-* attributes
+            const photoUrl = button.getAttribute('data-photo-url');
+            // Update the modal's content.
+            const modalImage = photoModalEl.querySelector('#modalPhotoImage');
+            modalImage.src = photoUrl;
+        });
+    }
+
+    // 2. Logic for the Share Button
+    // Hide share button if the Web Share API is not supported
+    if (!navigator.share) {
+        sharePhotoButton.style.display = 'none';
+    } else {
+        sharePhotoButton.addEventListener('click', async () => {
+            const imageUrl = document.getElementById('modalPhotoImage').src;
+            const imageTitle = 'Ration Card Photo';
+
+            try {
+                // Fetch the image and convert it to a blob
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const file = new File([blob], 'ration-card.jpg', { type: blob.type });
+
+                // Use the Web Share API to share the file
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: imageTitle,
+                        text: 'Please find the attached ration card photo.',
+                    });
+                    console.log('Image shared successfully!');
+                } else {
+                    // Fallback for browsers that can't share files
+                    Swal.fire('Not Supported', 'Your browser does not support sharing this file.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error sharing the image:', error);
+                Swal.fire('Sharing Failed', 'Could not share the image at this time.', 'error');
+            }
+        });
+    }
+
+    const familyListContainer = document.getElementById('familyList');
+        if (familyListContainer) {
+            familyListContainer.addEventListener('click', async function(event) {
+                const changeTokenButton = event.target.closest('.btn-change-token');
+                if (!changeTokenButton) return;
+
+                const oldToken = changeTokenButton.dataset.oldToken;
+                const regId = changeTokenButton.dataset.regId;
+
+                const { value: newToken } = await Swal.fire({
+                    title: 'Change Token Number',
+                    html: `Enter the new token number for Registration ID: <strong>${regId}</strong>.<br>Current Token is: <strong>${oldToken}</strong>`,
+                    input: 'number',
+                    inputLabel: 'New Token Number',
+                    inputPlaceholder: 'Enter new token...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Change Token',
+                    inputValidator: (value) => {
+                        if (!value || isNaN(value) || parseInt(value) <= 0) {
+                            return 'Please enter a valid positive number!'
+                        }
+                    }
+                });
+
+                if (newToken) {
+                    // Show a loading indicator
+                    Swal.fire({
+                        title: 'Updating...',
+                        text: 'Please wait while we change the token.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    try {
+                        const response = await fetch("{% url 'change_diwali_token' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie("csrftoken") // Assuming getCookie function exists
+                            },
+                            body: JSON.stringify({
+                                OldTokenNo: oldToken,
+                                NewTokenNo: newToken,
+                                RegistrationId: regId
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: result.message,
+                            });
+                            window.location.reload(); // Reload the page to see the change
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: result.message || 'Something went wrong!',
+                            });
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Network Error',
+                            text: 'Could not connect to the server. Please try again.',
+                        });
+                    }
+                }
+            });
+        }
+
+        function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     function filterFamilies() {
         const input = document.getElementById("searchInput");

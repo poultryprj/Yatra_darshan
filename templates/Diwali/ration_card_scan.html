@@ -10,7 +10,6 @@
         .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
         .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; }
         .header h1 { font-size: 22px; margin: 0; }
-        .header p { margin: 5px 0 0; opacity: 0.9; }
         .card-body { padding: 25px; }
         .error-message { text-align: center; color: #e53e3e; background-color: #fed7d7; padding: 15px; border-radius: 8px; }
         .member { display: flex; align-items: center; margin-bottom: 15px; }
@@ -25,8 +24,16 @@
         .btn-cancel { background-color: #c53030; color: white; }
         .btn-action:disabled { background-color: #a0aec0; cursor: not-allowed; }
         #status-message { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+        
+        /* ✅ New Styles for the "Already Processed" Message */
+        .already-processed-message { text-align: center; padding: 20px; border-radius: 8px; }
+        .already-processed-message i { font-size: 40px; margin-bottom: 15px; }
+        .already-processed-message h3 { font-size: 20px; margin: 0 0 5px; }
+        .already-processed-message p { margin: 0; color: #718096; }
         .status-success { background-color: #c6f6d5; color: #22543d; }
         .status-error { background-color: #fed7d7; color: #742a2a; }
+        .success-icon { color: #38a169; } /* Green for delivered */
+        .cancel-icon { color: #c53030; }  /* Red for canceled */
     </style>
 </head>
 <body>
@@ -60,19 +67,41 @@
                 
                 <div class="divider"></div>
 
-                <form id="actions-form">
-                    <input type="hidden" name="token" value="{{ token }}">
-                    <div class="actions">
-                        <button type="submit" name="status" value="1" class="btn-action btn-delivered">
-                            <i class="fas fa-check-circle"></i> Delivered
-                        </button>
-                        <button type="submit" name="status" value="2" class="btn-action btn-cancel">
-                            <i class="fas fa-times-circle"></i> Cancel
-                        </button>
+                <!-- ✅ CONDITIONAL RENDERING BLOCK -->
+                {% if delivery_status == 0 %}
+                    <!-- Status is Pending, so show the action form -->
+                    <form id="actions-form">
+                        <input type="hidden" name="token" value="{{ token }}">
+                        <div class="actions">
+                            <button type="submit" name="status" value="1" class="btn-action btn-delivered">
+                                <i class="fas fa-check-circle"></i> Delivered
+                            </button>
+                            <button type="submit" name="status" value="2" class="btn-action btn-cancel">
+                                <i class="fas fa-times-circle"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                    <div id="status-message"></div>
+
+                {% else %}
+                    <!-- Status is already Delivered or Canceled, show a message instead -->
+                    <div class="already-processed-message">
+                        {% if delivery_status == 1 %}
+                            <div class="status-success">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <h3>Already Delivered</h3>
+                                <p>This kit has been marked as delivered. Thank you!</p>
+                            </div>
+                        {% elif delivery_status == 2 %}
+                            <div class="status-error">
+                                <i class="fas fa-times-circle cancel-icon"></i>
+                                <h3>Delivery Canceled</h3>
+                                <p>This delivery was previously canceled.</p>
+                            </div>
+                        {% endif %}
                     </div>
-                </form>
-                
-                <div id="status-message"></div>
+                {% endif %}
+                <!-- END OF CONDITIONAL BLOCK -->
 
             {% else %}
                 <div class="error-message">
@@ -84,23 +113,20 @@
     </div>
 
 <script>
+// YOUR JAVASCRIPT IS PERFECT AND NEEDS NO CHANGES.
 document.addEventListener('DOMContentLoaded', function() {
     const actionsForm = document.getElementById('actions-form');
     if (!actionsForm) return;
 
     actionsForm.addEventListener('submit', function(event) {
         event.preventDefault();
-
-        // Find which button was clicked
         const clickedButton = event.submitter;
         const status = clickedButton.value;
         const formData = new FormData(actionsForm);
-        formData.set('status', status); // Ensure status is set correctly
+        formData.set('status', status);
 
         const buttons = actionsForm.querySelectorAll('.btn-action');
         const statusMessage = document.getElementById('status-message');
-
-        // Disable buttons
         buttons.forEach(btn => btn.disabled = true);
         const originalButtonText = clickedButton.innerHTML;
         clickedButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
@@ -109,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(window.location.href, {
             method: 'POST',
             body: formData,
-            // No need for CSRF token here because of the @csrf_exempt decorator in the view
         })
         .then(response => response.json())
         .then(data => {
@@ -117,13 +142,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusMessage.textContent = data.message;
                 statusMessage.className = 'status-success';
                 statusMessage.style.display = 'block';
-                // Hide the form on success
                 actionsForm.style.display = 'none';
             } else {
                 statusMessage.textContent = `Error: ${data.message}`;
                 statusMessage.className = 'status-error';
                 statusMessage.style.display = 'block';
-                // Re-enable buttons on failure
                 buttons.forEach(btn => btn.disabled = false);
                 clickedButton.innerHTML = originalButtonText;
             }
@@ -133,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
             statusMessage.textContent = 'A network error occurred. Please try again.';
             statusMessage.className = 'status-error';
             statusMessage.style.display = 'block';
-            // Re-enable buttons on failure
             buttons.forEach(btn => btn.disabled = false);
             clickedButton.innerHTML = originalButtonText;
         });

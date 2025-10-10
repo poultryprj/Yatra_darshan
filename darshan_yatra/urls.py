@@ -72,5 +72,8 @@ urlpatterns = [
 
     path("diwali_all_registrations/",views.diwali_all_registrations,name='diwali_all_registrations'),
 
-    path('rationcardscan/' , views.rationcardscan , name='rationcardscan'),   
+    path('rationcardscan/' , views.rationcardscan , name='rationcardscan'),  
+
+
+    path("change_diwali_token/", views.change_diwali_token, name="change_diwali_token"), 
 ]
