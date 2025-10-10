@@ -2056,6 +2056,7 @@ def diwali_registration(request):
                 "AreaId": int(head_details.get("AreaId", 1)),
                 "Address": head_details.get("address", ""),
                 "RationCardPhoto": ration_card_url or head_details.get("existingRationCardPhoto", ""),
+                "UserId":request.session["user_id"],
             }
 
             if record_id and record_id != "0":
@@ -2105,6 +2106,7 @@ def diwali_registration(request):
                     "ParentId": str(head_reg_id),
                     "AreaId": int(head_details.get("AreaId", 1)),
                     "Address": head_details.get("address", ""),
+                    "UserId":request.session["user_id"],
                 }
                 
                 member_id = member.get("registrationId")
@@ -2139,6 +2141,7 @@ def diwali_registration(request):
                         qr_img.save(qr_path)
 
             else:
+                TokenNo1=0
                 print('already token genearation...')
             # Return a more detailed success response
             return JsonResponse({ 
