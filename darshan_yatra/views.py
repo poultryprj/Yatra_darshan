@@ -557,39 +557,63 @@ def TicketBookingApi(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        
         try:
+            # ✅ Search registrations
             if action == 'search_registrations':
                 mobile_no = request.POST.get('MobileNo', '')
                 if not mobile_no:
                     return JsonResponse({"message_code": 999, "message_text": "Mobile number is required."})
                 
                 api_url = f"{API_BASE_URL}searchregistrations/"
-                # --- THIS IS THE KEY FIX ---
-                # The mobile number must be sent in the JSON payload for a POST request.
                 payload = {"MobileNo": mobile_no}
                 response = requests.post(api_url, json=payload, verify=False, timeout=15)
-                
                 return JsonResponse(response.json(), status=response.status_code)
-            
-            elif action == 'add_registration' or action == 'update_registration':
-                payload = {
-                    "Firstname": request.POST.get('Firstname'), "Middlename": request.POST.get('Middlename'),
-                    "Lastname": request.POST.get('Lastname'), "MobileNo": request.POST.get('MobileNo'),
-                    "AlternateMobileNo": request.POST.get('AlternateMobileNo'), "Address": request.POST.get('Address'),
-                    "AreaId": request.POST.get('AreaId'), "Gender": request.POST.get('Gender'),
-                    "BloodGroup": request.POST.get('BloodGroup'), "DateOfBirth": request.POST.get('DateOfBirth'),
-                    "AadharNumber": request.POST.get('AadharNumber'), "UserId": request.session.get('user_id', 1)
-                }
-                if action == 'add_registration':
-                    api_url = f"{API_BASE_URL}insertregistration/"
+
+            # ✅ Load dropdowns
+            elif action == 'load_dropdowns':
+                dropdown_type = request.POST.get('dropdown_type')
+                if dropdown_type == 'gender':
+                    api_url = f"{API_BASE_URL}listgender/"
+                elif dropdown_type == 'area':
+                    api_url = f"{API_BASE_URL}listarea/"
+                elif dropdown_type == 'bloodgroup':
+                    api_url = f"{API_BASE_URL}listbloodgroup/"
                 else:
-                    registration_id = request.POST.get('RegistrationId')
-                    if not registration_id:
-                        return JsonResponse({"message_code": 999, "message_text": "Registration ID is required for updates."})
-                    payload['RegistrationId'] = int(registration_id)
-                    api_url = f"{API_BASE_URL}modifyregistration/"
-                
+                    return JsonResponse({"message_code": 999, "message_text": "Invalid dropdown type."})
+
+                response = requests.get(api_url, verify=False, timeout=15)
+                return JsonResponse(response.json(), status=response.status_code)
+
+            # ✅ Add or Update registration (same API with RegistrationId)
+            elif action in ['add_registration', 'update_registration']:
+                payload = {
+                    "userMobileNo": request.POST.get('MobileNo'),
+                    "userAlternateMobileNo": request.POST.get('AlternateMobileNo'),
+                    "userFirstname": request.POST.get('Firstname'),
+                    "userMiddlename": request.POST.get('Middlename'),
+                    "userLastname": request.POST.get('Lastname'),
+                    "Address": request.POST.get('Address'),
+                    "AreaId": request.POST.get('AreaId'),
+                    "Gender": request.POST.get('Gender'),
+                    "BloodGroup": request.POST.get('BloodGroup'),
+                    "DateOfBirth": request.POST.get('DateOfBirth'),
+                    "AadharNumber": request.POST.get('AadharNumber'),
+                    "UserId": request.session.get('user_id', 1),
+                    "Photo": request.POST.get('Photo'),
+                    "PhotoId": request.POST.get('PhotoId'),
+                    "VoterId": request.POST.get('VoterId'),
+                    "PhotoFileName": request.POST.get('PhotoFileName'),
+                    "IdProofFileName": request.POST.get('IdProofFileName'),
+                }
+
+                # Include RegistrationId only for update
+                if action == 'update_registration':
+                    reg_id = request.POST.get('RegistrationId')
+                    if not reg_id:
+                        return JsonResponse({"message_code": 999, "message_text": "Registration ID required."})
+                    payload["RegistrationId"] = reg_id
+
+                api_url = f"{API_BASE_URL}pilgrimregistration/"
                 response = requests.post(api_url, json=payload, verify=False, timeout=15)
                 return JsonResponse(response.json(), status=response.status_code)
 
@@ -597,7 +621,7 @@ def TicketBookingApi(request):
                 return JsonResponse({"status": "error", "message": "Invalid action specified."})
 
         except Exception as e:
-            return JsonResponse({"status": "error", "message": f"An unexpected server error occurred: {str(e)}"})
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
