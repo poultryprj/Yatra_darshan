@@ -1962,6 +1962,10 @@ def get_whatsapp_templates_api(request):
 
 # ########### Diwali Kirana ####################
 
+
+
+# ########### Diwali Kirana ####################
+
 def home(request):
     """
     Renders the new home page after login.
@@ -2014,7 +2018,7 @@ def diwali_registration(request):
         #         "reg_id":620,  
         #     })
         if request.POST.get("action") == "submit":
-            api_url = "https://www.lakshyapratishthan.com/apis/pilgrimregistration"
+            api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/diwaliregistration/"
 
             # --- File Upload Logic (no changes here) ---
             ration_card_url = None
@@ -2056,7 +2060,8 @@ def diwali_registration(request):
                 "AreaId": int(head_details.get("AreaId", 1)),
                 "Address": head_details.get("address", ""),
                 "RationCardPhoto": ration_card_url or head_details.get("existingRationCardPhoto", ""),
-                "UserId":request.session["user_id"],
+                # "UserId":request.session["user_id"],
+                "UserId": 1,
             }
 
             if record_id and record_id != "0":
@@ -2132,7 +2137,7 @@ def diwali_registration(request):
             qr_filename = f"{head_reg_id}.png"
             qr_path = os.path.join(qr_dir, qr_filename)
             if not os.path.exists(qr_path):
-                token_resp = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no,"TokenNo":TokenNo}, headers=headers, verify=False, timeout=10)
+                token_resp = requests.post("http://127.0.0.1:8000/LakshyaPratishthan/api/add_diwali_kirana/", json={"RegistrationId":head_reg_id,"RationCardNo":ration_card_no,"TokenNo":TokenNo}, headers=headers, verify=False, timeout=10)
                 if token_resp.ok and token_resp.json().get('message_data'):
                     TokenURL = token_resp.json().get('message_data').get('TokenURL') or None
                     TokenNo1 = token_resp.json().get('message_data').get('TokenNo') or None
@@ -2159,7 +2164,7 @@ def diwali_registration(request):
             if data.get("action") == "check_ration":
                 ration_card_no = data.get("RationCardNo")
                 if not ration_card_no: return JsonResponse({"message_code": 999, "message_text": "Ration Card number is required."})
-                api_url_check = "https://www.lakshyapratishthan.com/apis/checkrationcard"
+                api_url_check = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
                 payload = {"SearchString": ration_card_no}
                 response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
                 return JsonResponse(response.json())
@@ -2182,7 +2187,7 @@ def diwali_all_registrations(request):
 
     all_families = []
     try:
-        api_url = "https://www.lakshyapratishthan.com/apis/listdiwalikirana"
+        api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
 
         payload = {} 
         
@@ -2348,7 +2353,7 @@ def change_diwali_token(request):
         if not all([old_token, new_token, reg_id]):
             return JsonResponse({"status": "error", "message": "Missing required data."}, status=400)
 
-        api_url = "https://www.lakshyapratishthan.com/apis/changediwalitoken"
+        api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/change_diwali_token/"
         payload = {
             "OldTokenNo": int(old_token),
             "NewTokenNo": int(new_token),
