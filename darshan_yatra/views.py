@@ -432,13 +432,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in aadhar_file.chunks():
                                 dest.write(chunk)
-                        aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
+                        aadhar_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(aadhar_file)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        aadhar_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/adhar/{file_name}.png"
+                        aadhar_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/adhar/{file_name}.png"
 
                 # --- Save Profile Pic ---
                 if profile_file:
@@ -451,13 +451,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in profile_file.chunks():
                                 dest.write(chunk)
-                        profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.pdf"
+                        profile_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/profile/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(profile_file)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        profile_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/profile/{file_name}.png"
+                        profile_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/profile/{file_name}.png"
 
                 # --- Save VoterID Pic ---
                 if voterId_File:
@@ -470,13 +470,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in voterId_File.chunks():
                                 dest.write(chunk)
-                        voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
+                        voterId_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(voterId_File)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        voterId_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/voterId/{file_name}.png"
+                        voterId_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/voterId/{file_name}.png"
                 
                 # --- Intelligent Payload Preparation ---
                 dob_in = request.POST.get("DateOfBirth", "")
@@ -538,92 +538,92 @@ def registration_api1(request):
     except Exception as e:
         return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
 
-def TicketBooking(request):
-    """
-    Renders the main Yatra Darshan Booking page.
-    """
-    if 'user_id' not in request.session:
-        messages.error(request, "Please login first.")
-        return redirect('login')
-    return render(request, 'TicketBooking.html')
+# def TicketBooking(request):
+#     """
+#     Renders the main Yatra Darshan Booking page.
+#     """
+#     if 'user_id' not in request.session:
+#         messages.error(request, "Please login first.")
+#         return redirect('login')
+#     return render(request, 'TicketBooking.html')
 
-@csrf_exempt
-def TicketBookingApi(request):
-    """
-    Handles all API requests from the booking page frontend.
-    """
-    if 'user_id' not in request.session:
-        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+# @csrf_exempt
+# def TicketBookingApi(request):
+#     """
+#     Handles all API requests from the booking page frontend.
+#     """
+#     if 'user_id' not in request.session:
+#         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        try:
-            # ✅ Search registrations
-            if action == 'search_registrations':
-                mobile_no = request.POST.get('MobileNo', '')
-                if not mobile_no:
-                    return JsonResponse({"message_code": 999, "message_text": "Mobile number is required."})
+#     if request.method == 'POST':
+#         action = request.POST.get('action')
+#         try:
+#             # ✅ Search registrations
+#             if action == 'search_registrations':
+#                 mobile_no = request.POST.get('MobileNo', '')
+#                 if not mobile_no:
+#                     return JsonResponse({"message_code": 999, "message_text": "Mobile number is required."})
                 
-                api_url = f"{API_BASE_URL}searchregistrations/"
-                payload = {"MobileNo": mobile_no}
-                response = requests.post(api_url, json=payload, verify=False, timeout=15)
-                return JsonResponse(response.json(), status=response.status_code)
+#                 api_url = f"{API_BASE_URL}searchregistrations/"
+#                 payload = {"MobileNo": mobile_no}
+#                 response = requests.post(api_url, json=payload, verify=False, timeout=15)
+#                 return JsonResponse(response.json(), status=response.status_code)
 
-            # ✅ Load dropdowns
-            elif action == 'load_dropdowns':
-                dropdown_type = request.POST.get('dropdown_type')
-                if dropdown_type == 'gender':
-                    api_url = f"{API_BASE_URL}listgender/"
-                elif dropdown_type == 'area':
-                    api_url = f"{API_BASE_URL}listarea/"
-                elif dropdown_type == 'bloodgroup':
-                    api_url = f"{API_BASE_URL}listbloodgroup/"
-                else:
-                    return JsonResponse({"message_code": 999, "message_text": "Invalid dropdown type."})
+#             # ✅ Load dropdowns
+#             elif action == 'load_dropdowns':
+#                 dropdown_type = request.POST.get('dropdown_type')
+#                 if dropdown_type == 'gender':
+#                     api_url = f"{API_BASE_URL}listgender/"
+#                 elif dropdown_type == 'area':
+#                     api_url = f"{API_BASE_URL}listarea/"
+#                 elif dropdown_type == 'bloodgroup':
+#                     api_url = f"{API_BASE_URL}listbloodgroup/"
+#                 else:
+#                     return JsonResponse({"message_code": 999, "message_text": "Invalid dropdown type."})
 
-                response = requests.get(api_url, verify=False, timeout=15)
-                return JsonResponse(response.json(), status=response.status_code)
+#                 response = requests.get(api_url, verify=False, timeout=15)
+#                 return JsonResponse(response.json(), status=response.status_code)
 
-            # ✅ Add or Update registration (same API with RegistrationId)
-            elif action in ['add_registration', 'update_registration']:
-                payload = {
-                    "userMobileNo": request.POST.get('MobileNo'),
-                    "userAlternateMobileNo": request.POST.get('AlternateMobileNo'),
-                    "userFirstname": request.POST.get('Firstname'),
-                    "userMiddlename": request.POST.get('Middlename'),
-                    "userLastname": request.POST.get('Lastname'),
-                    "Address": request.POST.get('Address'),
-                    "AreaId": request.POST.get('AreaId'),
-                    "Gender": request.POST.get('Gender'),
-                    "BloodGroup": request.POST.get('BloodGroup'),
-                    "DateOfBirth": request.POST.get('DateOfBirth'),
-                    "AadharNumber": request.POST.get('AadharNumber'),
-                    "UserId": request.session.get('user_id', 1),
-                    "Photo": request.POST.get('Photo'),
-                    "PhotoId": request.POST.get('PhotoId'),
-                    "VoterId": request.POST.get('VoterId'),
-                    "PhotoFileName": request.POST.get('PhotoFileName'),
-                    "IdProofFileName": request.POST.get('IdProofFileName'),
-                }
+#             # ✅ Add or Update registration (same API with RegistrationId)
+#             elif action in ['add_registration', 'update_registration']:
+#                 payload = {
+#                     "userMobileNo": request.POST.get('MobileNo'),
+#                     "userAlternateMobileNo": request.POST.get('AlternateMobileNo'),
+#                     "userFirstname": request.POST.get('Firstname'),
+#                     "userMiddlename": request.POST.get('Middlename'),
+#                     "userLastname": request.POST.get('Lastname'),
+#                     "Address": request.POST.get('Address'),
+#                     "AreaId": request.POST.get('AreaId'),
+#                     "Gender": request.POST.get('Gender'),
+#                     "BloodGroup": request.POST.get('BloodGroup'),
+#                     "DateOfBirth": request.POST.get('DateOfBirth'),
+#                     "AadharNumber": request.POST.get('AadharNumber'),
+#                     "UserId": request.session.get('user_id', 1),
+#                     "Photo": request.POST.get('Photo'),
+#                     "PhotoId": request.POST.get('PhotoId'),
+#                     "VoterId": request.POST.get('VoterId'),
+#                     "PhotoFileName": request.POST.get('PhotoFileName'),
+#                     "IdProofFileName": request.POST.get('IdProofFileName'),
+#                 }
 
-                # Include RegistrationId only for update
-                if action == 'update_registration':
-                    reg_id = request.POST.get('RegistrationId')
-                    if not reg_id:
-                        return JsonResponse({"message_code": 999, "message_text": "Registration ID required."})
-                    payload["RegistrationId"] = reg_id
+#                 # Include RegistrationId only for update
+#                 if action == 'update_registration':
+#                     reg_id = request.POST.get('RegistrationId')
+#                     if not reg_id:
+#                         return JsonResponse({"message_code": 999, "message_text": "Registration ID required."})
+#                     payload["RegistrationId"] = reg_id
 
-                api_url = f"{API_BASE_URL}pilgrimregistration/"
-                response = requests.post(api_url, json=payload, verify=False, timeout=15)
-                return JsonResponse(response.json(), status=response.status_code)
+#                 api_url = f"{API_BASE_URL}pilgrimregistration/"
+#                 response = requests.post(api_url, json=payload, verify=False, timeout=15)
+#                 return JsonResponse(response.json(), status=response.status_code)
 
-            else:
-                return JsonResponse({"status": "error", "message": "Invalid action specified."})
+#             else:
+#                 return JsonResponse({"status": "error", "message": "Invalid action specified."})
 
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    return JsonResponse({"status": "error", "message": "Invalid request method."})
+#     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 
 def route_master(request):

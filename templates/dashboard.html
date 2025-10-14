@@ -89,7 +89,7 @@
     <div class="content-section">
         <h4 class="section-title">Menu Options</h4>
         <div class="menu-grid">
-            <a href="{% url 'TicketBooking' %}" class="menu-item"><i class="fa-solid fa-ticket"></i><span class="menu-text">Yatra Ticket<br>Booking</span></a>
+            <a href="{% url 'Registrationpage1' %}" class="menu-item"><i class="fa-solid fa-ticket"></i><span class="menu-text">Yatra Ticket<br>Booking</span></a>
             <a href="#" class="menu-item"><i class="fa-solid fa-magnifying-glass"></i><span class="menu-text">Search<br>Registration</span></a>
             {% if request.session.user_role != "2" %}
                 <a href="{% url 'user_master' %}" class="menu-item"><i class="fa-solid fa-users-gear"></i><span class="menu-text">User<br>Management</span></a>

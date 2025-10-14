@@ -8,8 +8,8 @@ urlpatterns = [
 
     path('', views.login, name='login'),
 
-    path('TicketBooking', views.TicketBooking, name='TicketBooking'),
-    path('TicketBookingApi', views.TicketBookingApi, name='TicketBookingApi'),
+    # path('TicketBooking', views.TicketBooking, name='TicketBooking'),
+    # path('TicketBookingApi', views.TicketBookingApi, name='TicketBookingApi'),
     
     path('Registrationpage1', views.Registrationpage1, name='Registrationpage1'),
     path("registration_api1/", views.registration_api1, name="registration_api1"),

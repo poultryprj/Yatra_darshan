@@ -1,1748 +1,1440 @@
 {% load i18n %}
 {% load static %}
 {% load pwa %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Yatra Darshan - Registration</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yatra Darshan Booking</title>
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --brand-orange: #ff7b00;
+            --brand-orange-dark: #e67000;
+            --brand-blue: #003399;
+            --brand-green: #006633;
+        }
 
-  <style>
-    /* palette & base */
-    :root{
-      --brand-orange: #ff7b00;
-      --brand-orange-dark: #e67000;
-      --brand-blue: #003399;
-      --brand-green: #006633;
-    }
-    body{ background:#f0f2f5; font-family: Arial, sans-serif; margin:0; padding:0; }
+        body {
+            background: #f0f2f5;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-    /* top navbar */
-    .navbar{ background:var(--brand-orange); height:55px; }
-    .navbar-brand{ color:#fff; font-weight:600; font-size:18px; }
-    .navbar-toggler{ border:none; background:#fff; border-radius:6px; padding:6px 8px; }
+        .navbar {
+            background: var(--brand-orange);
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    /* drawer */
-    .drawer{ position:fixed; top:55px; left:-100%; width:68%; height:calc(100% - 55px); background:#fff; transition:left .28s; z-index:1100; box-shadow:2px 0 8px rgba(0,0,0,.08); overflow:auto; }
-    .drawer.open{ left:0; }
-    .drawer .additional-content{ padding:12px; text-align:center; background:#f8f9fb; position:sticky; top:0; }
-    .drawer ul{ padding:12px; }
-    .drawer ul li{ list-style:none; margin-bottom:6px; }
+        .navbar-brand {
+            color: #fff;
+            font-weight: 600;
+            font-size: 20px;
+        }
 
-    /* main container card */
-    .container-reg{ max-width:980px; margin:84px auto 40px; padding:0 12px; }
-    .card-main{ border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.06); overflow:hidden; }
+        .container-main {
+            max-width: 980px;
+            margin: 75px auto 40px;
+            padding: 0 12px;
+        }
 
-    /* row with search + add (single-line) */
-    .search-row{ padding:18px; display:flex; gap:10px; align-items:center; background:#fff; }
-    .search-grow{ flex:1; position:relative; }
-    .search-icon-btn{
-      position:absolute; right:6px; top:50%; transform:translateY(-50%);
-      border-radius:6px; border:none; background:var(--brand-orange); color:#fff; width:40px; height:40px;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .search-icon-btn:hover{ background:var(--brand-orange-dark); }
+        .card-main {
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+            overflow: hidden;
+            background-color: #fff;
+        }
 
-    /* small Add button: same height as search icon */
-    .small-add{
-      width:40px; height:40px; border-radius:8px; border:none; display:flex; align-items:center; justify-content:center;
-      background:#198754; color:#fff; flex:0 0 auto;
-    }
-    .small-add:hover{ background:#146c43; }
+        .search-bar-top {
+            padding: 18px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-    /* list area */
-    .results-area{ padding:12px 18px 24px 18px; background:#fff; }
-    .listview .list-group-item{ border:0; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0f0f0; cursor:pointer; }
-    .listview .list-group-item:hover{ background:#fbfbff; }
+        .search-grow {
+            flex: 1;
+            position: relative;
+        }
 
-    /* single-line user details (exclude mobile) */
-    .item-left{ display:flex; gap:12px; align-items:center; }
-    .item-reg{ font-weight:600; color:var(--brand-blue); min-width:90px; }
-    .item-name{ font-weight:600; color:#333; }
-    .item-meta{ color:#6c757d; font-size:0.9rem; }
+        .search-grow input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 0 45px 0 10px;
+            font-size: 1rem;
+        }
 
-    .item-right{ text-align:right; color:#6c757d; font-size:0.88rem; min-width:120px; }
+        .search-icon-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 6px;
+            border: none;
+            background: var(--brand-orange);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
 
-    /* floating animated inputs for the action bottom sheet */
-    /* floating label system */
-    .floating {
-    position: relative;
-    margin-top: 16px;
-    }
-    .floating input,
-        .floating select {
-        width: 100%;
-        padding: 14px 12px 12px 12px;
-        border: none;
-        border-bottom: 1px solid #ccc;
-        border-radius: 0;
-        background: transparent;
-        outline: none;
-        font-size: 15px;
-    }
-    .floating label {
-        position: absolute;
-        left: 12px;
-        top: 12px;
-        font-size: 14px;
-        color: #6c757d;
-        pointer-events: none;
-        transition: all 0.2s ease;
-    }
-    /* 🔥 move label up when focused or input has text */
+        .search-icon-btn:hover {
+            background: var(--brand-orange-dark);
+        }
+
+        .nav-tabs .nav-link {
+            color: #495057;
+            border: none;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--brand-orange);
+            border-color: var(--brand-orange);
+            background-color: #fff;
+        }
+
+        .tab-content {
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .registration-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .registration-list-header h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .listview .list-group-item {
+            border: 0;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+
+        .listview .list-group-item:hover {
+            background: #fbfbff;
+        }
+
+        .item-line {
+            font-size: 14px;
+        }
+
+        .btn-add-reg {
+            background: var(--brand-green);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .btn-add-reg:hover {
+            background: #005a2e;
+        }
+
+        .section-header {
+            font-weight: 600;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .floating {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .floating input,
+        .floating select,
+        .floating textarea {
+            width: 100%;
+            padding: 12px 10px 10px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: #fff;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .floating input:focus,
+        .floating select:focus,
+        .floating textarea:focus {
+            border-color: var(--brand-orange);
+            box-shadow: 0 0 0 0.25rem rgba(255, 123, 0, 0.25);
+        }
+
+        .floating label {
+            position: absolute;
+            left: 10px;
+            top: 12px;
+            font-size: 14px;
+            color: #6c757d;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background: #fff;
+            padding: 0 4px;
+            margin-left: -4px;
+        }
+
         .floating input:focus + label,
         .floating input:not(:placeholder-shown) + label,
         .floating select:focus + label,
-        .floating select:not([value=""]) + label {
-        top: -6px;
-        font-size: 12px;
-        color: var(--brand-green);
-        background: #fff;
-        padding: 0 4px;
-    }
+        .floating select:not([value=""]) + label,
+        .floating textarea:focus + label,
+        .floating textarea:not(:placeholder-shown) + label {
+            top: -8px;
+            font-size: 11px;
+            color: var(--brand-orange);
+        }
 
-    /* bottom sheet submit button */
-    .btn-submit{ background:var(--brand-orange); color:#fff; border:none; border-radius:10px; padding:12px; }
-    .btn-submit:hover{ background:var(--brand-orange-dark); }
+        .btn-submit {
+            background: var(--brand-orange);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            font-size: 1rem;
+            cursor: pointer;
+        }
 
-    /* offcanvas (bottom) header */
-    .offcanvas-bottom .offcanvas-header{ background:var(--brand-orange); color:#fff; }
-    {% comment %} .offcanvas-bottom .offcanvas-header{ background:var(--brand-blue); color:#fff; } {% endcomment %}
-    .offcanvas-bottom .offcanvas-body{ padding:16px; background:#fff; }
+        .btn-submit:hover {
+            background: var(--brand-orange-dark);
+        }
 
-    /* responsive tweaks */
-    @media (max-width:520px){
-      .container-reg{ margin:72px 8px 20px; }
-      .item-right{ min-width:80px; font-size:0.8rem; }
-    }
+        .offcanvas-end {
+            width: 400px !important;
+            max-width: 90vw;
+        }
 
-    /* search box same size as icon */
-    .search-grow input {
-    width: 220px;
-    height: 40px;
-    border: 1px solid #ccc;
-    text-align: center;
-    }
+        .offcanvas-header {
+            background: var(--brand-orange);
+            color: #fff;
+            padding: 15px 20px;
+        }
 
-    .item-line {
-        font-size: 14px;
-        white-space: nowrap;  /* keeps everything on one line */
-    }
+        .offcanvas-title {
+            color: #fff;
+            font-size: 18px;
+        }
 
-    .card-body { padding: 1rem; }
-    #yatraList .card { margin-bottom: 8px; 
-    }
+        .offcanvas-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
 
-    .btn-submit{ background:var(--brand-orange); color:#fff; border:none; border-radius:10px; padding:12px; }
-    .btn-submit:hover{ background:var(--brand-orange-dark); }
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
 
-    #loader {
-      position: fixed;
-      left: 0;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 99999;
-      background: #6236FF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-    }
+        #yatraList .card {
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        #yatraList .card-body {
+            padding: 12px;
+        }
+        .yatra-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .yatra-item-actions .btn {
+            padding: 4px 8px;
+            font-size: 0.85rem;
+        }
+        .yatra-summary {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .yatra-summary strong {
+            color: #333;
+        }
 
-    #loader .loading-icon {
-      width: 42px;
-      height: auto;
-      animation: loadingAnimation 0.5s ease-in-out infinite;
-    }
+        .form-control-file {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-size: 14px;
+        }
+        .next-tab-button {
+          margin-top: 20px;
+          text-align: right;
+        }
+        .next-tab-button .btn {
+          background-color: var(--brand-blue);
+          border-color: var(--brand-blue);
+        }
+        .next-tab-button .btn:hover {
+          background-color: #002b80;
+          border-color: #002b80;
+        }
 
-    #loader.hidden {
-      display: none;
-    }
+        .history-filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
 
-    @keyframes loadingAnimation {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(180deg);
-      }
-    }
+        .form-file-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 5px;
+        }
 
+        .compact-form .row {
+            margin-bottom: 0;
+        }
 
-    body.animationGoBack {
-      overflow: hidden;
-    }
+        .compact-form .floating {
+            margin-bottom: 12px;
+        }
 
-    body.animationGoBack .appHeader,
-    body.animationGoBack .appBottomMenu,
-    body.animationGoBack .extraHeader,
-    body.animationGoBack #appCapsule {
-      transform: translate(100%, 0);
-      transition: all .24s linear;
-    }
-
-    body.animationGoBack:after {
-      content: "";
-      display: block;
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-      background-color: #6236FF;
-      background-image: url("../img/loading-icon.png");
-      background-repeat: no-repeat;
-      background-size: 42px auto;
-      background-position: center center;
-      z-index: 9999;
-      animation: animationGoBack .24s linear;
-    }
-
-    @keyframes animationGoBack {
-      0% {
-        left: -100%;
-      }
-      100% {
-        left: 0;
-      }
-    }
-
-  </style>
+        .compact-form textarea {
+            min-height: 60px;
+        }
+    </style>
 </head>
 <body>
-  <!-- loader -->
-  <div id="loader"style="display: none;">
-      <img src="{% static 'assets/img/loading-icon.png' %}" alt="icon" class="loading-icon">
-  </div>
+    <!-- Topbar -->
+    <nav class="navbar fixed-top">
+        <span class="navbar-brand">Yatra Darshan Booking</span>
+    </nav>
 
-<!-- Topbar -->
-<nav class="navbar navbar-expand-lg fixed-top">
-  <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
-    <button id="menuBtn" class="navbar-toggler" type="button" style="position:absolute; left:12px;">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <span class="navbar-brand" style="position:absolute; left:50%; transform:translateX(-50%);">
-      Welcome - {{ user.first_name }} {{ user.last_name }}
-    </span>
-  </div>
-</nav>
+    <!-- Main Content Container -->
+    <div class="container-main">
+        <div class="card-main">
+            <!-- Search Bar at the very top -->
+            <div class="search-bar-top">
+                <div class="search-grow">
+                    <input id="searchMobile" type="tel" maxlength="10" placeholder="Mobile Number" autocomplete="off" />
+                    <button id="btnSearch" class="search-icon-btn" title="Search">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
 
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="registration-tab" data-bs-toggle="tab" data-bs-target="#registration" type="button" role="tab" aria-controls="registration" aria-selected="true">Registration</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="booking-tab" data-bs-toggle="tab" data-bs-target="#booking" type="button" role="tab" aria-controls="booking" aria-selected="false">Booking</button>
+                </li>
+            </ul>
 
-<!-- Side Drawer -->
-<div id="drawer" class="drawer">
-  <div class="additional-content">
-    <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" width="92" height="92" class="rounded-circle" alt="logo">
-    <div style="margin-top:8px;"><b style="color:#000;">Darshan Yatra</b></div>
-    <button onclick="closeDrawer()" class="btn btn-sm position-absolute" style="right:8px; top:8px;"><i class="bi bi-x-lg"></i></button>
-  </div>
-  {% comment %} <ul>
-    <li><a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-house-door me-2"></i> Home</a>
-    </li>
+            <!-- Tab Content -->
+            <div class="tab-content" id="myTabContent">
+                <!-- Registration Tab -->
+                <div class="tab-pane fade show active" id="registration" role="tabpanel" aria-labelledby="registration-tab">
+                    <div id="statusMsg" class="alert d-none"></div>
 
-    <li><a href="{% url 'dashboard' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a>
-    </li>
+                    <div class="registration-list-header">
+                        <h5>Registrations for <strong id="labelMobile"></strong></h5>
+                        <button id="btnAddNew" class="btn-add-reg" title="Add new registration">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div id="regList" class="listview">
+                        <ul id="regItems" class="list-group list-group-flush">
+                            <li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>
+                        </ul>
+                    </div>
+                    <div class="next-tab-button">
+                        <button id="btnRegNext" class="btn btn-primary">Next <i class="bi bi-arrow-right"></i></button>
+                    </div>
 
-    <li><a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-people-fill me-2"></i> User Management</a>
-    </li>
+                    <div class="section-header">Booking History</div>
+                    <div class="history-filters">
+                        <div class="floating">
+                            <select id="historyPassenger" placeholder=" ">
+                                <option value="">Select Passenger</option>
+                            </select>
+                            <label>Passenger</label>
+                        </div>
+                        <div class="floating">
+                            <select id="historyYear" placeholder=" ">
+                                <option value="">Select Year</option>
+                            </select>
+                            <label>Year</label>
+                        </div>
+                    </div>
+                    <div id="bookingHistoryList" class="list-group">
+                         <li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>
+                    </div>
+                </div>
 
-    <li><a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-geo-alt-fill me-2"></i> Route Master</a>
-    </li>
+                <!-- Booking Tab -->
+                <div class="tab-pane fade" id="booking" role="tabpanel" aria-labelledby="booking-tab">
+                    <div class="section-header">Select Yatra Details</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <select id="selectRoute" placeholder=" " required>
+                                    <option value="">Select Route*</option>
+                                </select>
+                                <label>Route</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <select id="selectYatra" placeholder=" " required>
+                                    <option value="">Select Yatra*</option>
+                                </select>
+                                <label>Yatra</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <select id="selectBus" placeholder=" " required>
+                                    <option value="">Select Bus*</option>
+                                </select>
+                                <label>Bus</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <select id="selectSeats" multiple placeholder=" " required>
+                                </select>
+                                <label>Select Seats*</label>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple seats.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button id="btnAddTicket" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i> Add Ticket</button>
+                    </div>
 
-    <li><a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-map-fill me-2"></i> Area Master</a>
-    </li>
+                    <div class="section-header mt-4">Added Tickets</div>
+                    <div id="addedTicketsList" class="list-group mb-3">
+                         <li class="list-group-item text-center text-muted py-4">No tickets added yet.</li>
+                    </div>
 
-    <li><a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master</a>
-    </li>
+                    <div class="section-header mt-4">Payment Details</div>
+                    <div class="floating">
+                        <input id="totalFees" type="number" placeholder=" " min="0" readonly>
+                        <label>Total Fees (₹)</label>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <input id="discount" type="number" placeholder=" " min="0" value="0">
+                                <label>Discount (₹)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating">
+                                <input id="discountReason" type="text" placeholder=" ">
+                                <label>Discount Reason</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="floating">
+                        <select id="paymentMode" placeholder=" " required>
+                            <option value="">Select Payment Mode*</option>
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                        </select>
+                        <label>Payment Mode</label>
+                    </div>
 
-    <li><a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-cash-coin me-2"></i> Daily Collection</a>
-    </li>
+                    <div id="upiFields" class="d-none">
+                        <div class="floating">
+                            <input id="transactionId" type="text" placeholder=" ">
+                            <label>UPI Transaction ID</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="upiScreenshot" class="form-label">Upload UPI Screenshot*</label>
+                            <input id="upiScreenshot" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        </div>
+                    </div>
 
-    <li><a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-printer-fill me-2"></i> Print Report</a>
-    </li>
-
-    <li><a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-box-arrow-right me-2"></i> Logout</a>
-    </li>
-</ul> {% endcomment %}
-
-<ul>
-    <li>
-        <a href="{% url 'Registrationpage1' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-house-door me-2"></i> Home
-        </a>
-    </li>
-
-    <li>
-        <a href="{% url 'dashboard' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
-        </a>
-    </li>
-
-    {# ✅ Show these menus only if user_role != 2 #}
-    {% if request.session.user_role != "2" %}
-        <li>
-            <a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-people-fill me-2"></i> User Management
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-geo-alt-fill me-2"></i> Route Master
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-map-fill me-2"></i> Area Master
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master
-            </a>
-        </li>
-    {% endif %}
-
-    <li>
-        <a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-cash-coin me-2"></i> Daily Collection
-        </a>
-    </li>
-
-    <li>
-        <a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-printer-fill me-2"></i> Print Report
-        </a>
-    </li>
-
-    <li>
-        <a href="{% url 'passenger_documents' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-person-badge me-2"></i> Passenger Docs
-        </a>
-    </li>
-
-    <li>
-      <a href="{% url 'area_report' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-pin-map-fill me-2"></i> Area Report</a>
-    </li>
-
-    <li>
-      <a href="{% url 'whatsapp_messaging_page' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-whatsapp me-2"></i> WhatsApp SMS
-      </a>
-    </li>
-
-    <li>
-        <a href="{% url 'logout' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-box-arrow-right me-2"></i> Logout
-        </a>
-    </li>
-</ul>
-
-
-</div>
-
-<!-- main content -->
-<div class="container-reg">
-
-  <!-- Row with 3 count inputs -->
-  <!-- Row with 3 count inputs -->
-<div class="row mb-2 align-items-center">
-  <!-- Label -->
-  <div class="col-auto">
-    <label for="Count1" class="col-form-label fw-bold">Group Count</label>
-  </div>
-
-  <!-- 3 inputs -->
-  <div class="col">
-    <div class="d-flex gap-2">
-      <input id="Count1" type="number" class="form-control" value="1">
-      <input id="Count2" type="number" class="form-control" value="1" >
-      <input id="Count3" type="number" class="form-control" value="1" >
-    </div>
-    <!-- ✅ Message area below inputs -->
-    <div id="countMessage" class="mt-2 text-danger fw-bold"></div>
-  </div>
-</div>
-
-
-
-  <div class="card-main">
-
-    <!-- search + add -->
-    <div class="search-row">
-        <div class="search-grow">
-            <input id="searchMobile" type="tel" maxlength="10" 
-                placeholder="Mobile Number" autocomplete="off"
-                style="text-align:left; padding-left:10px; height:40px; border:1px solid #ccc; border-radius:6px;" />
-            <button id="btnSearch" class="search-icon-btn" title="Search">
-                <i class="bi bi-search"></i>
-            </button>
+                    <div class="mt-4 d-grid">
+                        <button id="submitBooking" type="button" class="btn-submit">
+                            <i class="bi bi-check2-circle me-1"></i> Submit Booking
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-      <!-- small add icon (same size as search) - placed inline -->
-      <button id="btnAddNew" class="small-add" title="Add new registration for same mobile">
-        <i class="bi bi-plus-lg"></i>
-      </button>
     </div>
 
-    <!-- status -->
-    <div id="statusMsg" class="px-3 py-2 d-none"></div>
+    <!-- Registration/Update Side Panel (Offcanvas) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="regActionBar" aria-labelledby="regActionBarLabel">
+        <div class="offcanvas-header">
+            <h5 id="regActionBarLabel" class="offcanvas-title">Pilgrim Registration</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="regForm" class="compact-form" autocomplete="off">
+                <input id="RegistrationId" type="hidden" value="0">
 
-    <!-- results box -->
-    <div id="resultsWrap" class="results-area d-none">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="text-muted">Registrations for <strong id="labelMobile"></strong></div>
-        <div><span id="resultCount" class="badge bg-secondary">0</span></div>
-      </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="MobileNo" type="tel" placeholder=" " maxlength="10" required>
+                            <label>Mobile No. *</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10">
+                            <label>Alternate Mobile</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="Firstname" type="text" placeholder=" " required>
+                            <label>First Name *</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="Middlename" type="text" placeholder=" ">
+                            <label>Middle Name</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="Lastname" type="text" placeholder=" " required>
+                            <label>Last Name *</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <select id="AreaId" placeholder=" " required><option value="">Select Area*</option></select>
+                            <label>Area *</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="floating">
+                            <textarea id="Address" placeholder=" " rows="2" required></textarea>
+                            <label>Address *</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
+                            <label>Gender</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
+                            <label>Blood Group</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="DateOfBirth" type="date" placeholder=" ">
+                            <label>Date of Birth</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="floating">
+                            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
+                            <label>Aadhar No.</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label for="AadharUpload" class="form-file-label">Aadhar Upload</label>
+                        <input id="AadharUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <input type="hidden" id="IdProofFileName" value="">
+                    </div>
+                    <div class="col-12">
+                        <label for="ProfilePicUpload" class="form-file-label">Profile Picture</label>
+                        <input id="ProfilePicUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <input type="hidden" id="PhotoFileName" value="">
+                    </div>
+                    <div class="col-12">
+                        <label for="VoterIdUpload" class="form-file-label">Voter ID Upload</label>
+                        <input id="VoterIdUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <input type="hidden" id="VoterId" value="">
+                    </div>
+                </div>
 
-      <div id="regList" class="listview">
-        <ul id="regItems" class="list-group list-group-flush"></ul>
-      </div>
+                <div class="mt-3 d-grid">
+                    <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Second Part: Selected Yatras + Payment Details -->
-    <div id="yatraPaymentSection" class="results-area mt-3 d-none">
-      <!-- Selected Yatras -->
-      <div class="mb-2" style="font-weight:600; color:#333;">Selected Yatras</div>
-      <div id="selectedYatras" class="list-group mb-3"></div>
-
-      <!-- Payment Details -->
-      <div class="mb-2" style="font-weight:600; color:#333;">Payment Details</div>
-
-      <!-- Amount Payable -->
-      <div class="floating">
-        <input id="AmountPayable" type="number" placeholder=" " min="0">
-        <label>Amount Payable (₹)</label>
-      </div>
-
-      <!-- Discount -->
-      <div class="floating mt-2">
-        <input id="Discount" type="number" placeholder=" " min="0">
-        <label>Discount (₹)</label>
-      </div>
-
-      <!-- Discount Reason -->
-      <div class="floating mt-2">
-        <input id="DiscountReason" type="text" placeholder=" ">
-        <label>Discount Reason</label>
-      </div>
-
-      <!-- Payment Mode -->
-      <div class="floating mt-2">
-        <select id="PaymentMode" placeholder=" " required >
-          <option value="">Select Payment Mode*</option>
-          <option value="cash">Cash</option>
-          <option value="upi">UPI</option>
-        </select>
-        <label>Payment Mode</label>
-      </div>
-
-      <!-- Conditional UPI Fields -->
-      <div id="upiFields" class="d-none mt-2">
-        <div class="floating">
-          <input id="TransactionId" type="text" placeholder=" ">
-          <label>UPI Transaction ID</label>
-        </div>
-        <div class="mt-2">
-          <label class="form-label">Upload UPI Screenshot*</label>
-          <input id="UPIScreenshot" type="file" class="form-control" accept="image/*,.pdf" required >
-        </div>
-      </div>
-
-      <div class="mt-3 d-grid">
-        {% comment %} <button id="btnBookTicket" type="button" class="btn btn-primary"> {% endcomment %}
-        <button id="btnBookTicket" type="button" class="btn btn-submit">  
-          <i class="bi bi-ticket-perforated-fill me-1"></i> Book Ticket
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- bottom action sheet (offcanvas bottom) -->
-<div class="offcanvas offcanvas-bottom" tabindex="-1" id="regActionBar" aria-labelledby="regActionBarLabel" style="height:fit-content; --bs-offcanvas-height: 64vh;">
-  <div class="offcanvas-header">
-    <h5 id="regActionBarLabel" class="offcanvas-title">Pilgrim Registration</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <form id="regForm" autocomplete="off">
-      <input id="RegistrationId" type="hidden" value="0">
-
-      <!-- Row 1: Mobile + Alternate Mobile -->
-      <div class="d-flex gap-2">
-        <div class="floating" style="flex:1">
-            <input id="MobileNo" type="tel" placeholder=" " maxlength="10" required>
-            <label>Mobile No. *</label>
-        </div>
-        <div class="floating" style="flex:1">
-            <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10">
-            <label>Alternate Mobile</label>
-        </div>
-      </div>
-
-      <!-- Row 2: First Name + Middle Name -->
-      <div class="d-flex gap-2 mt-2">
-        <div class="floating" style="flex:1">
-            <input id="Firstname" type="text" placeholder=" " required>
-            <label>First Name *</label>
-        </div>
-        <div class="floating" style="flex:1">
-            <input id="Middlename" type="text" placeholder=" " required>
-            <label>Middle Name *</label>
-        </div>
-      </div>
-
-      <!-- Row 3: Last Name + Area -->
-      <div class="d-flex gap-2 mt-2">
-        <div class="floating" style="flex:1">
-            <input id="Lastname" type="text" placeholder=" " required>
-            <label>Last Name *</label>
-        </div>
-        <div class="floating" style="flex:1">
-          <select id="AreaId" placeholder=" " required><option value="">Select Area</option></select>
-          <label>Area *</label>
-        </div>
-      </div>
-
-      <!-- Row 4: Address -->
-      <div class="d-flex gap-2 mt-2">
-        <div class="floating" style="flex:1">
-          <input id="Address" type="text" placeholder=" " required>
-          <label>Address *</label>
-        </div>
-        {% comment %} <!-- Zone Preference -->
-        <div class="floating" style="flex:1">
-          <select id="ZonePreference" placeholder=" ">
-            <option value="0" selected>No Preference</option>
-            <option value="1">Front</option>
-            <option value="2">Middle</option>
-            <option value="3">Back</option>
-          </select>
-          <label>Zone Preference</label>
-        </div> {% endcomment %}
-      </div> 
-
-      <!-- Fields to show only in INSERT mode -->
-      <div id="insertOnlyFields">
-        <div class="d-flex gap-2 mt-2">
-          <div class="floating" style="flex:1">
-            <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
-            <label>Gender</label>
-          </div>
-          <div class="floating" style="flex:1">
-            <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
-            <label>Blood Group</label>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2 mt-2">
-          <div class="floating" style="flex:1">
-            <input id="DateOfBirth" type="date" placeholder=" ">
-            <label>Date of Birth</label>
-          </div>
-          <div class="floating" style="flex:1">
-            <input id="AadharNumber" type="text" placeholder=" " maxlength="12">
-            <label>Aadhar No.</label>
-          </div>
-        </div>
-      </div>
-
-    <div class="d-flex gap-2 mt-1">
-      <div class="floating" style="flex:1">
-        <input id="AadharUpload" type="file" accept="image/*,.pdf">
-        <label>Aadhar Upload</label>
-      </div>
-      <div class="floating" style="flex:1">
-        <input id="ProfilePicUpload" type="file" accept="image/*,.pdf">
-        <label>Profile Picture Upload</label>
-      </div>
-    </div>
-
-    <!-- Voter Id Upload -->
-    <div class="d-flex gap-2 mt-1">
-      <div class="floating" style="flex:1">
-        <input type="file" id="VoterIdUpload" name="VoterIdUpload" accept="image/*,.pdf">
-        <label>Voter Id Upload</label>
-      </div>
-    </div>
-
-    <!-- 🔥 Hidden fields to hold old image URLs during update -->
-    <input type="hidden" id="PhotoFileName" name="PhotoFileName" value="">
-    <input type="hidden" id="IdProofFileName" name="IdProofFileName" value="">
-    <input type="hidden" id="VoterId" name="VoterId" value="">
-
-      <div class="mt-3 d-grid">
-        <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
-      </div>
-
-      <div class="card mt-3">
-        {% comment %} <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Select Yatras</h6>
-        </div> {% endcomment %}
-        <div id="yatraSection" class="card-body d-none">
-          <div id="yatraList"></div>
-          <div class="mt-3 d-flex justify-content-between align-items-center">
-            <strong>Total Fees: ₹<span id="totalFee">0</span></strong>
-            <button id="btnAddYatra" type="button" class="btn btn-submit">
-              <i class="bi bi-plus-circle"></i> Add Yatra
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="text-muted small mt-2" id="formModeHint" style="display:none;">Mode: Insert</div>    
-    </form>
-<!-- scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // drawer
-  const menuBtn = document.getElementById('menuBtn'), drawer = document.getElementById('drawer');
-  menuBtn.addEventListener('click', ()=> drawer.classList.add('open'));
-  function closeDrawer(){ drawer.classList.remove('open'); }
-  window.addEventListener('click', (e)=> { if (!drawer.contains(e.target) && !menuBtn.contains(e.target)) closeDrawer(); });
+    // IMPORTANT: Ensure this API_BASE_URL is correctly configured for your API endpoints.
+    // {% static '' %} is for static files, not API.
+    // It should point to your API's base path, e.g., '/api/' or use a Django URL tag
+    // if your routesyatradates endpoint is defined in Django urls.py.
+    // For this code, I'm assuming 'registration_api1' is the main API handler,
+    // and you will add 'get_routes_yatras' as an action to it.
+    const API_BASE_URL = "{% url 'registration_api1' %}"; // Using registration_api1 as the base for postForm actions.
 
-  // helpers
-  const statusBox = document.getElementById('statusMsg');
-  function showMsg(type, text){
-    statusBox.className = 'px-3 py-2'; // reset
-    if (type === 'success') {
-        statusBox.classList.add('alert', 'alert-success');
-    } else {
-        statusBox.classList.add('alert', 'alert-danger');
+    // Global Utility Functions
+    async function postForm(action, data = {}, isFormData = false) {
+        const fd = new FormData();
+        fd.append('action', action);
+        if (isFormData) {
+            // If data is already a FormData object, append its entries
+            for (let pair of data.entries()) {
+                fd.append(pair[0], pair[1]);
+            }
+        } else {
+            // Otherwise, iterate through data object
+            for (const k in data) {
+                if (data[k] instanceof File) {
+                    fd.append(k, data[k], data[k].name);
+                } else {
+                    fd.append(k, data[k]);
+                }
+            }
+        }
+
+        const url = API_BASE_URL; // Using the configured API_BASE_URL
+        const response = await fetch(url, { method: 'POST', body: fd });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
     }
-    statusBox.textContent = text;
-    statusBox.classList.remove('d-none');
-  }
-  function hideMsg(){ statusBox.classList.add('d-none'); statusBox.textContent=''; }
 
-  function postForm(action, data={}){
-    const fd = new FormData();
-    fd.append('action', action);
-    for (const k in data) fd.append(k, data[k]);
-    return fetch("{% url 'registration_api1' %}", { method:'POST', body: fd }).then(r=> r.json());
-  }
-
-  // elements
-  const inputMobile = document.getElementById('searchMobile');
-  const btnSearch = document.getElementById('btnSearch');
-  const btnAddNew = document.getElementById('btnAddNew');
-  const resultsWrap = document.getElementById('resultsWrap');
-  const regItems = document.getElementById('regItems');
-  const labelMobile = document.getElementById('labelMobile');
-  const resultCount = document.getElementById('resultCount');
-
-  function validMobile(m){ return /^\d{10}$/.test(m); }
-
-  // btnSearch.addEventListener('click', doSearch);
-  btnSearch.addEventListener('click', () => {
-    console.log("Clearing local storage before search...");
-
-    // Clear all local storage
-    localStorage.clear();
-
-    // Optional: if using sessionStorage too
-    // sessionStorage.clear();
-
-    console.log("Local storage after clear:", localStorage);
-
-    // Run your search
-    doSearch();
-  });
-
-  
-  inputMobile.addEventListener('keydown', function(e){ if (e.key==='Enter') doSearch(); });
-
-  async function doSearch(){
-    // localStorage.clear();
-    // console.log("All localStorage cleared on page reload!");
-
-    // hideMsg();
-    setTimeout(() => {
-      hideMsg();
-    }, 2000);
-    
-    const mob = inputMobile.value.trim();
-    if (!validMobile(mob)){ showMsg('error','Please enter a valid 10-digit mobile number.'); return; }
-    try {
-      const resp = await postForm('search_list', { search: mob });
-      if (resp.message_code == 1000 && Array.isArray(resp.message_data)){
-        // Store search results for later use
-        sessionStorage.setItem('lastSearchResults', JSON.stringify(resp.message_data));
-        renderList(resp.message_data, mob);
-        //showMsg('success','Registrations fetched.');
-      } else {
-        sessionStorage.setItem('lastSearchResults', JSON.stringify([]));
-        renderList([], mob);
-        showMsg('error', resp.message_text || 'No records found.');
-      }
-          } catch (err){
-      console.error(err);
-      showMsg('error','Search failed.');
-    }
-  }
-
-    function renderList(rows, mob){
-    labelMobile.textContent = mob;
-    resultsWrap.classList.remove('d-none');
-    regItems.innerHTML = '';
-    resultCount.textContent = rows.length;
-
-    const yatraPaymentSection = document.getElementById('yatraPaymentSection');
-    yatraPaymentSection.classList.remove('d-none');
-
-    if (!rows.length){
-      regItems.innerHTML = '<li class="list-group-item text-center text-muted py-4">No records found.</li>';
-      renderSelectedYatras([], mob);
-      return;
-    }
-    
-    rows.forEach(r => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-
-        const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
-        const area = r.AreaName || '-';
-
-        li.innerHTML = `
-          <div class="item-line">
-            <strong>${fullName}</strong>, ${area}
-          </div>
-        `;
-
-        li.addEventListener('click', () => openActionSheet('update', r, mob));
-        regItems.appendChild(li);
-    });
-    
-    renderSelectedYatras(rows, mob);
-  }
-
-  // action bottom sheet
-  const offcanvasEl = document.getElementById('regActionBar'), offcanvas = new bootstrap.Offcanvas(offcanvasEl);
-
-  offcanvasEl.addEventListener('hidden.bs.offcanvas', function() {
-    // Update selected yatras display when the registration form is closed
-    const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
-    const searchMobile = inputMobile.value.trim();
-    renderSelectedYatras(currentSearchResults, searchMobile);
-  });
-
-  const regForm = document.getElementById('regForm'), modeHint = document.getElementById('formModeHint');
-
-    async function loadDropdowns(){
-    const [a,g,b] = await Promise.all([ postForm('list_area'), postForm('list_gender'), postForm('list_bloodgroup') ]);
-    const areaSel = document.getElementById('AreaId'), genderSel = document.getElementById('Gender'), bloodSel = document.getElementById('BloodGroup');
-    function fill(sel, res, vKey, tKey){
-      sel.innerHTML = '<option value="">Select</option>';
-      if (res && res.message_code == 1000 && Array.isArray(res.message_data)){
-        res.message_data.forEach(it=> {
-          const o = document.createElement('option');
-          // Use the keys from your new API responses
-          o.value = it[vKey] || ''; 
-          o.textContent = it[tKey];
-          sel.appendChild(o);
+    // MODIFIED: Use SweetAlert2 for messages to match the provided image format
+    function showMsg(type, text, title = null) { // Added 'title' parameter
+        Swal.fire({
+            icon: type, // 'success', 'error', 'warning', 'info', 'question'
+            title: title || (type === 'success' ? 'Success!' : 'Error!'), // Use custom title or default
+            html: text, // Use html for multiline or richer text content
+            showConfirmButton: true, // Show the OK button
+            confirmButtonText: 'OK', // Text for the OK button
+            confirmButtonColor: '#ff7b00', // Use your brand-orange for the button
+            allowOutsideClick: false, // Prevent closing by clicking outside
+            allowEscapeKey: false,   // Prevent closing by pressing Escape key
+            customClass: {
+                container: 'my-sweetalert-container',
+                popup: 'my-sweetalert-popup',
+                title: 'my-sweetalert-title',
+                htmlContainer: 'my-sweetalert-html-container',
+                icon: 'my-sweetalert-icon',
+                confirmButton: 'my-sweetalert-confirm-button'
+            }
         });
-      }
-    }
-    // Update the keys passed to the fill function
-    fill(areaSel, a, 'AreaId', 'AreaName');
-    fill(genderSel, g, 'GenderId', 'GenderName');
-    fill(bloodSel, b, 'bloodGroupId', 'bloodGroupName');
-  }
-
-    async function openActionSheet(mode, row, mob){
-    regForm.reset();
-
-     if (mode === 'insert') {
-        document.getElementById('RegistrationId').value = '0';
-        document.getElementById("PhotoFileName").value = "";
-        document.getElementById("IdProofFileName").value = "";
-        document.getElementById("VoterId").value = "";
-        const userId = "0";
-        const allUsersYatras = getAllUsersYatras();
-        if (allUsersYatras[userId]) {
-            delete allUsersYatras[userId];
-            saveAllUsersYatras(allUsersYatras);
-        }  
     }
 
-    offcanvas.show();
-
-    document.getElementById('regActionBarLabel').textContent =
-        mode === 'insert' ? 'Add New Registration' : 'Update Registration';
-    modeHint.textContent = "Mode: " + (mode === 'insert' ? "Insert" : "Update");
-
-    if (mode === 'insert' && mob) {
-      document.getElementById('MobileNo').value = mob;
-    } else if (mode === 'insert') {
-        document.getElementById('MobileNo').value = '';
+    function validMobile(m) {
+        return /^\d{10}$/.test(m);
     }
 
-    const insertOnlyFields = document.getElementById('insertOnlyFields');
-    if (mode === 'insert') {
-      insertOnlyFields.style.display = 'block';
-    } else {
-      insertOnlyFields.style.display = 'none';
-    }
+    // DOM Elements
+    const searchMobileInput = document.getElementById('searchMobile');
+    const btnSearch = document.getElementById('btnSearch');
+    const btnAddNew = document.getElementById('btnAddNew');
+    const labelMobile = document.getElementById('labelMobile');
+    const regItemsList = document.getElementById('regItems');
+    const regActionBar = new bootstrap.Offcanvas(document.getElementById('regActionBar'));
+    const regForm = document.getElementById('regForm');
+    const btnRegNext = document.getElementById('btnRegNext');
+    const historyYearSelect = document.getElementById('historyYear');
+    const historyPassengerSelect = document.getElementById('historyPassenger');
+    const bookingHistoryList = document.getElementById('bookingHistoryList');
 
-    try {
-        const [areas, genders, bloodgroups] = await Promise.all([
-        postForm('list_area'),
-        postForm('list_gender'),
-        postForm('list_bloodgroup')
-        ]);
+    const selectRoute = document.getElementById('selectRoute');
+    const selectYatra = document.getElementById('selectYatra');
+    const selectBus = document.getElementById('selectBus');
+    const selectSeats = document.getElementById('selectSeats');
+    const btnAddTicket = document.getElementById('btnAddTicket');
+    const addedTicketsList = document.getElementById('addedTicketsList');
+    const totalFeesInput = document.getElementById('totalFees');
+    const discountInput = document.getElementById('discount');
+    const discountReasonInput = document.getElementById('discountReason');
+    const paymentModeSelect = document.getElementById('paymentMode');
+    const upiFieldsDiv = document.getElementById('upiFields');
+    const submitBookingBtn = document.getElementById('submitBooking');
+    const bookingTabButton = document.getElementById('booking-tab'); // Added reference to booking tab button
 
+
+    // Global Data Stores
+    let allRoutes = [];
+    let allYatras = [];
+    let allBuses = [];
+    let currentRegistrations = [];
+    let addedTickets = [];
+    let hasLoadedRoutesYatras = false; // NEW FLAG: to ensure routes/yatras load only once
+
+    // --- SECTION 1: Search, Display Registrations & History ---
+
+    const RegistrationDisplay = (() => {
+        // Flag to control showing "X registrations found" message only on explicit search
+        let isExplicitSearch = false; // NEW FLAG
+
+        async function doSearch(explicitSearchTriggered = true) { // Added parameter
+            const mob = searchMobileInput.value.trim();
+            if (!validMobile(mob)) {
+                showMsg('error', 'Please enter a valid 10-digit mobile number.');
+                // MODIFIED: Clear list and label if validation fails
+                labelMobile.textContent = '';
+                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>';
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+                return;
+            }
+            sessionStorage.setItem('lastSearchMobile', mob);
+            isExplicitSearch = explicitSearchTriggered; // Set flag based on how doSearch was called
+
+            labelMobile.textContent = mob;
+            regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading registrations...</li>';
+
+            try {
+                const resp = await postForm('search_list', { search: mob });
+                if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
+                    currentRegistrations = resp.message_data;
+                    renderRegistrationList(currentRegistrations, mob);
+                    populatePassengerDropdown(currentRegistrations);
+                    // MODIFIED: Only show 'registrations found' message if it was an explicit search
+                    if (isExplicitSearch) {
+                        showMsg('success', `${currentRegistrations.length} registrations found.`);
+                    }
+                } else {
+                    currentRegistrations = [];
+                    renderRegistrationList([], mob);
+                    populatePassengerDropdown([]);
+                    // MODIFIED: Show error message if no records found, regardless of explicit search
+                    showMsg('error', resp.message_text || 'No records found.');
+                }
+            } catch (err) {
+                console.error("Search failed:", err);
+                showMsg('error', 'Search failed. Please try again.');
+            }
+            await fetchBookingHistory();
+        }
+
+        function populatePassengerDropdown(registrations) {
+            historyPassengerSelect.innerHTML = '<option value="">All Passengers</option>';
+            registrations.forEach(r => {
+                const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
+                const option = document.createElement('option');
+                option.value = r.RegistrationId;
+                option.textContent = fullName;
+                historyPassengerSelect.appendChild(option);
+            });
+            // Automatically select the first passenger if available, or previously selected
+            if (registrations.length > 0 && !historyPassengerSelect.value) {
+                historyPassengerSelect.value = registrations[0].RegistrationId;
+            }
+        }
+
+        function renderRegistrationList(registrations, mob) {
+            regItemsList.innerHTML = '';
+            if (!registrations.length) {
+                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No registrations found for this number.</li>';
+                return;
+            }
+            registrations.forEach(r => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
+                const area = r.AreaName || '-';
+                li.innerHTML = `<div class="item-line"><strong>${fullName}</strong>, ${area}</div>`;
+                li.addEventListener('click', () => RegistrationForm.openForm('update', r, mob));
+                regItemsList.appendChild(li);
+            });
+        }
+
+        function populateHistoryYears() {
+            const currentYear = new Date().getFullYear();
+            historyYearSelect.innerHTML = '<option value="">Select Year</option>';
+            for (let i = currentYear; i >= currentYear - 5; i--) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                historyYearSelect.appendChild(option);
+            }
+            historyYearSelect.value = currentYear; // Default to current year
+        }
+
+        async function fetchBookingHistory() {
+            const mob = searchMobileInput.value.trim();
+            const year = historyYearSelect.value;
+            const passengerId = historyPassengerSelect.value;
+
+            if (!validMobile(mob) || !year) {
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+                return;
+            }
+
+            bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading history...</li>';
+
+            try {
+                const resp = await postForm('get_booking_history', {
+                    mobile: mob,
+                    year: year,
+                    passengerId: passengerId
+                });
+                if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
+                    renderBookingHistory(resp.message_data);
+                } else {
+                    bookingHistoryList.innerHTML = `<li class="list-group-item text-center text-muted py-4">${resp.message_text || 'No booking history found.'}</li>`;
+                }
+            } catch (err) {
+                console.error("Failed to fetch booking history:", err);
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Error fetching history.</li>';
+            }
+        }
+
+        function renderBookingHistory(history) {
+            bookingHistoryList.innerHTML = '';
+            if (!history.length) {
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No booking history found.</li>';
+                return;
+            }
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                        <div>
+                            <strong>Yatra:</strong> ${item.YatraName || 'N/A'}<br>
+                            <strong>Date:</strong> ${item.YatraDate || 'N/A'}<br>
+                            <strong>Seats:</strong>${item.Seats || 'N/A'}
+                        </div>
+                        <div>
+                            <strong>Total:</strong>₹${item.AmountPaid || '0'}<br>
+                            <span class="badge bg-secondary">${item.Status || 'Booked'}</span>
+                        </div>
+                    `;
+                bookingHistoryList.appendChild(li);
+            });
+        }
+
+        return {
+            doSearch,
+            populateHistoryYears,
+            fetchBookingHistory
+        };
+    })();
+
+
+    // --- SECTION 2: Add/Update Registration ---
+
+    const RegistrationForm = (() => {
         const areaSel = document.getElementById('AreaId');
         const genderSel = document.getElementById('Gender');
         const bloodSel = document.getElementById('BloodGroup');
 
-        function fill(sel, res, vKey, tKey){
-          sel.innerHTML = '<option value="">Select</option>';
-          if (res && res.message_code == 1000 && Array.isArray(res.message_data)){
-            res.message_data.forEach(it=> {
-              const o = document.createElement('option');
-              o.value = it[vKey] || '';
-              o.textContent = it[tKey];
-              sel.appendChild(o);
-            });
-          }
-        }
+        async function loadDropdowns() {
+            const [areas, genders, bloodgroups] = await Promise.all([
+                postForm('list_area'),
+                postForm('list_gender'),
+                postForm('list_bloodgroup')
+            ]);
 
-        fill(areaSel, areas, 'AreaId', 'AreaName');
-        fill(genderSel, genders, 'GenderId', 'GenderName');
-        fill(bloodSel, bloodgroups, 'bloodGroupId', 'bloodGroupName');
-
-        if (mode === 'update' && row) {
-          document.getElementById('RegistrationId').value = row.RegistrationId || '';
-          document.getElementById('Firstname').value = row.Firstname || '';
-          document.getElementById('Middlename').value = row.Middlename || '';
-          document.getElementById('Lastname').value = row.Lastname || '';
-          document.getElementById('MobileNo').value = row.MobileNo || mob || '';
-          document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
-          document.getElementById('Address').value = row.Address || '';
-          document.getElementById('AadharNumber').value = row.AadharNumber || '';
-          document.getElementById("PhotoFileName").value = row.PhotoFileName || "";
-          document.getElementById("IdProofFileName").value = row.IdProofFileName || "";
-          document.getElementById("VoterId").value = row.VoterIdProof || "";
-
-          setTimeout(() => {
-            if (row.AreaId) {
-              areaSel.value = row.AreaId;
-            }
-            
-            if (row.Gender) { // Use 'Gender' as per your searchregistrations response
-              genderSel.value = row.Gender;
-            }
-            
-            // The blood group from searchregistrations is a name, so you might need to find the corresponding ID
-            if (row.BloodGroup && bloodgroups.message_data) {
-                const bloodGroup = bloodgroups.message_data.find(bg => bg.bloodGroupName === row.BloodGroup);
-                if (bloodGroup) {
-                    bloodSel.value = bloodGroup.bloodGroupId;
+            function fillSelect(sel, res, vKey, tKey) {
+                sel.innerHTML = '<option value="">Select</option>';
+                if (res && res.message_code === 1000 && Array.isArray(res.message_data)) {
+                    res.message_data.forEach(it => {
+                        const o = document.createElement('option');
+                        o.value = it[vKey];
+                        o.textContent = it[tKey];
+                        sel.appendChild(o);
+                    });
                 }
             }
-          }, 100);
 
-          if (row.DateOfBirth && row.DateOfBirth !== "") {
-              // Assuming DateOfBirth is a timestamp as in your example
-              const date = new Date(parseInt(row.DateOfBirth) * 1000);
-              const formatted = date.toISOString().split('T')[0];
-              document.getElementById('DateOfBirth').value = formatted;
-          }
+            fillSelect(areaSel, areas, 'AreaId', 'AreaName');
+            fillSelect(genderSel, genders, 'GenderId', 'GenderName');
+            fillSelect(bloodSel, bloodgroups, 'bloodGroupId', 'bloodGroupName');
         }
 
-    } catch (err) {
-        console.error("Error loading dropdowns:", err);
-    }
-  }
-  
-  function setDropdownValue(select, value) {
-    if (!value) return;
-    [...select.options].forEach(opt => {
-        if (opt.value == value) opt.selected = true;
-    });
-  }
+        async function openForm(mode, row = null, mobile = '') {
+            regForm.reset();
+            document.getElementById('RegistrationId').value = '0'; // Default for new registration
+            document.getElementById('PhotoFileName').value = '';
+            document.getElementById('IdProofFileName').value = '';
+            document.getElementById('VoterId').value = '';
+            // Clear file inputs
+            document.getElementById('AadharUpload').value = '';
+            document.getElementById('ProfilePicUpload').value = '';
+            document.getElementById('VoterIdUpload').value = '';
 
-  // add new click (small icon)
-  btnAddNew.addEventListener('click', ()=>{
-    const mob = inputMobile.value.trim();
+            document.getElementById('regActionBarLabel').textContent = mode === 'insert' ? 'Add New Registration' : 'Update Registration';
 
-      // 🔥 Check if mobile is empty
-    if (!mob) {
-      alert("Please enter mobile number in search box for new registration.");
-      inputMobile.focus();
-      return; // stop here
-    }
+            // Set required attribute dynamically based on mode and existing files
+            // If in insert mode, or if in update mode but no file exists, make input required.
+            document.getElementById('AadharUpload').required = mode === 'insert' || (!row || !row.IdProofFileName);
+            document.getElementById('ProfilePicUpload').required = mode === 'insert' || (!row || !row.PhotoFileName);
+            document.getElementById('VoterIdUpload').required = mode === 'insert' || (!row || !row.VoterIdProof);
 
-    // 🔥 Check if mobile is not valid 10 digits
-    if (!validMobile(mob)) {
-      alert("Please enter a valid 10-digit mobile number before adding new registration.");
-      inputMobile.focus();
-      return;
-    }
 
-    // Only pass mobile if it's valid, otherwise pass null for fresh registration
-    const mobileToPass = validMobile(mob) ? mob : null;
-    openActionSheet('insert', null, mobileToPass);
-  });
-
-  // A helper to run actions AFTER the offcanvas form closes
-  let postUpdateAction = null;
-  offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
-    // If an action was set, run it now that the form is hidden
-    if (postUpdateAction) {
-        postUpdateAction();
-        postUpdateAction = null; // Reset after running
-    }
-  });
-
-  // submit handler
-  regForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // ✅ Validate required fields
-    const requiredFields = ['MobileNo', 'Firstname', 'Middlename', 'Lastname', 'AreaId', 'Address'];
-    for (const fieldId of requiredFields) {
-      const field = document.getElementById(fieldId);
-      if (!field.value.trim()) {
-        const fieldName = field.previousElementSibling.textContent.replace(' *', '');
-        alert(`Please fill ${fieldName}`);
-        field.focus();
-        return;
-      }
-    }
-
-    const mob = document.getElementById('MobileNo').value.trim();
-    if (!validMobile(mob)) {
-      alert('Mobile must be 10 digits');
-      return;
-    }
-
-    const RegistrationId = document.getElementById('RegistrationId').value || '0';
-    const isInsertMode = RegistrationId === '0';
-
-    const fd = new FormData(regForm); // Simplified FormData creation
-    fd.append("action", "submit");
-    fd.append("userMobileNo", mob);
-    fd.append("userFirstname", document.getElementById('Firstname').value.trim());
-    fd.append("userMiddlename", document.getElementById('Middlename').value.trim());
-    fd.append("userLastname", document.getElementById('Lastname').value.trim());
-    fd.append("AreaId", document.getElementById('AreaId').value || "1");
-    fd.append("Gender", document.getElementById('Gender').value || "1");
-    fd.append("Address", document.getElementById('Address').value.trim());
-    fd.append("userAlternateMobileNo", document.getElementById('AlternateMobileNo').value.trim());
-    
-    const bloodGroupSelect = document.getElementById('BloodGroup');
-    const selectedBloodGroupOption = bloodGroupSelect.options[bloodGroupSelect.selectedIndex];
-    fd.append("BloodGroup", selectedBloodGroupOption ? selectedBloodGroupOption.text : "Select");
-
-    const dobVal = document.getElementById('DateOfBirth').value;
-    if (dobVal) {
-      const [y, m, d] = dobVal.split("-");
-      fd.append("DateOfBirth", `${d}/${m}/${y}`);
-    } else {
-      fd.append("DateOfBirth", "");
-    }
-
-    // Append files if they exist
-    const aadharFile = document.getElementById("AadharUpload")?.files[0];
-    if (aadharFile) fd.append("AadharUpload", aadharFile);
-    
-    const profileFile = document.getElementById("ProfilePicUpload")?.files[0];
-    if (profileFile) fd.append("ProfilePicUpload", profileFile);
-
-    const voterFile = document.getElementById("VoterIdUpload")?.files[0];
-    if (voterFile) fd.append("VoterIdUpload", voterFile);
-
-    document.getElementById('loader').style.display = 'flex';
-
-    try {
-      const resp = await fetch("{% url 'registration_api1' %}", {
-        method: "POST",
-        body: fd
-      });
-
-      document.getElementById('loader').style.display = 'none';
-
-      if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-
-      const res = await resp.json();
-
-      if (String(res.message_code) === "1000") {
-        const successMessage = res.message_text || (isInsertMode ? "Registration created successfully!" : "Registration updated successfully!");
-
-        if (isInsertMode) {
-          // For insert, an alert gives immediate feedback while keeping the form open.
-          alert(successMessage);
-
-          const newRegistrationId = res.message_data?.RegistrationId || res.RegistrationId;
-          if (newRegistrationId) {
-            document.getElementById("RegistrationId").value = newRegistrationId;
-            document.getElementById('regActionBarLabel').textContent = 'Update Registration';
-            modeHint.textContent = "Mode: Update";
-            document.getElementById('insertOnlyFields').style.display = 'none';
-
-            // Show yatra section for the newly created user
-            const yatraSection = document.getElementById("yatraSection");
-            if (yatraSection && yatraSection.classList.contains("d-none")) {
-              renderYatras();
-              yatraSection.classList.remove("d-none");
+            if (mode === 'insert' && mobile) {
+                document.getElementById('MobileNo').value = mobile;
             }
-          }
-          // Refresh the list on the main page in the background
-          doSearch();
 
-        } else {
-          // For update, set the action to run AFTER the form closes.
-          postUpdateAction = () => {
-              showMsg("success", successMessage);
-              doSearch(); // Refresh list and show message.
-          };
-          // Now, trigger the form to close.
-          offcanvas.hide();
+            await loadDropdowns(); // Ensure dropdowns are loaded/refreshed
+
+            if (mode === 'update' && row) {
+                document.getElementById('RegistrationId').value = row.RegistrationId || '0';
+                document.getElementById('MobileNo').value = row.MobileNo || mobile || '';
+                document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
+                document.getElementById('Firstname').value = row.Firstname || '';
+                document.getElementById('Middlename').value = row.Middlename || '';
+                document.getElementById('Lastname').value = row.Lastname || '';
+                document.getElementById('Address').value = row.Address || '';
+                document.getElementById('AadharNumber').value = row.AadharNumber || '';
+
+                // Store existing filenames for updates where no new file is uploaded
+                document.getElementById('PhotoFileName').value = row.PhotoFileName || '';
+                document.getElementById('IdProofFileName').value = row.IdProofFileName || '';
+                document.getElementById('VoterId').value = row.VoterIdProof || '';
+
+                // Adjust required status if existing files are present
+                document.getElementById('AadharUpload').required = !row.IdProofFileName;
+                document.getElementById('ProfilePicUpload').required = !row.PhotoFileName;
+                document.getElementById('VoterIdUpload').required = !row.VoterIdProof;
+
+
+                setTimeout(() => { // Use setTimeout to ensure options are rendered before setting value
+                    document.getElementById('AreaId').value = row.AreaId || '';
+                    document.getElementById('Gender').value = row.Gender || '';
+                    // Find blood group by ID if available, otherwise by name
+                    const bloodGroupSelect = document.getElementById('BloodGroup');
+                    let bloodGroupOption;
+                    if (row.BloodGroupId) { // Prioritize ID if backend provides it
+                        bloodGroupOption = Array.from(bloodGroupSelect.options).find(opt => opt.value === String(row.BloodGroupId));
+                    } else if (row.BloodGroup) { // Fallback to name
+                        bloodGroupOption = Array.from(bloodGroupSelect.options).find(opt => opt.textContent.toLowerCase() === row.BloodGroup.toLowerCase());
+                    }
+
+                    if (bloodGroupOption) bloodGroupSelect.value = bloodGroupOption.value;
+                }, 100); // Small delay to ensure options are populated
+
+                if (row.DateOfBirth) {
+                    const dobParts = row.DateOfBirth.split('-'); // Assuming 'DD-MM-YYYY' format from backend for display
+                    if (dobParts.length === 3) {
+                        document.getElementById('DateOfBirth').value = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`; // Convert to 'YYYY-MM-DD' for input type="date"
+                    } else if (String(row.DateOfBirth).match(/^\d+$/)) { // Handle timestamp if needed
+                        const date = new Date(parseInt(row.DateOfBirth) * 1000);
+                        if (!isNaN(date.getTime())) {
+                            document.getElementById('DateOfBirth').value = date.toISOString().split('T')[0];
+                        }
+                    }
+                }
+            }
+            regActionBar.show();
         }
 
-      } else {
-        // For any API error, show a clear alert.
-        alert(`Error: ${res.message_text || "Save operation failed"}`);
-      }
-    } catch (err) {
-      document.getElementById('loader').style.display = 'none';
-      console.error(err);
-      alert("A critical error occurred. Please check the console.");
-    }
-  });
+        async function handleSubmit(e) {
+            e.preventDefault();
 
-  // allow pressing search icon or enter to trigger search
-  //document.getElementById('btnSearch').addEventListener('click', doSearch);
+            // Validation remains the same
+            const requiredFields = ['MobileNo', 'Firstname', 'Lastname', 'AreaId', 'Address'];
+            for (const fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    showMsg('error', `Please fill out the ${field.previousElementSibling.textContent.replace(' *', '')} field.`);
+                    field.focus();
+                    return;
+                }
+            }
 
-</script>
+            const mobileNo = document.getElementById('MobileNo').value.trim();
+            if (!validMobile(mobileNo)) {
+                showMsg('error', 'Mobile Number must be 10 digits.');
+                document.getElementById('MobileNo').focus();
+                return;
+            }
 
-<script>
-// Updated Yatra Management System
-let selectedYatras = []; 
-const routes = {{ route_yatras|safe }};
+            const registrationId = document.getElementById('RegistrationId').value; // Get the actual ID
 
-// Insert "Select Yatras" button
-document.addEventListener("DOMContentLoaded", ()=>{
-  const yatraBtn = document.createElement("button");
-  yatraBtn.className = "btn btn-outline-primary w-100 mt-2";
-  yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
-  yatraBtn.type = "button";
+            // Create a new FormData object to send to Django view
+            const formData = new FormData();
+            formData.append("action", "submit");
 
-  // append button before yatra section
-  document.querySelector("#regForm .mt-3").appendChild(yatraBtn);
+            // Map frontend input names to backend expected `request.POST.get` names
+            // This is the main change from your previous frontend code
+            formData.append("RegistrationId", registrationId); // Always send, backend handles '0' vs actual ID
+            formData.append("userMobileNo", document.getElementById('MobileNo').value.trim());
+            formData.append("userAlternateMobileNo", document.getElementById('AlternateMobileNo').value.trim());
+            formData.append("userFirstname", document.getElementById('Firstname').value.trim());
+            formData.append("userMiddlename", document.getElementById('Middlename').value.trim());
+            formData.append("userLastname", document.getElementById('Lastname').value.trim());
+            formData.append("AreaId", document.getElementById('AreaId').value);
+            formData.append("Address", document.getElementById('Address').value.trim());
+            formData.append("Gender", document.getElementById('Gender').value); // Send ID, your backend maps it
+            formData.append("BloodGroup", document.getElementById('BloodGroup').options[document.getElementById('BloodGroup').selectedIndex].textContent); // Send text, your backend maps it
 
-  // toggle section on button click
-  yatraBtn.addEventListener("click", ()=>{
-    const section = document.getElementById("yatraSection");
-    if(section.classList.contains("d-none")){
-      renderYatras();
-      section.classList.remove("d-none");
-      yatraBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hide Yatras';
-    } else {
-      section.classList.add("d-none");
-      yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
-    }
-  });
+            const dobVal = document.getElementById('DateOfBirth').value; // YYYY-MM-DD
+            if (dobVal) {
+                // Your backend `views.py` `submit` action already handles the YYYY-MM-DD to DD/MM/YYYY conversion.
+                // So, send YYYY-MM-DD directly and let the backend convert.
+                formData.append("DateOfBirth", dobVal);
+            } else {
+                formData.append("DateOfBirth", "");
+            }
+            formData.append("AadharNumber", document.getElementById('AadharNumber').value.trim());
 
-  // Initial render of selected yatras on page load - show nothing initially
-  renderSelectedYatras([], null);
-});
+            // File handling: append files if new ones are selected,
+            // otherwise append the hidden input values which hold previous URLs/filenames.
+            const aadharUpload = document.getElementById('AadharUpload').files[0];
+            const profilePicUpload = document.getElementById('ProfilePicUpload').files[0];
+            const voterIdUpload = document.getElementById('VoterIdUpload').files[0];
 
-// Get current user identifier
-function getCurrentUserId() {
-  const regId = document.getElementById("RegistrationId").value || "new";
-  return regId;
-}
+            if (aadharUpload) {
+                formData.append("AadharUpload", aadharUpload);
+            } else if (document.getElementById('IdProofFileName').value) {
+                formData.append("IdProofFileName", document.getElementById('IdProofFileName').value);
+            }
 
-// Get current user's full name
-function getCurrentUserName() {
-  return [
-    document.getElementById("Firstname").value.trim(),
-    document.getElementById("Middlename").value.trim(),
-    document.getElementById("Lastname").value.trim()
-  ].filter(Boolean).join(" ") || "Unknown";
-}
+            if (profilePicUpload) {
+                formData.append("ProfilePicUpload", profilePicUpload);
+            } else if (document.getElementById('PhotoFileName').value) {
+                formData.append("PhotoFileName", document.getElementById('PhotoFileName').value);
+            }
 
-// Get all users' yatras from localStorage
-function getAllUsersYatras() {
-  return JSON.parse(localStorage.getItem("userYatras") || "{}");
-}
+            if (voterIdUpload) {
+                formData.append("VoterIdUpload", voterIdUpload);
+            } else if (document.getElementById('VoterId').value) {
+                formData.append("VoterId", document.getElementById('VoterId').value);
+            }
 
-// Save all users' yatras to localStorage
-function saveAllUsersYatras(data) {
-  localStorage.setItem("userYatras", JSON.stringify(data));
-  console.log("Updated userYatras saved to localStorage:", data);
-}
+            try {
+                const resp = await fetch("{% url 'registration_api1' %}", {
+                    method: "POST",
+                    body: formData // FormData object is automatically set with correct 'Content-Type: multipart/form-data'
+                });
 
-// Get current user's yatras
-function getCurrentUserYatras() {
-  const userId = getCurrentUserId();
-  const allUsersYatras = getAllUsersYatras();
-  return allUsersYatras[userId] ? allUsersYatras[userId].yatras || [] : [];
-}
+                if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+                const res = await resp.json();
 
-// Update current user's yatras
-function updateCurrentUserYatras(yatras) {
-  const userId = getCurrentUserId();
-  const userName = getCurrentUserName();
-  const allUsersYatras = getAllUsersYatras();
-  
-  if (!allUsersYatras[userId]) {
-    allUsersYatras[userId] = { fullName: userName, yatras: [] };
-  }
-  
-  allUsersYatras[userId].fullName = userName;
-  allUsersYatras[userId].yatras = yatras;
-  
-  saveAllUsersYatras(allUsersYatras);
-}
-
-// Render Yatras grouped by route with restored toggle states
-function renderYatras(){
-  const container = document.getElementById("yatraList");
-  container.innerHTML = "";
-
-  // Get current user's existing yatras
-  const existingYatras = getCurrentUserYatras();
-  const existingYatraIds = existingYatras.map(y => y.id);
-  
-  console.log("Existing yatras for current user:", existingYatras);
-
-  routes.forEach(route=>{
-    // Debug: Log the route and its yatras to see the data structure
-    console.log(`Processing route: ${route.YatraRouteName}`);
-    console.log('Route Yatras:', route.Yatras);
-    
-    if (route.Yatras && route.Yatras.length > 0) {
-      console.log('First yatra sample - ALL PROPERTIES:', route.Yatras[0]);
-      console.log('All property names:', Object.keys(route.Yatras[0]));
-      
-      // Check different possible status property names
-      route.Yatras.forEach((y, index) => {
-        console.log(`Yatra ${index} properties:`, {
-          YatraId: y.YatraId,
-          YatraRouteStatus: y.YatraRouteStatus,
-          status: y.status,
-          Status: y.Status,
-          active: y.active,
-          Active: y.Active,
-          isActive: y.isActive,
-          IsActive: y.IsActive,
-          enabled: y.enabled,
-          Enabled: y.Enabled
-        });
-      });
-    }
-    
-    // First, let's show ALL yatras temporarily to see what we get
-    // Remove the status filter for debugging
-    const allYatras = route.Yatras || [];
-    
-    console.log(`Total yatras for ${route.YatraRouteName}:`, allYatras.length);
-    
-    // Skip this entire route if no yatras at all
-    if (!allYatras.length) {
-      console.log(`Skipping route ${route.YatraRouteName} - no yatras at all`);
-      return;
-    }
-    
-    // For now, use all yatras (we'll add filtering back once we know the correct property)
-    const activeYatras = allYatras;
-
-    const card = document.createElement("div");
-    card.className = "card mb-2 shadow-sm";
-
-    let yatraItems = "";
-    activeYatras.forEach(y=>{
-      // Check if this yatra is already selected
-      const isSelected = existingYatraIds.includes(y.YatraId.toString());
-      const checkedAttr = isSelected ? 'checked' : '';
-      
-      yatraItems += `
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${y.YatraDateTime}</strong><br>
-            <small> ₹${y.YatraFees}</small>
-          </div>
-          <div class="form-check form-switch">
-            <input class="form-check-input yatra-toggle" type="checkbox"
-              value="${y.YatraId}" data-amount="${y.YatraFees}" 
-              data-route="${route.YatraRouteName}" data-datetime="${y.YatraDateTime}"
-              ${checkedAttr}>
-          </div>
-        </li>`;
-    });
-
-    card.innerHTML = `
-      <div class="card-header bg-light">
-        <strong>${route.YatraRouteName}</strong><br>
-        <small>${route.YatraRouteDetails}</small>
-      </div>
-      <ul class="list-group list-group-flush">${yatraItems}</ul>
-    `;
-    container.appendChild(card);
-  });
-
-  // Attach toggle events
-  container.querySelectorAll(".yatra-toggle").forEach(chk=>{
-    chk.addEventListener("change", handleYatraToggle);
-  });
-  
-  // Calculate initial total based on existing selections
-  calculateAndDisplayTotal();
-  // Log how many route cards are actually displayed
-  const displayedCards = container.querySelectorAll('.card').length;
-  console.log(`Displayed ${displayedCards} route cards with active yatras`);
-
-}
-
-// Handle individual yatra toggle changes
-function handleYatraToggle(event) {
-  const checkbox = event.target;
-  const yatraId = checkbox.value;
-  const amount = parseFloat(checkbox.dataset.amount);
-  const route = checkbox.dataset.route;
-  const datetime = checkbox.dataset.datetime;
-  
-  let currentUserYatras = getCurrentUserYatras();
-  
-  if (checkbox.checked) {
-    // Add yatra if not already exists
-    const exists = currentUserYatras.find(y => y.id === yatraId);
-    if (!exists) {
-      currentUserYatras.push({
-        id: yatraId,
-        route: route,
-        amount: amount,
-        datetime: datetime
-      });
-      console.log(`Added Yatra ID ${yatraId} for current user`);
-    }
-  } else {
-    // Remove yatra
-    currentUserYatras = currentUserYatras.filter(y => y.id !== yatraId);
-    console.log(`Removed Yatra ID ${yatraId} for current user`);
-  }
-  
-  // Update localStorage
-  updateCurrentUserYatras(currentUserYatras);
-  
-  // Update total display
-  calculateAndDisplayTotal();
-  
-  // 🔥 FIX: Update selected yatras display in main screen with current search context
-  const currentSearchResults = JSON.parse(sessionStorage.getItem('lastSearchResults') || '[]');
-  const searchMobile = document.getElementById('searchMobile').value.trim();
-  renderSelectedYatras(currentSearchResults, searchMobile);
-} 
-
-
-
-// Calculate and display total for current user
-function calculateAndDisplayTotal() {
-  const currentUserYatras = getCurrentUserYatras();
-  const total = currentUserYatras.reduce((sum, y) => sum + y.amount, 0);
-  
-  document.getElementById("totalFee").textContent = total;
-  console.log("Total calculated:", total);
-}
-
-// Updated Add Yatra button handler
-document.addEventListener("DOMContentLoaded", () => {
-  // Wait for DOM to be ready, then add event listener
-  setTimeout(() => {
-    const addYatraBtn = document.getElementById("btnAddYatra");
-    if (addYatraBtn) {
-      addYatraBtn.addEventListener("click", handleAddYatra);
-    }
-  }, 100);
-});
-
-function handleAddYatra() {
-  console.log("=== Add Yatra Button Clicked ===");
-  
-  const currentUserYatras = getCurrentUserYatras();
-  
-  if (!currentUserYatras.length) { 
-    console.log("No yatras selected for current user.");
-    alert("Select at least one yatra"); 
-    return; 
-  }
-
-  // Update the selected yatras display
-  renderSelectedYatras();
-
-  // Show success message
-  alert(`${currentUserYatras.length} yatra(s) confirmed for this user.`);
-
-  // Hide the yatra selection section
-  const section = document.getElementById("yatraSection");
-  section.classList.add("d-none");
-   
-  if (section.classList.contains("d-none")) {
-  console.log("1057 close model")  
-  const closeBtn = document.querySelector('.btn-close[data-bs-dismiss="offcanvas"]');
-  if (closeBtn) closeBtn.click();
-  }
-  
-  // Update button text
-  const yatraBtn = document.querySelector('button[data-bs-target="#yatraSection"]') || 
-                   document.querySelector('button:contains("Hide Yatras")');
-  if (yatraBtn) {
-    yatraBtn.innerHTML = '<i class="bi bi-list-check"></i> Select Yatras';
-  }
-
-  console.log("Yatra selection confirmed and section hidden.");
-}
-</script>
-{% comment %} <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const paymentMode = document.getElementById('PaymentMode');
-  const upiFields = document.getElementById('upiFields');
-
-  if (paymentMode && upiFields) {
-    paymentMode.addEventListener('change', () => {
-      upiFields.classList.toggle('d-none', paymentMode.value !== 'upi');
-    });
-  }
-
-  const btnBookTicket = document.getElementById("btnBookTicket");
-  if (btnBookTicket) {
-    btnBookTicket.addEventListener("click", async () => {
-      try {
-        btnBookTicket.disabled = true; // ✅ Prevent double click
-        btnBookTicket.innerText = "Booking...";
-
-        const allUsersYatras = getAllUsersYatras();
-        if (!allUsersYatras || Object.keys(allUsersYatras).length === 0) {
-          alert("Please select at least one yatra before booking.");
-          btnBookTicket.disabled = false;
-          btnBookTicket.innerText = "Book Ticket";
-          return;
+                if (String(res.message_code) === "1000") {
+                    // MODIFIED: Show specific success message for add/update
+                    const message = registrationId === '0' ? 'Registration added successfully!' : 'Registration updated successfully!';
+                    showMsg('success', res.message_text || message);
+                    regActionBar.hide();
+                    // MODIFIED: Call doSearch with false, so it doesn't show "X registrations found"
+                    RegistrationDisplay.doSearch(false); // Refresh the list
+                } else {
+                    showMsg('error', res.message_text || 'Failed to save registration.');
+                }
+            } catch (err) {
+                console.error("Submission failed:", err);
+                showMsg('error', `An error occurred: ${err.message}`);
+            }
         }
 
-        // ✅ Collect all registrations with their yatraIds
-        let bookingData = [];
-        for (const regId in allUsersYatras) {
-          const user = allUsersYatras[regId];
-          if (!user.yatras || user.yatras.length === 0) continue;
-          bookingData.push({
-            RegistrationId: regId,
-            YatraIds: user.yatras.map(y => y.id)
-          });
+        return {
+            openForm,
+            handleSubmit
+        };
+    })();
+
+
+    // --- SECTION 3: Booking Functionality ---
+
+    const Booking = (() => {
+        async function loadAllRoutesYatras() {
+            if (hasLoadedRoutesYatras) return; // Only load once if already successful
+
+            try {
+                // MODIFIED: Calling postForm with an action 'get_routes_yatras'
+                // You MUST implement this action in your Django registration_api1 view.
+                const resp = await postForm('get_routes_yatras'); // This will call the registration_api1 URL
+
+                // If 'get_routes_yatras' is a separate, direct API endpoint not handled by postForm:
+                // const directApiUrl = "/api/routeyatradates/"; // Example if it's a fixed API path
+                // const resp = await fetch(directApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' }, cache: 'no-cache' });
+                // if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+                // const data = await resp.json();
+
+
+                if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
+                    allRoutes = resp.message_data;
+                    populateRoutes();
+                    hasLoadedRoutesYatras = true; // Set flag to true on success
+                } else {
+                    console.error("Failed to load routes and yatras:", resp.message_text);
+                    showMsg('error', 'Failed to load route and yatra data.');
+                }
+            } catch (err) {
+                console.error("Error fetching routes/yatras:", err);
+                showMsg('error', 'Could not fetch routes/yatras. Please check network or API configuration.');
+            }
         }
 
-        const fd = new FormData();
-        fd.append("action", "book_ticket");
-        fd.append("UserId", "{{ request.session.user_id|default:'1' }}");
-        fd.append("Bookings", JSON.stringify(bookingData)); // ✅ send all bookings together
-        fd.append("AmountPaid", document.getElementById("AmountPayable").value || "0");
-        fd.append("Discount", document.getElementById("Discount")?.value || "0");
-        fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
-        fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
-        
-
-        // ✅ Append UPI Screenshot file if selected
-        const upiFile = document.getElementById("UPIScreenshot")?.files[0];
-        if (upiFile) {
-          fd.append("UPIScreenshot", upiFile);
+        function populateRoutes() {
+            selectRoute.innerHTML = '<option value="">Select Route*</option>';
+            allRoutes.forEach(route => {
+                const option = document.createElement('option');
+                option.value = route.RouteId;
+                option.textContent = route.RouteName;
+                selectRoute.appendChild(option);
+            });
         }
 
-        const resp = await fetch("{% url 'registration_api1' %}", {
-          method: "POST",
-          body: fd
-        });
+        async function handleRouteChange() {
+            const selectedRouteId = selectRoute.value;
+            selectYatra.innerHTML = '<option value="">Select Yatra*</option>';
+            selectBus.innerHTML = '<option value="">Select Bus*</option>';
+            selectSeats.innerHTML = '';
 
-        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-
-        const data = await resp.json();
-        console.log("Book Ticket Response:", data);
-
-        if (data.message_code === 1000) {
-          alert("✅ Tickets booked successfully!");
-          location.reload()
-        } else {
-          alert(`⚠️ Booking failed: ${data.message_text}`);
+            if (selectedRouteId) {
+                const selectedRoute = allRoutes.find(r => String(r.RouteId) === selectedRouteId);
+                if (selectedRoute && Array.isArray(selectedRoute.Yatras)) {
+                    allYatras = selectedRoute.Yatras;
+                    allYatras.forEach(yatra => {
+                        const option = document.createElement('option');
+                        option.value = yatra.YatraId;
+                        option.textContent = `${yatra.YatraName} (${yatra.YatraDate})`;
+                        selectYatra.appendChild(option);
+                    });
+                }
+            }
         }
 
-      } catch (error) {
-        console.error("Booking error:", error);
-        alert("❌ Failed to book ticket. Please try again.");
-      } finally {
-        btnBookTicket.disabled = false;
-        btnBookTicket.innerText = "Book Ticket";
-      }
-    });
-  }
-});
-</script> {% endcomment %}
+        async function handleYatraChange() {
+            const selectedYatraId = selectYatra.value;
+            selectBus.innerHTML = '<option value="">Select Bus*</option>';
+            selectSeats.innerHTML = '';
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const paymentMode = document.getElementById('PaymentMode');
-  const upiFields = document.getElementById('upiFields');
-  const btnBookTicket = document.getElementById("btnBookTicket");
-
-  if (paymentMode && upiFields) {
-    paymentMode.addEventListener('change', () => {
-      // Show UPI fields only when "upi" is selected
-      upiFields.classList.toggle('d-none', paymentMode.value !== 'upi');
-    });
-  }
-
-  if (btnBookTicket) {
-    btnBookTicket.addEventListener("click", async () => {
-      try {
-        btnBookTicket.disabled = true;
-        btnBookTicket.innerText = "Booking...";
-        
-
-        const allUsersYatras = getAllUsersYatras();
-        if (!allUsersYatras || Object.keys(allUsersYatras).length === 0) {
-          alert("Please select at least one yatra before booking.");
-          btnBookTicket.disabled = false;
-          btnBookTicket.innerText = "Book Ticket";
-          return;
+            if (selectedYatraId) {
+                try {
+                    const resp = await postForm('get_yatra_buses', { yatraId: selectedYatraId });
+                    if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
+                        allBuses = resp.message_data;
+                        allBuses.forEach(bus => {
+                            const option = document.createElement('option');
+                            option.value = bus.BusId;
+                            option.textContent = `${bus.BusNumber} (Capacity: ${bus.Capacity}, Booked: ${bus.BookedSeats.length})`; // Changed to length
+                            selectBus.appendChild(option);
+                        });
+                    } else {
+                        console.error("Failed to load buses:", resp.message_text);
+                        showMsg('error', 'Failed to load buses for this yatra.');
+                    }
+                } catch (err) {
+                    console.error("Error fetching buses:", err);
+                    showMsg('error', 'Could not fetch buses. Please check network.');
+                }
+            }
         }
 
-        // Collect bookings
-        let bookingData = [];
-        for (const regId in allUsersYatras) {
-          const user = allUsersYatras[regId];
-          if (!user.yatras || user.yatras.length === 0) continue;
-          bookingData.push({
-            RegistrationId: regId,
-            YatraIds: user.yatras.map(y => y.id)
-          });
+        function handleBusChange() {
+            const selectedBusId = selectBus.value;
+            selectSeats.innerHTML = '';
+
+            if (selectedBusId) {
+                const selectedBus = allBuses.find(b => String(b.BusId) === selectedBusId);
+                if (selectedBus) {
+                    const totalCapacity = selectedBus.Capacity;
+                    const bookedSeats = selectedBus.BookedSeats || [];
+
+                    for (let i = 1; i <= totalCapacity; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `Seat ${i}`;
+                        if (bookedSeats.includes(i)) {
+                            option.disabled = true;
+                            option.textContent += ' (Booked)';
+                        }
+                        selectSeats.appendChild(option);
+                    }
+                }
+            }
         }
 
-        const fd = new FormData();
-        fd.append("action", "book_ticket");
-        fd.append("UserId", "{{ request.session.user_id|default:'1' }}");
-        fd.append("Bookings", JSON.stringify(bookingData));
-        fd.append("AmountPaid", document.getElementById("AmountPayable").value || "0");
-        fd.append("Discount", document.getElementById("Discount")?.value || "0");
-        fd.append("DiscountReason", document.getElementById("DiscountReason")?.value || "");
-        fd.append("PaymentId", document.getElementById("PaymentId")?.value || "");
-        fd.append("PaymentMode", paymentMode.value || ""); // cash / upi
-        // Add Count values
-        fd.append("Count1", document.getElementById("Count1")?.value || "0");
-        fd.append("Count2", document.getElementById("Count2")?.value || "0");
-        fd.append("Count3", document.getElementById("Count3")?.value || "0");
+        function addTicket() {
+            const selectedReg = currentRegistrations[0]; // Assuming booking for the first found registration
+            if (!selectedReg) {
+                showMsg('error', 'Please select or add a registration first in the Registration tab.');
+                return;
+            }
 
-        // ✅ NEW: Check payment mode selected
-        if (!paymentMode.value) {
-          alert("Please select a payment mode.");
-          btnBookTicket.disabled = false;
-          btnBookTicket.innerText = "Book Ticket";
-          return;
-        }
+            const routeId = selectRoute.value;
+            const yatraId = selectYatra.value;
+            const busId = selectBus.value;
+            const selectedSeatOptions = Array.from(selectSeats.selectedOptions);
+            const seats = selectedSeatOptions.map(option => parseInt(option.value));
 
-        // If UPI selected → send TransactionId + Screenshot
-        if (paymentMode.value === "upi") {
-          const transactionId = document.getElementById("TransactionId")?.value || "";
-          //if (!transactionId.trim()) {
-          //  alert("Please enter UPI Transaction ID.");
-          //  btnBookTicket.disabled = false;
-          //  btnBookTicket.innerText = "Book Ticket";
-          //  return;
-          // }
-          fd.append("TransactionId", transactionId);
+            if (!routeId || !yatraId || !busId || seats.length === 0) {
+                showMsg('error', 'Please select a route, yatra, bus, and at least one seat.');
+                return;
+            }
 
-          const upiFile = document.getElementById("UPIScreenshot")?.files[0];
-          if (!upiFile) {
-            alert("Please upload UPI screenshot.");
-            btnBookTicket.disabled = false;
-            btnBookTicket.innerText = "Book Ticket";
-            return;
-          }
-          fd.append("UPIScreenshot", upiFile);
-        }
+            const selectedYatra = allYatras.find(y => String(y.YatraId) === yatraId);
+            const fee = selectedYatra ? selectedYatra.FeesPerPerson * seats.length : 0;
 
-        document.getElementById('loader').style.display = 'flex';
-
-        const resp = await fetch("{% url 'registration_api1' %}", {
-          method: "POST",
-          body: fd
-        });
-
-        document.getElementById('loader').style.display = 'none';
-
-        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-        const data = await resp.json();
-        console.log("Book Ticket Response:", data);
-
-        if (data.message_code === 1000) {
-          // ✅ Fill counts from API response if available
-          if (data.message_data) {
-            const counts = {
-              Count1: data.message_data.GroupCount || 0,
-              Count2: data.message_data.CurrentTicket || 0,
-              Count3: data.message_data.BalanceTicket || 0
+            const newTicket = {
+                registrationId: selectedReg.RegistrationId,
+                registrationName: `${selectedReg.Firstname} ${selectedReg.Lastname}`,
+                yatraId: yatraId,
+                yatraName: selectedYatra ? `${selectedYatra.YatraName} (${selectedYatra.YatraDate})` : 'N/A',
+                busId: busId,
+                busNumber: selectBus.options[selectBus.selectedIndex].textContent.split(' ')[0],
+                seats: seats,
+                fee: fee
             };
 
-            // Update input values
-            document.getElementById("Count1").value = counts.Count1;
-            document.getElementById("Count2").value = counts.Count2;
-            document.getElementById("Count3").value = counts.Count3;
+            addedTickets.push(newTicket);
+            renderAddedTickets();
+            calculateTotalFees();
 
-            // ✅ Save them into sessionStorage immediately
-            Object.keys(counts).forEach(id => {
-              sessionStorage.setItem(id, counts[id]);
+            // Reset booking selections
+            selectRoute.value = '';
+            selectYatra.innerHTML = '<option value="">Select Yatra*</option>';
+            selectBus.innerHTML = '<option value="">Select Bus*</option>';
+            selectSeats.innerHTML = '';
+        }
+
+        function renderAddedTickets() {
+            addedTicketsList.innerHTML = '';
+            if (addedTickets.length === 0) {
+                addedTicketsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No tickets added yet.</li>';
+                return;
+            }
+
+            addedTickets.forEach((ticket, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                        <div class="yatra-summary">
+                            <strong>${ticket.registrationName}</strong> - ${ticket.yatraName}<br>
+                            Bus ${ticket.busNumber}, Seats: ${ticket.seats.join(', ')}<br>
+                            Fee: <strong>₹${ticket.fee}</strong>
+                        </div>
+                        <div class="yatra-item-actions">
+                            <button class="btn btn-sm btn-danger remove-ticket-btn" data-index="${index}">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        </div>
+                    `;
+                addedTicketsList.appendChild(li);
             });
-          }
 
-          console.log("✅ Updated counts saved to sessionStorage:", data.message_data);
-
-          alert("✅ Tickets booked successfully!");
-          location.reload();
-        } else {
-          alert(`⚠️ Booking failed: ${data.message_text}`);
+            document.querySelectorAll('.remove-ticket-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const indexToRemove = parseInt(e.currentTarget.dataset.index);
+                    addedTickets.splice(indexToRemove, 1);
+                    renderAddedTickets();
+                    calculateTotalFees();
+                });
+            });
         }
 
+        function calculateTotalFees() {
+            const total = addedTickets.reduce((sum, ticket) => sum + ticket.fee, 0);
+            totalFeesInput.value = total.toFixed(2);
+            updateFinalAmount();
+        }
 
-      } catch (error) {
-        console.error("Booking error:", error);
-        alert("❌ Failed to book ticket. Please try again.");
-      } finally {
-        btnBookTicket.disabled = false;
-        btnBookTicket.innerText = "Book Ticket";
-      }
-    });
-  }
-});
-</script>
+        function updateFinalAmount() {
+            const total = parseFloat(totalFeesInput.value || '0');
+            let discount = parseFloat(discountInput.value || '0');
 
-<script>
-// Render selected yatras for all users from localStorage (for main screen display)
-function renderSelectedYatras(searchResults = null, searchMobile = null) {
-  const yatraContainer = document.getElementById('selectedYatras');
-  if (!yatraContainer) return;
+            if (discount > total) {
+                discount = total; // Cap discount at total fees
+                discountInput.value = total.toFixed(2);
+                showMsg('warning', "Discount cannot exceed total fees. Discount adjusted to total fees.");
+            }
+            // No need to set totalFeesInput.value here, it's already updated by calculateTotalFees
+        }
 
-  yatraContainer.innerHTML = '';
+        function handlePaymentModeChange() {
+            if (paymentModeSelect.value === 'upi') {
+                upiFieldsDiv.classList.remove('d-none');
+                document.getElementById('upiScreenshot').required = true;
+                document.getElementById('transactionId').required = true;
+            } else {
+                upiFieldsDiv.classList.add('d-none');
+                document.getElementById('upiScreenshot').required = false;
+                document.getElementById('transactionId').required = false;
+            }
+            updateFinalAmount();
+        }
 
-  // Get all users' yatras from localStorage
-  const allUsersYatras = getAllUsersYatras();
-  console.log("Rendering all users' yatras:", allUsersYatras);
+        async function submitBooking() {
+            if (addedTickets.length === 0) {
+                showMsg('error', 'Please add at least one ticket before submitting.');
+                return;
+            }
 
-  // Build Yatra lookup by ID from routes
-  const yatraMap = {};
-  routes.forEach(route => {
-    if (route.Yatras && route.Yatras.length) {
-      route.Yatras.forEach(y => {
-        yatraMap[y.YatraId.toString()] = {
-          route: route.YatraRouteName,
-          fees: y.YatraFees,
-          datetime: y.YatraDateTime
+            const totalAmount = parseFloat(totalFeesInput.value || '0');
+            const discount = parseFloat(discountInput.value || '0');
+            const paymentMode = paymentModeSelect.value;
+            const discountReason = discountReasonInput.value.trim();
+            const transactionId = document.getElementById('transactionId').value.trim();
+            const upiScreenshot = document.getElementById('upiScreenshot').files[0];
+
+            if (!paymentMode) {
+                showMsg('error', 'Please select a payment mode.');
+                return;
+            }
+            if (paymentMode === 'upi') {
+                if (!transactionId) {
+                    showMsg('error', 'Please enter a UPI Transaction ID.');
+                    return;
+                }
+                if (!upiScreenshot) {
+                    showMsg('error', 'Please upload a UPI Screenshot.');
+                    return;
+                }
+            }
+
+            const bookingsPayload = addedTickets.map(ticket => ({
+                RegistrationId: ticket.registrationId,
+                YatraIds: ticket.yatraId, // Assuming single YatraId per ticket for simplicity
+                Seats: ticket.seats.join(','),
+                BusId: ticket.busId,
+            }));
+
+            const fd = new FormData();
+            fd.append('action', 'book_ticket');
+            fd.append('UserId', "{{ request.session.user_id }}"); // Ensure this context variable is available
+            fd.append('AmountPaid', (totalAmount - discount).toFixed(2));
+            fd.append('Discount', discount.toFixed(2));
+            fd.append('DiscountReason', discountReason);
+            fd.append('PaymentMode', paymentMode);
+            fd.append('TransactionId', transactionId);
+            if (upiScreenshot) {
+                fd.append('UPIScreenshot', upiScreenshot);
+            }
+            fd.append('Bookings', JSON.stringify(bookingsPayload));
+
+            try {
+                const res = await postForm('book_ticket', fd, true); // Pass formData directly
+
+                if (String(res.message_code) === "1000") {
+                    showMsg('success', res.message_text || 'Tickets booked successfully!');
+                    addedTickets = []; // Clear tickets after successful booking
+                    renderAddedTickets();
+                    calculateTotalFees();
+                    const mob = searchMobileInput.value.trim();
+                    if (validMobile(mob)) {
+                        RegistrationDisplay.fetchBookingHistory(); // Refresh history
+                    }
+                } else {
+                    showMsg('error', res.message_text || 'Failed to book tickets.');
+                }
+            } catch (err) {
+                console.error("Booking failed:", err);
+                showMsg('error', `An error occurred during booking: ${err.message}`);
+            }
+        }
+
+        return {
+            loadAllRoutesYatras,
+            handleRouteChange,
+            handleYatraChange,
+            handleBusChange,
+            addTicket,
+            updateFinalAmount,
+            handlePaymentModeChange,
+            submitBooking
         };
-      });
-    }
-  });
+    })();
 
-  let usersToShow = {};
 
-  // If we have search results, show only those users' yatras
-  if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
-    // Show yatras only for users in search results
-    searchResults.forEach(user => {
-      const regId = user.RegistrationId ? user.RegistrationId.toString() : 'new';
-      if (allUsersYatras[regId]) {
-        usersToShow[regId] = allUsersYatras[regId];
-      }
+    // --- Event Listeners and Initial Load ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        RegistrationDisplay.populateHistoryYears();
+        // REMOVED: Booking.loadAllRoutesYatras(); from initial load
+
+        // Clear sessionStorage for 'lastSearchMobile' on page load
+        sessionStorage.removeItem('lastSearchMobile');
+
+        // Clear displayed items and search input on initial load
+        searchMobileInput.value = ''; // Clear the search input field
+        labelMobile.textContent = ''; // Clear the mobile number label
+        regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>';
+        bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+
+        // No need to call RegistrationDisplay.doSearch() here, as we want it clear.
+        // A user will manually search.
+
+        Booking.renderAddedTickets(); // Render any previously added tickets (if page reload logic supported this)
+        Booking.calculateTotalFees(); // Calculate initial fees
     });
-  } else if (searchMobile && validMobile(searchMobile)) {
-    // If we have a searched mobile but no results, still check localStorage for any users with that mobile
-    Object.keys(allUsersYatras).forEach(regId => {
-      // This would need mobile number stored in localStorage structure for proper filtering
-      // For now, show nothing if no search results
-      // usersToShow = {}; // Empty object - no users to show
-    });
-    usersToShow = {}; // Show nothing when search returns no results
-  } else {
-    // Only show yatras when there's no search active (initial state)
-    // Don't show all users' yatras when search box is empty but user hasn't searched
-    usersToShow = {};
-  }
 
-  // If no users have yatras, show message
-  if (Object.keys(usersToShow).length === 0) {
-    const noYatras = document.createElement('div');
-    noYatras.className = "text-muted text-center py-3";
-    noYatras.innerHTML = '<i class="bi bi-info-circle"></i> No yatras selected yet.';
-    yatraContainer.appendChild(noYatras);
-    return;
-  }
-
-  // Calculate total amount across all selected users
-  let grandTotal = 0;
-
-  // Loop through each user to show
-  Object.keys(usersToShow).forEach(regId => {
-    const user = usersToShow[regId];
-    const fullName = user.fullName || "(Unnamed)";
-    const userYatras = Array.isArray(user.yatras) ? user.yatras : [];
-
-    const userBlock = document.createElement('div');
-    userBlock.className = "card mb-2";
-
-    const cardHeader = document.createElement('div');
-    cardHeader.className = "card-header bg-light d-flex justify-content-between align-items-center";
-    
-    const nameDiv = document.createElement('div');
-    nameDiv.className = "fw-bold text-primary";
-    nameDiv.textContent = fullName;
-    cardHeader.appendChild(nameDiv);
-
-    if (userYatras.length > 0) {
-      const userTotal = userYatras.reduce((sum, y) => {
-        const yData = yatraMap[y.id];
-        const fee = yData ? parseFloat(yData.fees) : parseFloat(y.amount || 0);
-        return sum + (isNaN(fee) ? 0 : fee);
-      }, 0);
-      
-      grandTotal += userTotal;
-      
-      const totalBadge = document.createElement('span');
-      totalBadge.className = "badge bg-success";
-      totalBadge.textContent = `₹${userTotal}`;
-      cardHeader.appendChild(totalBadge);
-    }
-
-    userBlock.appendChild(cardHeader);
-
-    const cardBody = document.createElement('div');
-    cardBody.className = "card-body";
-
-    if (!userYatras.length) {
-      const noYatra = document.createElement('div');
-      noYatra.className = "small text-muted";
-      noYatra.textContent = "No yatras selected yet.";
-      cardBody.appendChild(noYatra);
-    } else {
-      userYatras.forEach(y => {
-        const yData = yatraMap[y.id];
-        const yLine = document.createElement('div');
-        yLine.className = "small text-dark mb-1 d-flex justify-content-between";
-
-        if (yData) {
-          // yLine.innerHTML = `
-          //  <span><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</span>
-          //  <span class="fw-bold">₹${yData.fees}</span>
-          // `;
-          yLine.innerHTML = `
-            <div>
-              <div><i class="bi bi-geo-alt-fill me-1 text-primary"></i><strong>${yData.route}</strong></div>
-              <div class="small text-muted"><i class="bi bi-calendar-event me-1"></i>${yData.datetime}</div>
-            </div>
-            <span class="fw-bold">₹${yData.fees}</span>
-          `;
-        } else {
-          yLine.innerHTML = `
-            <span><i class="bi bi-question-circle me-1"></i>Yatra ID: ${y.id} (details not found)</span>
-            <span class="fw-bold">₹${y.amount || 0}</span>
-          `;
+    // Search & Registration Events
+    btnSearch.addEventListener('click', () => RegistrationDisplay.doSearch(true)); // Explicitly pass true for search
+    searchMobileInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            RegistrationDisplay.doSearch(true); // Explicitly pass true for search
         }
-
-        cardBody.appendChild(yLine);
-      });
-    }
-
-    userBlock.appendChild(cardBody);
-    yatraContainer.appendChild(userBlock);
-  });
-
-  // Show grand total if there are selected yatras
-  if (grandTotal > 0) {
-    const totalCard = document.createElement('div');
-    totalCard.className = "card border-success";
-    totalCard.innerHTML = `
-      <div class="card-body text-center">
-        <h5 class="card-title text-success">Total Amount: ₹${grandTotal}</h5>
-        <p class="card-text small text-muted">Total for all selected yatras</p>
-      </div>
-    `;
-    yatraContainer.appendChild(totalCard);
-    
-    // Auto-fill the payment amount
-    const amountPayableInput = document.getElementById('AmountPayable');
-    if (amountPayableInput) {
-      amountPayableInput.value = grandTotal;
-    }
-  }
-}
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const ids = ["Count1", "Count2", "Count3"];
-  const msgBox = document.getElementById("countMessage");
-
-  // ✅ Restore counts from sessionStorage or default to 1
-  ids.forEach(id => {
-    let savedValue = sessionStorage.getItem(id);
-    if (savedValue === null) {
-      savedValue = 1;
-      sessionStorage.setItem(id, 1);
-    }
-    document.getElementById(id).value = savedValue;
-  });
-
-  // ✅ Check conditions
-  let values = ids.map(id => parseInt(sessionStorage.getItem(id) || 0));
-
-  if (values.every(v => v === 0)) {
-    msgBox.textContent = "Group is Over";
-    values = [1, 1, 1];
-    ids.forEach((id, i) => {
-      document.getElementById(id).value = values[i];
-      sessionStorage.setItem(id, values[i]);
     });
-    // keep editable
-    ids.forEach(id => (document.getElementById(id).disabled = false));
-  } else if (values[0] > 1) {
-    // disable all if first box > 1
-    ids.forEach(id => (document.getElementById(id).disabled = true));
-    msgBox.textContent = " ";
-  } else {
-    // keep editable in all other cases
-    ids.forEach(id => (document.getElementById(id).disabled = false));
-    msgBox.textContent = "";
-  }
-
-  // ✅ Save on input if editable
-  ids.forEach(id => {
-    document.getElementById(id).addEventListener("input", e => {
-      if (!e.target.disabled) {
-        sessionStorage.setItem(id, e.target.value);
-      }
+    btnAddNew.addEventListener('click', () => {
+        const mob = searchMobileInput.value.trim();
+        if (!validMobile(mob)) {
+            showMsg('error', "Please enter a valid 10-digit mobile number in the search box first.");
+            searchMobileInput.focus();
+            return;
+        }
+        RegistrationForm.openForm('insert', null, mob);
     });
-  });
+    regForm.addEventListener('submit', RegistrationForm.handleSubmit);
 
-  // ✅ Clear only localStorage, not sessionStorage
-  localStorage.clear();
-});
+    // History Filters Events
+    historyYearSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
+    historyPassengerSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
+
+
+    // Booking Events
+    btnRegNext.addEventListener('click', () => {
+        const bookingTab = document.getElementById('booking-tab');
+        const tab = new bootstrap.Tab(bookingTab);
+        tab.show();
+    });
+
+    // NEW EVENT LISTENER: Load routes/yatras only when the Booking tab is actually shown
+    bookingTabButton.addEventListener('shown.bs.tab', () => {
+        Booking.loadAllRoutesYatras();
+    });
+
+    selectRoute.addEventListener('change', Booking.handleRouteChange);
+    selectYatra.addEventListener('change', Booking.handleYatraChange);
+    selectBus.addEventListener('change', Booking.handleBusChange);
+    btnAddTicket.addEventListener('click', Booking.addTicket);
+    discountInput.addEventListener('input', Booking.updateFinalAmount);
+    paymentModeSelect.addEventListener('change', Booking.handlePaymentModeChange);
+    submitBookingBtn.addEventListener('click', Booking.submitBooking);
+
 </script>
-
-
 </body>
 </html>
