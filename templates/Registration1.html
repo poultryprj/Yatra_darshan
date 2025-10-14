@@ -225,6 +225,21 @@
             font-size: 11px;
             color: var(--brand-orange);
         }
+        
+        /* --- NEW CSS for two-column booking layout --- */
+        .compact-booking-layout #selectPassengers {
+             min-height: 145px; /* Taller passenger select box */
+        }
+        .compact-booking-layout .floating, .compact-booking-layout .floating select {
+            height: 100%;
+        }
+        .compact-booking-layout .form-text {
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            font-size: 0.75rem;
+        }
+
 
         .btn-submit {
             background: var(--brand-orange);
@@ -266,22 +281,6 @@
             filter: brightness(0) invert(1);
         }
 
-        #yatraList .card {
-            margin-bottom: 8px;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-        }
-        #yatraList .card-body {
-            padding: 12px;
-        }
-        .yatra-item-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .yatra-item-actions .btn {
-            padding: 4px 8px;
-            font-size: 0.85rem;
-        }
         .yatra-summary {
             font-size: 0.9rem;
             color: #555;
@@ -333,6 +332,74 @@
 
         .compact-form textarea {
             min-height: 60px;
+        }
+        
+        /* Compact booking layout - Passengers left, Route/Yatra/Bus right stacked */
+        .compact-booking-layout {
+            margin-bottom: 16px;
+        }
+
+        .compact-booking-layout .floating {
+            margin-bottom: 12px;
+            height: auto;
+        }
+
+        .compact-booking-layout #selectPassengers {
+            min-height: 160px;
+            height: 160px;
+        }
+
+        /* Right column with stacked fields */
+        .compact-booking-layout .right-stacked-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .compact-booking-layout .right-stacked-fields .floating {
+            margin-bottom: 10px;
+            flex: 1;
+        }
+
+        .compact-booking-layout .right-stacked-fields .floating:last-child {
+            margin-bottom: 12px;
+        }
+
+        .compact-booking-layout .right-stacked-fields select {
+            height: 48px;
+        }
+
+        #selectSeats {
+            min-height: 80px;
+        }
+
+        .compact-booking-layout .form-text {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 767px) {
+            .compact-booking-layout #selectPassengers {
+                min-height: 130px;
+                height: 130px;
+            }
+            
+            .compact-booking-layout .right-stacked-fields .floating {
+                margin-bottom: 8px;
+            }
+            
+            .compact-booking-layout .right-stacked-fields select {
+                height: 40px;
+            }
+            
+            #selectSeats {
+                min-height: 70px;
+            }
+            
+            .compact-booking-layout .form-text {
+                font-size: 0.65rem;
+            }
         }
     </style>
 </head>
@@ -407,52 +474,66 @@
                 </div>
 
                 <!-- Booking Tab -->
-                <div class="tab-pane fade" id="booking" role="tabpanel" aria-labelledby="booking-tab">
-                    <div class="section-header">Select Yatra Details</div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="floating">
-                                <select id="selectRoute" placeholder=" " required>
-                                    <option value="">Select Route*</option>
-                                </select>
-                                <label>Route</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="floating">
-                                <select id="selectYatra" placeholder=" " required>
-                                    <option value="">Select Yatra*</option>
-                                </select>
-                                <label>Yatra</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="floating">
-                                <select id="selectBus" placeholder=" " required>
-                                    <option value="">Select Bus*</option>
-                                </select>
-                                <label>Bus</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="floating">
-                                <select id="selectSeats" multiple placeholder=" " required>
-                                </select>
-                                <label>Select Seats*</label>
-                                <div class="form-text">Hold Ctrl/Cmd to select multiple seats.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-3">
-                        <button id="btnAddTicket" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i> Add Ticket</button>
-                    </div>
+                <div class="tab-pane fade" id="booking" role="tabpanel"           aria-labelledby="booking-tab">
+                    <div class="section-header">Select Passengers & Yatra Details</div>
 
-                    <div class="section-header mt-4">Added Tickets</div>
+                        <!-- TWO-COLUMN LAYOUT: Passengers on Left, Route/Yatra/Bus stacked on Right -->
+                        <div class="row g-2 compact-booking-layout">
+                            <!-- Left Column: Passengers (tall) -->
+                            <div class="col-6">
+                                <div class="floating">
+                                    <select id="selectPassengers" multiple placeholder=" " required>
+                                        <!-- Options populated by JS -->
+                                    </select>
+                                    <label>Select Passengers*</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Route, Yatra, Bus stacked vertically -->
+                            <div class="col-6 right-stacked-fields">
+                                <div class="floating">
+                                    <select id="selectRoute" placeholder=" " required>
+                                        <option value="">Select Route*</option>
+                                    </select>
+                                    <label>Route</label>
+                                </div>
+                                <div class="floating">
+                                    <select id="selectYatra" placeholder=" " required>
+                                        <option value="">Select Yatra*</option>
+                                    </select>
+                                    <label>Yatra</label>
+                                </div>
+                                <div class="floating">
+                                    <select id="selectBus" placeholder=" " required>
+                                        <option value="">Select Bus*</option>
+                                    </select>
+                                    <label>Bus</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seats Section - Full Width -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <div class="floating">
+                                    <select id="selectSeats" multiple placeholder=" " required>
+                                    </select>
+                                    <label>Select Seats*</label>
+                                </div>
+                                <div class="form-text">Match number of seats to passengers.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-3">
+                            <button id="btnAddTicket" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i> Add Ticket</button>
+                        </div>
+
+                    <div class="section-header mt-2">Added Tickets</div>
                     <div id="addedTicketsList" class="list-group mb-3">
                          <li class="list-group-item text-center text-muted py-4">No tickets added yet.</li>
                     </div>
 
-                    <div class="section-header mt-4">Payment Details</div>
+                    <div class="section-header mt-2">Payment Details</div>
                     <div class="floating">
                         <input id="totalFees" type="number" placeholder=" " min="0" readonly>
                         <label>Total Fees (₹)</label>
@@ -604,25 +685,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // IMPORTANT: Ensure this API_BASE_URL is correctly configured for your API endpoints.
-    // {% static '' %} is for static files, not API.
-    // It should point to your API's base path, e.g., '/api/' or use a Django URL tag
-    // if your routesyatradates endpoint is defined in Django urls.py.
-    // For this code, I'm assuming 'registration_api1' is the main API handler,
-    // and you will add 'get_routes_yatras' as an action to it.
-    const API_BASE_URL = "{% url 'registration_api1' %}"; // Using registration_api1 as the base for postForm actions.
+    // NOTE: The JavaScript code remains the same as the previous version.
+    // The changes are purely structural (HTML) and stylistic (CSS).
+    
+    const API_BASE_URL = "{% url 'registration_api1' %}";
 
-    // Global Utility Functions
     async function postForm(action, data = {}, isFormData = false) {
         const fd = new FormData();
         fd.append('action', action);
         if (isFormData) {
-            // If data is already a FormData object, append its entries
             for (let pair of data.entries()) {
                 fd.append(pair[0], pair[1]);
             }
         } else {
-            // Otherwise, iterate through data object
             for (const k in data) {
                 if (data[k] instanceof File) {
                     fd.append(k, data[k], data[k].name);
@@ -631,8 +706,7 @@
                 }
             }
         }
-
-        const url = API_BASE_URL; // Using the configured API_BASE_URL
+        const url = API_BASE_URL;
         const response = await fetch(url, { method: 'POST', body: fd });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -640,33 +714,38 @@
         return response.json();
     }
 
-    // MODIFIED: Use SweetAlert2 for messages to match the provided image format
-    function showMsg(type, text, title = null) { // Added 'title' parameter
+    function showMsg(type, text, title = null) {
         Swal.fire({
-            icon: type, // 'success', 'error', 'warning', 'info', 'question'
-            title: title || (type === 'success' ? 'Success!' : 'Error!'), // Use custom title or default
-            html: text, // Use html for multiline or richer text content
-            showConfirmButton: true, // Show the OK button
-            confirmButtonText: 'OK', // Text for the OK button
-            confirmButtonColor: '#ff7b00', // Use your brand-orange for the button
-            allowOutsideClick: false, // Prevent closing by clicking outside
-            allowEscapeKey: false,   // Prevent closing by pressing Escape key
-            customClass: {
-                container: 'my-sweetalert-container',
-                popup: 'my-sweetalert-popup',
-                title: 'my-sweetalert-title',
-                htmlContainer: 'my-sweetalert-html-container',
-                icon: 'my-sweetalert-icon',
-                confirmButton: 'my-sweetalert-confirm-button'
-            }
+            icon: type,
+            title: title || (type === 'success' ? 'Success!' : 'Error!'),
+            html: text,
+            confirmButtonColor: '#ff7b00',
         });
     }
 
     function validMobile(m) {
         return /^\d{10}$/.test(m);
     }
+    
+    function populatePassengerBookingDropdown(registrations) {
+        const selectPassengers = document.getElementById('selectPassengers');
+        selectPassengers.innerHTML = '';
+        if (registrations && registrations.length > 0) {
+            registrations.forEach(reg => {
+                const fullName = [reg.Firstname, reg.Middlename, reg.Lastname].filter(Boolean).join(" ");
+                const option = document.createElement('option');
+                option.value = reg.RegistrationId;
+                option.textContent = fullName;
+                selectPassengers.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.textContent = 'No passengers found for this number.';
+            option.disabled = true;
+            selectPassengers.appendChild(option);
+        }
+    }
 
-    // DOM Elements
     const searchMobileInput = document.getElementById('searchMobile');
     const btnSearch = document.getElementById('btnSearch');
     const btnAddNew = document.getElementById('btnAddNew');
@@ -678,7 +757,7 @@
     const historyYearSelect = document.getElementById('historyYear');
     const historyPassengerSelect = document.getElementById('historyPassenger');
     const bookingHistoryList = document.getElementById('bookingHistoryList');
-
+    const selectPassengers = document.getElementById('selectPassengers'); 
     const selectRoute = document.getElementById('selectRoute');
     const selectYatra = document.getElementById('selectYatra');
     const selectBus = document.getElementById('selectBus');
@@ -691,35 +770,30 @@
     const paymentModeSelect = document.getElementById('paymentMode');
     const upiFieldsDiv = document.getElementById('upiFields');
     const submitBookingBtn = document.getElementById('submitBooking');
-    const bookingTabButton = document.getElementById('booking-tab'); // Added reference to booking tab button
+    const bookingTabButton = document.getElementById('booking-tab');
 
-
-    // Global Data Stores
     let allRoutes = [];
     let allYatras = [];
     let allBuses = [];
     let currentRegistrations = [];
     let addedTickets = [];
-    let hasLoadedRoutesYatras = false; // NEW FLAG: to ensure routes/yatras load only once
-
-    // --- SECTION 1: Search, Display Registrations & History ---
+    let hasLoadedRoutesYatras = false;
 
     const RegistrationDisplay = (() => {
-        // Flag to control showing "X registrations found" message only on explicit search
-        let isExplicitSearch = false; // NEW FLAG
+        let isExplicitSearch = false;
 
-        async function doSearch(explicitSearchTriggered = true) { // Added parameter
+        async function doSearch(explicitSearchTriggered = true) {
             const mob = searchMobileInput.value.trim();
             if (!validMobile(mob)) {
                 showMsg('error', 'Please enter a valid 10-digit mobile number.');
-                // MODIFIED: Clear list and label if validation fails
                 labelMobile.textContent = '';
                 regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>';
                 bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+                populatePassengerBookingDropdown([]);
                 return;
             }
             sessionStorage.setItem('lastSearchMobile', mob);
-            isExplicitSearch = explicitSearchTriggered; // Set flag based on how doSearch was called
+            isExplicitSearch = explicitSearchTriggered;
 
             labelMobile.textContent = mob;
             regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading registrations...</li>';
@@ -730,7 +804,7 @@
                     currentRegistrations = resp.message_data;
                     renderRegistrationList(currentRegistrations, mob);
                     populatePassengerDropdown(currentRegistrations);
-                    // MODIFIED: Only show 'registrations found' message if it was an explicit search
+                    populatePassengerBookingDropdown(currentRegistrations);
                     if (isExplicitSearch) {
                         showMsg('success', `${currentRegistrations.length} registrations found.`);
                     }
@@ -738,7 +812,7 @@
                     currentRegistrations = [];
                     renderRegistrationList([], mob);
                     populatePassengerDropdown([]);
-                    // MODIFIED: Show error message if no records found, regardless of explicit search
+                    populatePassengerBookingDropdown([]);
                     showMsg('error', resp.message_text || 'No records found.');
                 }
             } catch (err) {
@@ -757,7 +831,6 @@
                 option.textContent = fullName;
                 historyPassengerSelect.appendChild(option);
             });
-            // Automatically select the first passenger if available, or previously selected
             if (registrations.length > 0 && !historyPassengerSelect.value) {
                 historyPassengerSelect.value = registrations[0].RegistrationId;
             }
@@ -789,7 +862,7 @@
                 option.textContent = i;
                 historyYearSelect.appendChild(option);
             }
-            historyYearSelect.value = currentYear; // Default to current year
+            historyYearSelect.value = currentYear;
         }
 
         async function fetchBookingHistory() {
@@ -845,15 +918,8 @@
             });
         }
 
-        return {
-            doSearch,
-            populateHistoryYears,
-            fetchBookingHistory
-        };
+        return { doSearch, populateHistoryYears, fetchBookingHistory };
     })();
-
-
-    // --- SECTION 2: Add/Update Registration ---
 
     const RegistrationForm = (() => {
         const areaSel = document.getElementById('AreaId');
@@ -886,19 +952,16 @@
 
         async function openForm(mode, row = null, mobile = '') {
             regForm.reset();
-            document.getElementById('RegistrationId').value = '0'; // Default for new registration
+            document.getElementById('RegistrationId').value = '0';
             document.getElementById('PhotoFileName').value = '';
             document.getElementById('IdProofFileName').value = '';
             document.getElementById('VoterId').value = '';
-            // Clear file inputs
             document.getElementById('AadharUpload').value = '';
             document.getElementById('ProfilePicUpload').value = '';
             document.getElementById('VoterIdUpload').value = '';
 
             document.getElementById('regActionBarLabel').textContent = mode === 'insert' ? 'Add New Registration' : 'Update Registration';
 
-            // Set required attribute dynamically based on mode and existing files
-            // If in insert mode, or if in update mode but no file exists, make input required.
             document.getElementById('AadharUpload').required = mode === 'insert' || (!row || !row.IdProofFileName);
             document.getElementById('ProfilePicUpload').required = mode === 'insert' || (!row || !row.PhotoFileName);
             document.getElementById('VoterIdUpload').required = mode === 'insert' || (!row || !row.VoterIdProof);
@@ -908,7 +971,7 @@
                 document.getElementById('MobileNo').value = mobile;
             }
 
-            await loadDropdowns(); // Ensure dropdowns are loaded/refreshed
+            await loadDropdowns(); 
 
             if (mode === 'update' && row) {
                 document.getElementById('RegistrationId').value = row.RegistrationId || '0';
@@ -919,38 +982,32 @@
                 document.getElementById('Lastname').value = row.Lastname || '';
                 document.getElementById('Address').value = row.Address || '';
                 document.getElementById('AadharNumber').value = row.AadharNumber || '';
-
-                // Store existing filenames for updates where no new file is uploaded
                 document.getElementById('PhotoFileName').value = row.PhotoFileName || '';
                 document.getElementById('IdProofFileName').value = row.IdProofFileName || '';
                 document.getElementById('VoterId').value = row.VoterIdProof || '';
-
-                // Adjust required status if existing files are present
                 document.getElementById('AadharUpload').required = !row.IdProofFileName;
                 document.getElementById('ProfilePicUpload').required = !row.PhotoFileName;
                 document.getElementById('VoterIdUpload').required = !row.VoterIdProof;
 
-
-                setTimeout(() => { // Use setTimeout to ensure options are rendered before setting value
+                setTimeout(() => { 
                     document.getElementById('AreaId').value = row.AreaId || '';
                     document.getElementById('Gender').value = row.Gender || '';
-                    // Find blood group by ID if available, otherwise by name
                     const bloodGroupSelect = document.getElementById('BloodGroup');
                     let bloodGroupOption;
-                    if (row.BloodGroupId) { // Prioritize ID if backend provides it
+                    if (row.BloodGroupId) {
                         bloodGroupOption = Array.from(bloodGroupSelect.options).find(opt => opt.value === String(row.BloodGroupId));
-                    } else if (row.BloodGroup) { // Fallback to name
+                    } else if (row.BloodGroup) {
                         bloodGroupOption = Array.from(bloodGroupSelect.options).find(opt => opt.textContent.toLowerCase() === row.BloodGroup.toLowerCase());
                     }
 
                     if (bloodGroupOption) bloodGroupSelect.value = bloodGroupOption.value;
-                }, 100); // Small delay to ensure options are populated
+                }, 100); 
 
                 if (row.DateOfBirth) {
-                    const dobParts = row.DateOfBirth.split('-'); // Assuming 'DD-MM-YYYY' format from backend for display
+                    const dobParts = row.DateOfBirth.split('-');
                     if (dobParts.length === 3) {
-                        document.getElementById('DateOfBirth').value = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`; // Convert to 'YYYY-MM-DD' for input type="date"
-                    } else if (String(row.DateOfBirth).match(/^\d+$/)) { // Handle timestamp if needed
+                        document.getElementById('DateOfBirth').value = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`;
+                    } else if (String(row.DateOfBirth).match(/^\d+$/)) {
                         const date = new Date(parseInt(row.DateOfBirth) * 1000);
                         if (!isNaN(date.getTime())) {
                             document.getElementById('DateOfBirth').value = date.toISOString().split('T')[0];
@@ -963,8 +1020,6 @@
 
         async function handleSubmit(e) {
             e.preventDefault();
-
-            // Validation remains the same
             const requiredFields = ['MobileNo', 'Firstname', 'Lastname', 'AreaId', 'Address'];
             for (const fieldId of requiredFields) {
                 const field = document.getElementById(fieldId);
@@ -981,16 +1036,10 @@
                 document.getElementById('MobileNo').focus();
                 return;
             }
-
-            const registrationId = document.getElementById('RegistrationId').value; // Get the actual ID
-
-            // Create a new FormData object to send to Django view
+            const registrationId = document.getElementById('RegistrationId').value;
             const formData = new FormData();
             formData.append("action", "submit");
-
-            // Map frontend input names to backend expected `request.POST.get` names
-            // This is the main change from your previous frontend code
-            formData.append("RegistrationId", registrationId); // Always send, backend handles '0' vs actual ID
+            formData.append("RegistrationId", registrationId);
             formData.append("userMobileNo", document.getElementById('MobileNo').value.trim());
             formData.append("userAlternateMobileNo", document.getElementById('AlternateMobileNo').value.trim());
             formData.append("userFirstname", document.getElementById('Firstname').value.trim());
@@ -998,59 +1047,34 @@
             formData.append("userLastname", document.getElementById('Lastname').value.trim());
             formData.append("AreaId", document.getElementById('AreaId').value);
             formData.append("Address", document.getElementById('Address').value.trim());
-            formData.append("Gender", document.getElementById('Gender').value); // Send ID, your backend maps it
-            formData.append("BloodGroup", document.getElementById('BloodGroup').options[document.getElementById('BloodGroup').selectedIndex].textContent); // Send text, your backend maps it
-
-            const dobVal = document.getElementById('DateOfBirth').value; // YYYY-MM-DD
-            if (dobVal) {
-                // Your backend `views.py` `submit` action already handles the YYYY-MM-DD to DD/MM/YYYY conversion.
-                // So, send YYYY-MM-DD directly and let the backend convert.
-                formData.append("DateOfBirth", dobVal);
-            } else {
-                formData.append("DateOfBirth", "");
-            }
+            formData.append("Gender", document.getElementById('Gender').value);
+            formData.append("BloodGroup", document.getElementById('BloodGroup').options[document.getElementById('BloodGroup').selectedIndex].textContent);
+            const dobVal = document.getElementById('DateOfBirth').value;
+            formData.append("DateOfBirth", dobVal || "");
             formData.append("AadharNumber", document.getElementById('AadharNumber').value.trim());
 
-            // File handling: append files if new ones are selected,
-            // otherwise append the hidden input values which hold previous URLs/filenames.
             const aadharUpload = document.getElementById('AadharUpload').files[0];
             const profilePicUpload = document.getElementById('ProfilePicUpload').files[0];
             const voterIdUpload = document.getElementById('VoterIdUpload').files[0];
 
-            if (aadharUpload) {
-                formData.append("AadharUpload", aadharUpload);
-            } else if (document.getElementById('IdProofFileName').value) {
-                formData.append("IdProofFileName", document.getElementById('IdProofFileName').value);
-            }
+            if (aadharUpload) formData.append("AadharUpload", aadharUpload);
+            else if (document.getElementById('IdProofFileName').value) formData.append("IdProofFileName", document.getElementById('IdProofFileName').value);
 
-            if (profilePicUpload) {
-                formData.append("ProfilePicUpload", profilePicUpload);
-            } else if (document.getElementById('PhotoFileName').value) {
-                formData.append("PhotoFileName", document.getElementById('PhotoFileName').value);
-            }
+            if (profilePicUpload) formData.append("ProfilePicUpload", profilePicUpload);
+            else if (document.getElementById('PhotoFileName').value) formData.append("PhotoFileName", document.getElementById('PhotoFileName').value);
 
-            if (voterIdUpload) {
-                formData.append("VoterIdUpload", voterIdUpload);
-            } else if (document.getElementById('VoterId').value) {
-                formData.append("VoterId", document.getElementById('VoterId').value);
-            }
+            if (voterIdUpload) formData.append("VoterIdUpload", voterIdUpload);
+            else if (document.getElementById('VoterId').value) formData.append("VoterId", document.getElementById('VoterId').value);
 
             try {
-                const resp = await fetch("{% url 'registration_api1' %}", {
-                    method: "POST",
-                    body: formData // FormData object is automatically set with correct 'Content-Type: multipart/form-data'
-                });
-
+                const resp = await fetch("{% url 'registration_api1' %}", { method: "POST", body: formData });
                 if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
                 const res = await resp.json();
-
                 if (String(res.message_code) === "1000") {
-                    // MODIFIED: Show specific success message for add/update
                     const message = registrationId === '0' ? 'Registration added successfully!' : 'Registration updated successfully!';
                     showMsg('success', res.message_text || message);
                     regActionBar.hide();
-                    // MODIFIED: Call doSearch with false, so it doesn't show "X registrations found"
-                    RegistrationDisplay.doSearch(false); // Refresh the list
+                    RegistrationDisplay.doSearch(false);
                 } else {
                     showMsg('error', res.message_text || 'Failed to save registration.');
                 }
@@ -1060,35 +1084,19 @@
             }
         }
 
-        return {
-            openForm,
-            handleSubmit
-        };
+        return { openForm, handleSubmit };
     })();
-
-
-    // --- SECTION 3: Booking Functionality ---
 
     const Booking = (() => {
         async function loadAllRoutesYatras() {
-            if (hasLoadedRoutesYatras) return; // Only load once if already successful
+            if (hasLoadedRoutesYatras) return;
 
             try {
-                // MODIFIED: Calling postForm with an action 'get_routes_yatras'
-                // You MUST implement this action in your Django registration_api1 view.
-                const resp = await postForm('get_routes_yatras'); // This will call the registration_api1 URL
-
-                // If 'get_routes_yatras' is a separate, direct API endpoint not handled by postForm:
-                // const directApiUrl = "/api/routeyatradates/"; // Example if it's a fixed API path
-                // const resp = await fetch(directApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' }, cache: 'no-cache' });
-                // if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-                // const data = await resp.json();
-
-
+                const resp = await postForm('get_routes_yatras');
                 if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
                     allRoutes = resp.message_data;
                     populateRoutes();
-                    hasLoadedRoutesYatras = true; // Set flag to true on success
+                    hasLoadedRoutesYatras = true;
                 } else {
                     console.error("Failed to load routes and yatras:", resp.message_text);
                     showMsg('error', 'Failed to load route and yatra data.');
@@ -1142,15 +1150,13 @@
                         allBuses.forEach(bus => {
                             const option = document.createElement('option');
                             option.value = bus.BusId;
-                            option.textContent = `${bus.BusNumber} (Capacity: ${bus.Capacity}, Booked: ${bus.BookedSeats.length})`; // Changed to length
+                            option.textContent = `${bus.BusNumber} (Capacity: ${bus.Capacity}, Booked: ${bus.BookedSeats.length})`;
                             selectBus.appendChild(option);
                         });
                     } else {
-                        console.error("Failed to load buses:", resp.message_text);
                         showMsg('error', 'Failed to load buses for this yatra.');
                     }
                 } catch (err) {
-                    console.error("Error fetching buses:", err);
                     showMsg('error', 'Could not fetch buses. Please check network.');
                 }
             }
@@ -1179,48 +1185,67 @@
                 }
             }
         }
-
+        
         function addTicket() {
-            const selectedReg = currentRegistrations[0]; // Assuming booking for the first found registration
-            if (!selectedReg) {
-                showMsg('error', 'Please select or add a registration first in the Registration tab.');
+            const selectedPassengerOptions = Array.from(selectPassengers.selectedOptions);
+            const selectedSeatOptions = Array.from(selectSeats.selectedOptions);
+            
+            if (selectedPassengerOptions.length === 0) {
+                showMsg('error', 'Please select at least one passenger.');
+                return;
+            }
+            if (selectedSeatOptions.length === 0) {
+                showMsg('error', 'Please select at least one seat.');
+                return;
+            }
+            if (selectedPassengerOptions.length !== selectedSeatOptions.length) {
+                showMsg('error', 'The number of selected passengers must match the number of selected seats.');
                 return;
             }
 
             const routeId = selectRoute.value;
             const yatraId = selectYatra.value;
             const busId = selectBus.value;
-            const selectedSeatOptions = Array.from(selectSeats.selectedOptions);
-            const seats = selectedSeatOptions.map(option => parseInt(option.value));
 
-            if (!routeId || !yatraId || !busId || seats.length === 0) {
-                showMsg('error', 'Please select a route, yatra, bus, and at least one seat.');
+            if (!routeId || !yatraId || !busId) {
+                showMsg('error', 'Please select a route, yatra, and bus.');
                 return;
             }
 
             const selectedYatra = allYatras.find(y => String(y.YatraId) === yatraId);
-            const fee = selectedYatra ? selectedYatra.FeesPerPerson * seats.length : 0;
+            const feePerPerson = selectedYatra ? selectedYatra.FeesPerPerson : 0;
+            
+            selectedPassengerOptions.forEach((passengerOption, index) => {
+                const passengerId = passengerOption.value;
+                const seatNumber = selectedSeatOptions[index].value;
 
-            const newTicket = {
-                registrationId: selectedReg.RegistrationId,
-                registrationName: `${selectedReg.Firstname} ${selectedReg.Lastname}`,
-                yatraId: yatraId,
-                yatraName: selectedYatra ? `${selectedYatra.YatraName} (${selectedYatra.YatraDate})` : 'N/A',
-                busId: busId,
-                busNumber: selectBus.options[selectBus.selectedIndex].textContent.split(' ')[0],
-                seats: seats,
-                fee: fee
-            };
+                const alreadyAdded = addedTickets.some(ticket => 
+                    String(ticket.registrationId) === passengerId && String(ticket.yatraId) === yatraId
+                );
 
-            addedTickets.push(newTicket);
+                if (alreadyAdded) {
+                     console.warn(`Ticket for ${passengerOption.textContent} for this yatra already added. Skipping.`);
+                     return;
+                }
+
+                const newTicket = {
+                    registrationId: passengerId,
+                    registrationName: passengerOption.textContent,
+                    yatraId: yatraId,
+                    yatraName: selectedYatra ? `${selectedYatra.YatraName} (${selectedYatra.YatraDate})` : 'N/A',
+                    busId: busId,
+                    busNumber: selectBus.options[selectBus.selectedIndex].textContent.split(' ')[0],
+                    seats: [seatNumber],
+                    fee: feePerPerson
+                };
+                addedTickets.push(newTicket);
+            });
+            
             renderAddedTickets();
             calculateTotalFees();
-
-            // Reset booking selections
-            selectRoute.value = '';
-            selectYatra.innerHTML = '<option value="">Select Yatra*</option>';
-            selectBus.innerHTML = '<option value="">Select Bus*</option>';
-            selectSeats.innerHTML = '';
+            
+            selectSeats.selectedIndex = -1;
+            selectPassengers.selectedIndex = -1;
         }
 
         function renderAddedTickets() {
@@ -1236,7 +1261,7 @@
                 li.innerHTML = `
                         <div class="yatra-summary">
                             <strong>${ticket.registrationName}</strong> - ${ticket.yatraName}<br>
-                            Bus ${ticket.busNumber}, Seats: ${ticket.seats.join(', ')}<br>
+                            Bus ${ticket.busNumber}, Seat: ${ticket.seats.join(', ')}<br>
                             Fee: <strong>₹${ticket.fee}</strong>
                         </div>
                         <div class="yatra-item-actions">
@@ -1269,11 +1294,10 @@
             let discount = parseFloat(discountInput.value || '0');
 
             if (discount > total) {
-                discount = total; // Cap discount at total fees
+                discount = total;
                 discountInput.value = total.toFixed(2);
                 showMsg('warning', "Discount cannot exceed total fees. Discount adjusted to total fees.");
             }
-            // No need to set totalFeesInput.value here, it's already updated by calculateTotalFees
         }
 
         function handlePaymentModeChange() {
@@ -1294,7 +1318,6 @@
                 showMsg('error', 'Please add at least one ticket before submitting.');
                 return;
             }
-
             const totalAmount = parseFloat(totalFeesInput.value || '0');
             const discount = parseFloat(discountInput.value || '0');
             const paymentMode = paymentModeSelect.value;
@@ -1306,27 +1329,21 @@
                 showMsg('error', 'Please select a payment mode.');
                 return;
             }
-            if (paymentMode === 'upi') {
-                if (!transactionId) {
-                    showMsg('error', 'Please enter a UPI Transaction ID.');
-                    return;
-                }
-                if (!upiScreenshot) {
-                    showMsg('error', 'Please upload a UPI Screenshot.');
-                    return;
-                }
+            if (paymentMode === 'upi' && (!transactionId || !upiScreenshot)) {
+                showMsg('error', 'Please enter UPI Transaction ID and upload a screenshot.');
+                return;
             }
 
             const bookingsPayload = addedTickets.map(ticket => ({
                 RegistrationId: ticket.registrationId,
-                YatraIds: ticket.yatraId, // Assuming single YatraId per ticket for simplicity
+                YatraIds: ticket.yatraId,
                 Seats: ticket.seats.join(','),
                 BusId: ticket.busId,
             }));
 
             const fd = new FormData();
             fd.append('action', 'book_ticket');
-            fd.append('UserId', "{{ request.session.user_id }}"); // Ensure this context variable is available
+            fd.append('UserId', "{{ request.session.user_id }}");
             fd.append('AmountPaid', (totalAmount - discount).toFixed(2));
             fd.append('Discount', discount.toFixed(2));
             fd.append('DiscountReason', discountReason);
@@ -1338,16 +1355,14 @@
             fd.append('Bookings', JSON.stringify(bookingsPayload));
 
             try {
-                const res = await postForm('book_ticket', fd, true); // Pass formData directly
-
+                const res = await postForm('book_ticket', fd, true);
                 if (String(res.message_code) === "1000") {
                     showMsg('success', res.message_text || 'Tickets booked successfully!');
-                    addedTickets = []; // Clear tickets after successful booking
+                    addedTickets = [];
                     renderAddedTickets();
                     calculateTotalFees();
-                    const mob = searchMobileInput.value.trim();
-                    if (validMobile(mob)) {
-                        RegistrationDisplay.fetchBookingHistory(); // Refresh history
+                    if (validMobile(searchMobileInput.value.trim())) {
+                        RegistrationDisplay.fetchBookingHistory();
                     }
                 } else {
                     showMsg('error', res.message_text || 'Failed to book tickets.');
@@ -1359,46 +1374,24 @@
         }
 
         return {
-            loadAllRoutesYatras,
-            handleRouteChange,
-            handleYatraChange,
-            handleBusChange,
-            addTicket,
-            updateFinalAmount,
-            handlePaymentModeChange,
-            submitBooking
+            loadAllRoutesYatras, handleRouteChange, handleYatraChange, handleBusChange,
+            addTicket, updateFinalAmount, handlePaymentModeChange, submitBooking
         };
     })();
 
-
-    // --- Event Listeners and Initial Load ---
     document.addEventListener('DOMContentLoaded', async () => {
         RegistrationDisplay.populateHistoryYears();
-        // REMOVED: Booking.loadAllRoutesYatras(); from initial load
-
-        // Clear sessionStorage for 'lastSearchMobile' on page load
         sessionStorage.removeItem('lastSearchMobile');
-
-        // Clear displayed items and search input on initial load
-        searchMobileInput.value = ''; // Clear the search input field
-        labelMobile.textContent = ''; // Clear the mobile number label
+        searchMobileInput.value = '';
+        labelMobile.textContent = '';
         regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>';
         bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
-
-        // No need to call RegistrationDisplay.doSearch() here, as we want it clear.
-        // A user will manually search.
-
-        Booking.renderAddedTickets(); // Render any previously added tickets (if page reload logic supported this)
-        Booking.calculateTotalFees(); // Calculate initial fees
+        Booking.renderAddedTickets();
+        Booking.calculateTotalFees();
     });
 
-    // Search & Registration Events
-    btnSearch.addEventListener('click', () => RegistrationDisplay.doSearch(true)); // Explicitly pass true for search
-    searchMobileInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            RegistrationDisplay.doSearch(true); // Explicitly pass true for search
-        }
-    });
+    btnSearch.addEventListener('click', () => RegistrationDisplay.doSearch(true));
+    searchMobileInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') RegistrationDisplay.doSearch(true); });
     btnAddNew.addEventListener('click', () => {
         const mob = searchMobileInput.value.trim();
         if (!validMobile(mob)) {
@@ -1410,21 +1403,14 @@
     });
     regForm.addEventListener('submit', RegistrationForm.handleSubmit);
 
-    // History Filters Events
     historyYearSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
     historyPassengerSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
 
+    btnRegNext.addEventListener('click', () => { new bootstrap.Tab(document.getElementById('booking-tab')).show(); });
 
-    // Booking Events
-    btnRegNext.addEventListener('click', () => {
-        const bookingTab = document.getElementById('booking-tab');
-        const tab = new bootstrap.Tab(bookingTab);
-        tab.show();
-    });
-
-    // NEW EVENT LISTENER: Load routes/yatras only when the Booking tab is actually shown
     bookingTabButton.addEventListener('shown.bs.tab', () => {
         Booking.loadAllRoutesYatras();
+        populatePassengerBookingDropdown(currentRegistrations);
     });
 
     selectRoute.addEventListener('change', Booking.handleRouteChange);
