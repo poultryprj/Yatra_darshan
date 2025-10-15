@@ -293,6 +293,60 @@ def registration_api1(request):
             resp = requests.get(api_url,verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
         
+        elif action == "list_routes":
+            api_url = f"{API_BASE_URL}listrouteall/"
+            resp = requests.get(api_url, verify=False)
+            return JsonResponse(resp.json(), safe=False, status=resp.status_code)
+
+        elif action == "list_yatras":
+            api_url = f"{API_BASE_URL}listyatraall/"
+            resp = requests.get(api_url, verify=False)
+            return JsonResponse(resp.json(), safe=False, status=resp.status_code)
+
+        elif action == "list_buses":
+            api_url = f"{API_BASE_URL}listroutebus/"
+            resp = requests.get(api_url, verify=False)
+            return JsonResponse(resp.json(), safe=False, status=resp.status_code)
+        
+        elif action == "fetch_seats":
+            try:
+                # 1. The URL of your independent backend API
+                api_url = f"{API_BASE_URL}fetch_bus_seats/"
+
+                # 2. Get parameters from the frontend's request to this proxy
+                route_id = request.POST.get('route_id')
+                yatra_id = request.POST.get('yatra_id')
+                bus_id = request.POST.get('bus_id')
+
+                # 3. Prepare the JSON payload to send to the independent API
+                payload = {
+                    "route_id": int(route_id),
+                    "yatra_id": int(yatra_id),
+                    "bus_id": int(bus_id)
+                }
+                # ✅ CORRECTED THIS LINE
+                response = requests.post(api_url, json=payload)
+
+                # 5. Check the response and pass it through to the frontend
+                response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
+                
+                # Return the exact JSON from the independent API back to the browser
+                return JsonResponse(response.json())
+
+            except requests.exceptions.HTTPError as e:
+                # If the backend API returned an error (e.g., 404, 500)
+                return JsonResponse({
+                    "message_code": 995,
+                    "message_text": f"Backend service error: {e.response.status_code}",
+                    "details": e.response.text
+                }, status=502) # Bad Gateway
+            except requests.exceptions.RequestException as e:
+                # Handle network errors (e.g., the backend API is down)
+                return JsonResponse({
+                    "message_code": 994,
+                    "message_text": f"Could not connect to the booking service: {e}"
+                }, status=503) # Service Unavailable
+        
         elif action == "book_ticket":
             try:
                 user_id = request.POST.get("UserId")
@@ -339,14 +393,14 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in upi_file.chunks():
                                 dest.write(chunk)
-                        trasection_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/trasection/{file_name}.pdf"
+                        trasection_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/trasection/{file_name}.pdf"
 
                     else:
                         # Convert and save as PNG
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(upi_file)
                         image.save(save_path, "PNG")
-                        trasection_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/trasection/{file_name}.png"
+                        trasection_url = f"http://127.0.0.1:8001/Yatra_darshan/static/assets/trasection/{file_name}.png"
 
                     print("UPI Screenshot saved at:", save_path)
                     print("UPI Screenshot URL:", trasection_url)
@@ -537,6 +591,7 @@ def registration_api1(request):
 
     except Exception as e:
         return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
+    
 
 # def TicketBooking(request):
 #     """
