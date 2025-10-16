@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Diwali Kirana Token</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { --brand-primary: #667eea; --brand-secondary: #764ba2; --brand-accent: #ff6b35; --text-dark: #2d3748; --text-light: #718096; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .token-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; padding: 40px; max-width: 350px; width: 90%; }
+        .header { margin-bottom: 25px; }
+        .header .icon { font-size: 48px; color: var(--brand-accent); }
+        .header h1 { font-size: 24px; color: var(--text-dark); margin: 15px 0 5px; }
+        .header p { color: var(--text-light); margin: 0; }
+        #qrcode { width: 220px !important; height: 220px !important; margin: 0 auto 20px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .token-number { font-size: 16px; color: var(--text-light); margin-bottom: 30px; }
+        .token-number strong { display: block; font-size: 36px; font-weight: 700; color: var(--brand-primary); letter-spacing: 2px; }
+        .actions { display: flex; gap: 15px; }
+        .btn { flex: 1; padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; text-decoration: none; }
+        .btn-download { background-color: #48bb78; color: white; }
+        .btn-share { background-color: #4299e1; color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .back-link { display: block; margin-top: 30px; color: var(--text-light); text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="token-container">
+        <div class="header">
+            <div class="icon">🎉</div>
+            <h1>Registration Successful!</h1>
+            <p>Show this QR code at the collection center.</p>
+        </div>
+
+        <!-- QR Code will be generated here -->
+        <div id="qrcode"></div>
+
+        <div class="token-number">
+            Your Token Number is
+            <strong>{{ token_no }}</strong>
+        </div>
+
+        <div class="actions">
+            <button id="downloadBtn" class="btn btn-download"><i class="fas fa-download"></i> Download</button>
+            <button id="shareBtn" class="btn btn-share"><i class="fas fa-share-alt"></i> Share</button>
+        </div>
+
+        <a href="{% url 'diwali_registration' %}" class="back-link">Register Another Family</a>
+    </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const qrCodeContainer = document.getElementById("qrcode");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const shareBtn = document.getElementById("shareBtn");
+
+        const tokenData = '{{ token_qr|escapejs }}';
+        const tokenNo = '{{ token_no|escapejs }}';
+
+        // 1. Generate QR Code
+        new QRCode(qrCodeContainer, {
+            text: tokenData,
+            width: 220,
+            height: 220,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // 2. Download Functionality
+        downloadBtn.addEventListener('click', () => {
+            // The qrcode.js library generates an <img> tag inside the container
+            const qrImage = qrCodeContainer.querySelector('img');
+            if (qrImage) {
+                const link = document.createElement('a');
+                link.href = qrImage.src;
+                link.download = `diwali-kirana-token-${tokenNo}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+
+        // 3. Share Functionality (works on mobile/supported browsers)
+        shareBtn.addEventListener('click', async () => {
+            const shareData = {
+                title: 'Diwali Kirana Token',
+                text: `My Diwali Kirana Token Number is ${tokenNo}.`,
+            };
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    alert('Share feature is not supported on this browser. Please take a screenshot.');
+                }
+            } catch (err) {
+                console.error("Share failed:", err);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

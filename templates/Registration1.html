@@ -816,6 +816,7 @@
         </div>
         <div class="offcanvas-body">
             <form id="regForm" class="compact-form" autocomplete="off">
+                {% csrf_token %} 
                 <input id="RegistrationId" type="hidden" value="0">
 
                 <div class="row g-2">
@@ -958,6 +959,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // No changes needed in this section
     const API_BASE_URL = "{% url 'registration_api1' %}";
 
     async function postForm(action, data = {}, isFormData = false) {
@@ -1312,8 +1314,7 @@
                 showMsg('error', `An error occurred: ${err.message}`);
             }
         }
-
-        // ✅ THIS BLOCK WAS MISSING IN THE PREVIOUS VERSION
+        
         return {
             openForm,
             handleSubmit
@@ -1571,41 +1572,120 @@
             document.getElementById('transactionId').required = paymentModeSelect.value === 'upi';
         }
 
+        // =========================================================================
+        // ===== START: REPLACED AND CORRECTED submitBooking FUNCTION =====
+        // =========================================================================
         async function submitBooking() {
-            if (addedTickets.length === 0) { showMsg('error', 'Please add at least one ticket group.'); return; }
-            if (!paymentModeSelect.value) { showMsg('error', 'Please select a payment mode.'); return; }
-            if (paymentModeSelect.value === 'upi' && (!document.getElementById('transactionId').value.trim() || !document.getElementById('upiScreenshot').files[0])) {
-                showMsg('error', 'Please enter UPI Transaction ID and upload a screenshot.'); return;
+            if (addedTickets.length === 0) {
+                showMsg('error', 'There are no tickets added to the booking list.');
+                return;
             }
-            const bookingsPayload = addedTickets.map(g => ({ YatraId: g.yatraId, BusId: g.busId, RegistrationIds: g.passengers.map(p => p.registrationId).join(','), Seats: g.passengers.map(p => p.seat).join(',') }));
-            const fd = new FormData();
-            fd.append('action', 'book_ticket');
-            fd.append('UserId', "{{ request.session.user_id }}");
-            fd.append('AmountPaid', (parseFloat(totalFeesInput.value || '0') - parseFloat(discountInput.value || '0')).toFixed(2));
-            fd.append('Discount', parseFloat(discountInput.value || '0').toFixed(2));
-            fd.append('DiscountReason', discountReasonInput.value.trim());
-            fd.append('PaymentMode', paymentModeSelect.value);
-            fd.append('TransactionId', document.getElementById('transactionId').value.trim());
-            if (document.getElementById('upiScreenshot').files[0]) fd.append('UPIScreenshot', document.getElementById('upiScreenshot').files[0]);
-            fd.append('Bookings', JSON.stringify(bookingsPayload));
+
+            // --- STEP 1: GATHER PAYMENT AND USER DATA ---
+            const userId = '{{ request.session.user_id|default:"0" }}';
+            const amountPaid = (parseFloat(totalFeesInput.value) - parseFloat(discountInput.value)).toFixed(2);
+            const discount = discountInput.value || '0';
+            const discountReason = discountReasonInput.value || '';
+            const paymentMode = paymentModeSelect.value;
+            const upiFile = document.getElementById('upiScreenshot').files[0];
+
+            // --- Validation ---
+            if (paymentMode === '') {
+                showMsg('error', 'Please select a payment mode.');
+                return;
+            }
+            if (paymentMode === 'upi' && !upiFile) {
+                showMsg('error', 'Please upload a UPI screenshot for UPI payments.');
+                return;
+            }
+
+            // --- STEP 2: BUILD THE NESTED "Bookings" OBJECT FROM addedTickets ---
+            const bookingsObject = addedTickets.map(group => {
+                return {
+                    YatraId: group.yatraId,
+                    BusId: group.busId,
+                    Registrations: group.passengers.map(p => ({
+                        RegistrationId: p.registrationId,
+                        SeatNo: p.seat
+                    }))
+                };
+            });
+
+            // --- STEP 3: PREPARE FORMDATA FOR THE AJAX REQUEST ---
+            const formData = new FormData();
+            formData.append('action', 'book_ticket');
+            formData.append('UserId', userId);
+            formData.append('AmountPaid', amountPaid);
+            formData.append('Discount', discount);
+            formData.append('DiscountReason', discountReason);
+            formData.append('PaymentMode', paymentMode);
+            
+            if (upiFile) {
+                formData.append('UPIScreenshot', upiFile);
+            }
+            
+            formData.append('Bookings', JSON.stringify(bookingsObject));
+
+            // --- STEP 4: SEND THE DATA TO YOUR BACKEND PROXY ---
             try {
-                const res = await postForm('book_ticket', fd, true);
-                if (String(res.message_code) === "1000") {
-                    showMsg('success', res.message_text || 'Tickets booked successfully!');
-                    addedTickets = [];
-                    renderAddedTickets();
-                    calculateTotalFees();
-                    if (validMobile(searchMobileInput.value.trim())) RegistrationDisplay.fetchBookingHistory();
-                } else {
-                    showMsg('error', res.message_text || 'Failed to book tickets.');
+                // ★★★ START: ADDED ROBUST CSRF TOKEN CHECK ★★★
+                const csrfTokenElement = document.querySelector('input[name="csrfmiddlewaretoken"]');
+
+                if (!csrfTokenElement) {
+                    // This provides a much clearer error than the crash
+                    showMsg('error', 'Security token (CSRF) not found. Please reload the page.');
+                    console.error('CRITICAL: CSRF token input field not found on the page. Ensure {% csrf_token %} is in the template.');
+                    return; // Stop execution
                 }
-            } catch (err) {
-                console.error("Booking failed:", err);
-                showMsg('error', `An error occurred during booking: ${err.message}`);
+                // ★★★ END: ADDED ROBUST CSRF TOKEN CHECK ★★★
+
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfTokenElement.value // Use the validated token
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.message_code === 1000) {
+                    showMsg('success', result.message_text || 'Booking successful!');
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showMsg('error', result.message_text || 'An unknown error occurred during booking.');
+                }
+            } catch (error) {
+                // The error will now be caught and displayed gracefully
+                console.error('Submission failed:', error);
+                showMsg('error', 'A critical error occurred. Please check the developer console.');
             }
         }
+        
+        // =========================================================================
+        // ===== END: REPLACED AND CORRECTED submitBooking FUNCTION =====
+        // =========================================================================
 
-        return { loadBookingData, handleRouteChange, handleYatraChange, handleBusChange, addTicket, updateFinalAmount, handlePaymentModeChange, submitBooking, renderAddedTickets, calculateTotalFees, populateTicketModal };
+        // =========================================================================
+        // ===== START: ADDED MISSING RETURN BLOCK TO FIX UNCLICKABLE BUTTONS ======
+        // =========================================================================
+        // Expose public functions so they can be called from outside the module
+        return {
+            loadBookingData,
+            handleRouteChange,
+            handleYatraChange,
+            handleBusChange,
+            addTicket,
+            renderAddedTickets,
+            populateTicketModal,
+            calculateTotalFees,
+            updateFinalAmount,
+            handlePaymentModeChange,
+            submitBooking
+        };
+        // =========================================================================
+        // ===== END: ADDED MISSING RETURN BLOCK ======
+        // =========================================================================
     })();
 
     // --- PAGE INITIALIZATION & MAIN EVENT LISTENERS ---

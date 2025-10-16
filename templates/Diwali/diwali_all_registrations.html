@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Diwali Registrations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* All CSS is correct and unchanged */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; display: flex; align-items: center; }
+        .back-btn { color: white; font-size: 24px; text-decoration: none; margin-right: 15px; }
+        .header h1 { font-size: 22px; margin: 0; }
+        .container-main { padding: 10px; max-width: 800px; margin: 0 auto; }
+        .search-bar { margin-bottom: 20px; position: relative; }
+        .search-bar input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .search-bar .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+        .no-results { text-align: center; padding: 40px; background: white; border-radius: 12px; }
+        .accordion-item { background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
+        .accordion-header { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: #f7fafc; border-bottom: 1px solid #e2e8f0; }
+        .accordion-header h2 { font-size: 18px; margin: 0; color: #2d3748; }
+        .accordion-header .ration-no { 
+            font-size: 14px; 
+            color: #718096; 
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .accordion-header .chevron { font-size: 16px; color: #a0aec0; transition: transform 0.3s ease; }
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease; padding: 0 20px; }
+        .accordion-item.active .accordion-body { max-height: 1000px; padding: 20px; border-top: 1px solid #e2e8f0; }
+        .accordion-item.active .accordion-header .chevron { transform: rotate(180deg); }
+        .member { display: flex; align-items: center; margin-bottom: 15px; }
+        .member .icon { font-size: 20px; color: #667eea; margin-right: 15px; width: 25px; text-align: center; }
+        .member .details .name { font-weight: 600; color: #4a5568; }
+        .member .details .meta { font-size: 13px; color: #a0aec0; }
+        .actions-container { padding-top: 15px; margin-top: 15px; border-top: 1px dashed #cbd5e0; display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-view { background-color: #667eea; color: white; } .btn-view:hover { background-color: #5a67d8; }
+        .btn-edit-family { background-color: #ed8936; color: white; } .btn-edit-family:hover { background-color: #dd6b20; }
+        .modal-body-qr { text-align: center; }
+        #modalQrImage { max-width: 100%; width: 250px; height: 250px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-bottom: 20px; }
+        :root { --brand-primary: #667eea; --brand-accent: #ff6b35; --border-color: #e2e8f0; }
+        #editFamilyModal .form-label i { margin-right: 8px; color: var(--brand-accent); }
+        #editFamilyModal .form-control { width:100%; padding:12px 16px; border:1px solid var(--border-color); border-radius:8px; font-size:16px; }
+        #editFamilyModal .form-group { margin-bottom: 20px; }
+        #editFamilyModal .form-label { font-weight: 600; }
+        #editFamilyModal .spinner { width: 16px;height: 16px;border: 2px solid rgba(0,0,0,0.2);border-radius: 50%;border-top-color: var(--brand-primary);animation: spin 1s linear infinite;}
+        @keyframes spin {to { transform: rotate(360deg); }}
+        #editFamilyModal .btn-primary { background: linear-gradient(135deg, var(--brand-primary), #764ba2); color: white; }
+
+        .header h1 a.btn {
+        background-color: white;
+        border: none;
+    }
+    .header h1 a.btn:hover {
+        background-color: #edf2f7;
+    }
+
+    #memberModal .modal-content {
+        background-color: #d1d3d0; 
+    }
+
+    .btn-view-photo { background-color: #3498db; color: white; } 
+    .btn-view-photo:hover { background-color: #2980b9; }
+
+    /* --- ✅ ADD THIS NEW STYLE FOR THE MODAL IMAGE --- */
+    #modalPhotoImage {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    
+    .modal-body-qr { text-align: center; }
+
+    .btn-change-token { background-color: #1abc9c; color: white; }
+    .btn-change-token:hover { background-color: #16a085; }
+
+        
+    </style>
+</head>
+<body>
+    <!-- All HTML is correct and unchanged -->
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="d-flex align-items-center justify-content-between w-100">
+    <span>All Registrations</span>
+    <a href="{% url 'diwali_yatra_page' %}" class="btn btn-light btn-sm ms-auto rounded-circle shadow-sm" title="Add New Registration" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+        <i class="fas fa-plus text-primary"></i>
+    </a>
+</h1>
+    </div>
+    <div class="container-main">
+        <div class="search-bar">
+            <i class="fas fa-search icon"></i>
+            <input type="text" id="searchInput" onkeyup="filterFamilies()" placeholder="Search by name or ration card...">
+        </div>
+        {% if families %}
+            <div id="familyList">
+            {% for family in families %}
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div>
+                    <h2 class="head-name">
+                        <span class="text-danger me-2">[{{ family.token }}]</span> {{ family.head.Firstname|title }} {{ family.head.Middlename|title }} {{ family.head.Lastname|title }}
+                    </h2>
+                            <span class="ration-no">Ration: {{ family.ration_card_no }} &bull; Mo: {{ family.head.MobileNo }}</span>
+                        </div>
+                        <i class="fas fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="accordion-body">
+                        {% for member in family.members %}
+                        <div class="member">
+                            <span class="icon"><i class="fas fa-user"></i></span>
+                            <div class="details"><div class="name">{{ member.Firstname }} {{ member.Middlename }} {{ member.Lastname }}</div><div class="meta">Family Member</div></div>
+                        </div>
+                        {% empty %}
+                             <p class="text-muted small">No other family members listed.</p>
+                        {% endfor %}
+                        <div class="actions-container">
+                            <p class="me-auto text-muted mb-0">Token: <strong>{{ family.token }}</strong></p>
+
+                             <!-- --- ✅ ADD THIS BLOCK --- -->
+                            {% if family.ration_card_photo %}
+                            <!-- This HTML will ONLY be rendered if the condition is true -->
+                            <button type="button" class="btn-action btn-view-photo"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#photoModal"
+                                    data-photo-url="{{ family.ration_card_photo }}"
+                                    title="View Ration Card">
+                                <i class="fas fa-id-card"></i>
+                            </button>
+                        {% endif %}
+
+                            {% if request.session.user_role == "1" %}
+
+                            <button class="btn-action btn-change-token"
+                                    data-old-token="{{ family.token }}"
+                                    data-reg-id="{{ family.head.RegistrationId }}"
+                                    title="Change Token Number">
+                                <i class="fas fa-random"></i> <!-- Using a 'random' or 'sync' icon -->
+                            </button>
+                                <button class="btn-action btn-edit-family" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editFamilyModal" 
+                                        data-ration-card="{{ family.ration_card_no }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            {% endif %}
+
+                            <!-- <button class="btn-action btn-edit-family" data-bs-toggle="modal" data-bs-target="#editFamilyModal" data-ration-card="{{ family.ration_card_no }}"><i class="fas fa-edit"></i></button> -->
+                             
+                            <!-- <button class="btn-action btn-view" data-reg-id="{{ family.head.RegistrationId }}" data-token-no="{{ family.token }}"><i class="fas fa-qrcode"></i> View QR</button> -->
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+            <div id="noResults" class="no-results" style="display: none;">No families found.</div>
+        {% else %}
+            <div class="no-results">No registrations found.</div>
+        {% endif %}
+    </div>
+
+    <!-- MODAL FOR EDITING A FAMILY -->
+    <div class="modal fade" id="editFamilyModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Family Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="diwaliForm" onsubmit="return false;">
+                        <input type="hidden" id="recordId" value="0">
+                        <div class="form-group">
+                            <label class="form-label"><h6>Ration Card Number</h6></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="rationCardNo" readonly>
+                                <button type="button" class="btn btn-outline-primary" id="btnCheck"><span class="check-text">Reload</span><span class="spinner d-none"></span></button>
+                            </div>
+                        </div>
+                        <div id="mainForm" class="d-none">
+                            <hr>
+                            <div class="form-group"><label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label><input type="text" class="form-control" id="headName" placeholder="Full name" required></div>
+                            <div class="row">
+                                <div class="col-md-6"><div class="form-group"><label class="form-label"><i class="fas fa-phone"></i> Mobile</label><input type="tel" class="form-control" id="mobileNo" placeholder="10-digit mobile" maxlength="10" required></div></div>
+                                <div class="col-md-6"><div class="form-group"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate Mobile</label><input type="tel" class="form-control" id="altMobileNo" placeholder="Optional" maxlength="10"></div></div>
+                            </div>
+                            <div class="row">
+                                 <!-- <div class="col-md-6"><div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="headGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Other</option></select></div></div> -->
+                                <!-- <div class="col-md-6"><div class="form-group"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="headDob"></div></div> -->
+                            </div>
+                            <div class="form-group"><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label><select class="form-control" id="areaId" required><option value="">Loading areas...</option></select></div>
+                            <div class="form-group"><label class="form-label"><i class="fas fa-home"></i> Address</label><textarea class="form-control" id="headAddress" rows="2" placeholder="Full address" required></textarea></div>
+                            <div class="form-group"><label class="form-label"><i class="fas fa-image"></i> Ration Card Photo</label><input type="file" class="form-control" id="rationCardPhoto" accept="image/*,.pdf"><input type="hidden" id="existingRationCardPhoto"></div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                                <h6 class="mb-0"><i class="fas fa-users"></i> Family Members</h6>
+                                <button type="button" class="btn btn-success btn-sm" id="addMemberBtn"><i class="fas fa-plus"></i> Add</button>
+                            </div>
+                            <div id="membersList" class="bg-light p-2 rounded"><div id="noMembersMessage" class="text-center text-muted m-2">No family members added yet.</div></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="submitBtn"><i class="fas fa-save"></i> <span id="submitText">Update Details</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL FOR ADDING/EDITING A SINGLE MEMBER -->
+    <div class="modal fade" id="memberModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="memberModalTitle">Edit Member</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="memberForm" onsubmit="return false;"><input type="hidden" id="memberUniqueId"><input type="hidden" id="memberRegId" value="0"><div class="form-group"><label class="form-label">Name</label><input type="text" class="form-control" id="memberName" required></div><div class="form-group"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="memberDob"></div><div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="memberGender"><option value="1">No Selection</option><option value="2">Male</option><option value="3">Female</option><option value="4">Other</option></select></div></form></div><div class="modal-footer"><button type="button" class="btn btn-danger me-auto" id="deleteMemberBtn">Delete</button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="saveMemberBtn">Save Changes</button></div></div></div></div>
+
+    <!-- MODAL FOR QR CODE -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Family Token QR Code</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body modal-body-qr"><img id="modalQrImage" src="" alt="QR Code"><p>Token No: <strong id="modalTokenNo"></strong></p></div><div class="modal-footer"><button type="button" class="btn btn-primary"><i class="fas fa-share-alt"></i> Share</button><button type="button" class="btn btn-success"><i class="fas fa-download"></i> Download</button></div></div></div></div>
+
+     <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="photoModalLabel">Ration Card Photo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhotoImage" src="" alt="Ration Card Photo">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="sharePhotoButton"><i class="fas fa-share-alt"></i> Share Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- LOGIC FOR THE MAIN LIST PAGE (Accordion, Search, QR Modal) ---
+        const familyListContainer = document.getElementById('familyList');
+        if (familyListContainer) {
+            familyListContainer.addEventListener('click', function(event) {
+                const header = event.target.closest('.accordion-header');
+                if (header) {
+                    const item = header.parentElement;
+                    const isActive = item.classList.contains('active');
+                    document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+                    if (!isActive) item.classList.add('active');
+                }
+                const viewButton = event.target.closest('.btn-view');
+                if (viewButton) {
+                    const qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+                    document.getElementById('modalQrImage').src = `/static/assets/img/tokenqr/${viewButton.dataset.regId}.png`;
+                    document.getElementById('modalTokenNo').textContent = viewButton.dataset.tokenNo;
+                    qrModal.show();
+                }
+            });
+        }
+        
+        // --- JAVASCRIPT FOR THE EDIT/ADD FORM MODAL ---
+        const editFamilyModalEl = document.getElementById('editFamilyModal');
+        const form = editFamilyModalEl.querySelector('#diwaliForm');
+        const rationCardInput = editFamilyModalEl.querySelector('#rationCardNo');
+        const checkBtn = editFamilyModalEl.querySelector('#btnCheck');
+        const mainForm = editFamilyModalEl.querySelector('#mainForm');
+        const areaSelect = editFamilyModalEl.querySelector('#areaId');
+        const addMemberBtn = editFamilyModalEl.querySelector('#addMemberBtn');
+        const membersListContainer = editFamilyModalEl.querySelector('#membersList');
+        const noMembersMessage = editFamilyModalEl.querySelector('#noMembersMessage');
+        const submitBtn = editFamilyModalEl.querySelector('#submitBtn');
+        const headNameInput = editFamilyModalEl.querySelector('#headName');
+        const mobileNoInput = editFamilyModalEl.querySelector('#mobileNo');
+        const altMobileNoInput = editFamilyModalEl.querySelector('#altMobileNo');
+        // const headGenderSelect = editFamilyModalEl.querySelector('#headGender'); // Commented out as element is not in HTML
+        // const headDobInput = editFamilyModalEl.querySelector('#headDob'); // Commented out as element is not in HTML
+        const headAddressInput = editFamilyModalEl.querySelector('#headAddress');
+        const recordIdInput = editFamilyModalEl.querySelector('#recordId');
+        const existingPhotoInput = editFamilyModalEl.querySelector('#existingRationCardPhoto');
+
+        const memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
+        const memberModalTitle = document.getElementById('memberModalTitle');
+        const memberUniqueIdInput = document.getElementById('memberUniqueId');
+        const memberRegIdInput = document.getElementById('memberRegId');
+        const memberNameInput = document.getElementById('memberName');
+        const memberDobInput = document.getElementById('memberDob');
+        const memberGenderInput = document.getElementById('memberGender');
+        const saveMemberBtn = document.getElementById('saveMemberBtn');
+        const deleteMemberBtn = document.getElementById('deleteMemberBtn');
+        
+        let familyMembers = [];
+
+        const getCookie = (name) => { let c = null; if(document.cookie){for(const s of document.cookie.split(';')){const[k,v]=s.trim().split('=');if(k===name){c=decodeURIComponent(v);break;}}} return c; };
+        const toggleSpinner = (show) => { checkBtn.querySelector('.check-text').classList.toggle('d-none', show); checkBtn.querySelector('.spinner').classList.toggle('d-none', !show); checkBtn.disabled = show; };
+
+        const loadAreas = async () => {
+            if (areaSelect.options.length > 1) return;
+            try {
+                const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
+                const data = await response.json();
+                if (data.message_code === 1000) {
+                    areaSelect.innerHTML = '<option value="">Select Area</option>';
+                    data.message_data.forEach(area => areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`);
+                }
+            } catch (error) { console.error('Error loading areas:', error); }
+        };
+        loadAreas();
+
+        const renderFamilyList = () => {
+            membersListContainer.innerHTML = '';
+            if (familyMembers.length === 0) {
+                membersListContainer.appendChild(noMembersMessage);
+                noMembersMessage.style.display = 'block';
+            } else {
+                noMembersMessage.style.display = 'none';
+                familyMembers.forEach(member => {
+                    const item = document.createElement('div');
+                    item.className = 'member-item d-flex align-items-center bg-white p-2 rounded mb-2';
+                    item.dataset.id = member.uniqueId;
+                    item.innerHTML = `<i class="fas fa-user text-primary me-2"></i><span class="flex-grow-1">${member.name}</span><button type="button" class="btn btn-sm btn-outline-secondary btn-edit-member"><i class="fas fa-pen"></i></button>`;
+                    membersListContainer.appendChild(item);
+                });
+            }
+        };
+
+        checkBtn.addEventListener('click', () => { 
+            const cardNo = rationCardInput.value.trim(); 
+            if (!cardNo) return; 
+            toggleSpinner(true); 
+            fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")}, body: JSON.stringify({ action: "check_ration", RationCardNo: cardNo })})
+            .then(res => res.json())
+            .then(data => { 
+                if (data.message_code === 1000 && data.message_data?.length > 0) { 
+                    loadExistingData(data.message_data); 
+                } else { 
+                    Swal.fire('Error', 'Could not load data for this ration card.', 'error');
+                } 
+                mainForm.classList.remove('d-none'); 
+            }).catch(err => { 
+                Swal.fire('Network Error', 'An error occurred while fetching data.', 'error');
+            })
+            .finally(() => toggleSpinner(false)); 
+        });
+        
+        addMemberBtn.addEventListener('click', () => {
+            memberModalTitle.textContent = 'Add New Member';
+            document.getElementById('memberForm').reset();
+            memberRegIdInput.value = '0';
+            memberUniqueIdInput.value = Date.now();
+            deleteMemberBtn.style.display = 'none';
+            memberModal.show();
+        });
+
+        membersListContainer.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.btn-edit-member');
+            if (editBtn) {
+                const memberId = editBtn.closest('.member-item').dataset.id;
+                const member = familyMembers.find(m => m.uniqueId == memberId);
+                if (member) {
+                    memberModalTitle.textContent = 'Edit Member';
+                    document.getElementById('memberForm').reset();
+                    memberUniqueIdInput.value = member.uniqueId;
+                    memberRegIdInput.value = member.registrationId;
+                    memberNameInput.value = member.name;
+                    memberDobInput.value = member.dob;
+                    memberGenderInput.value = member.gender;
+                    deleteMemberBtn.style.display = 'block';
+                    memberModal.show();
+                }
+            }
+        });
+
+        saveMemberBtn.addEventListener('click', () => {
+            const uniqueId = memberUniqueIdInput.value;
+            const existingMember = familyMembers.find(m => m.uniqueId == uniqueId);
+            if (existingMember) {
+                existingMember.name = memberNameInput.value;
+                existingMember.dob = memberDobInput.value;
+                existingMember.gender = memberGenderInput.value;
+            } else {
+                familyMembers.push({ uniqueId: uniqueId, registrationId: '0', name: memberNameInput.value, dob: memberDobInput.value, gender: memberGenderInput.value });
+            }
+            renderFamilyList();
+            memberModal.hide();
+        });
+
+        deleteMemberBtn.addEventListener('click', () => {
+            const uniqueId = memberUniqueIdInput.value;
+            familyMembers = familyMembers.filter(m => m.uniqueId != uniqueId);
+            renderFamilyList();
+            memberModal.hide();
+        });
+
+        submitBtn.addEventListener('click', () => {
+            const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
+            const headNameParts = splitName(headNameInput.value);
+            // ✅ CORRECTED: Removed Gender and DateOfBirth from the headData object because the HTML fields are commented out.
+            const headData = { userFirstname: headNameParts.firstname, userMiddlename: headNameParts.middlename, userLastname: headNameParts.lastname, userMobileNo: mobileNoInput.value, userAlternateMobileNo: altMobileNoInput.value, AreaId: areaSelect.value, address: headAddressInput.value, existingRationCardPhoto: existingPhotoInput.value };
+            const familyDataForApi = familyMembers.map(member => { const memberNameParts = splitName(member.name); return { registrationId: member.registrationId, userFirstname: memberNameParts.firstname, userMiddlename: memberNameParts.middlename, userLastname: memberNameParts.lastname, DateOfBirth: member.dob, Gender: member.gender }; }).filter(member => member.userFirstname.trim() !== '');
+            const formData = new FormData();
+            formData.append('action', 'submit');
+            formData.append('recordId', recordIdInput.value);
+            formData.append('rationCardNo', rationCardInput.value);
+            formData.append('head', JSON.stringify(headData));
+            formData.append('family', JSON.stringify(familyDataForApi));
+            const rationPhoto = editFamilyModalEl.querySelector('#rationCardPhoto').files[0];
+            if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+            
+            submitBtn.disabled = true; submitBtn.querySelector('span').textContent = 'Saving...';
+            
+            fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'The family details have been updated.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    });
+                } else { 
+                    Swal.fire({
+                        title: 'Update Failed!',
+                        text: res.message || "An unknown error occurred.",
+                        icon: 'error',
+                        confirmButtonText: 'Close'
+                    });
+                }
+            }).catch(err => { 
+                Swal.fire({
+                    title: 'Error!',
+                    text: "A server or network error occurred. Please try again.",
+                    icon: 'error',
+                    confirmButtonText: 'Close'
+                });
+            })
+            .finally(() => { 
+                submitBtn.disabled = false; 
+                submitBtn.querySelector('span').textContent = 'Update Details'; 
+            });
+        });
+        
+        function loadExistingData(allRecords) {
+            const headRecord = allRecords.find(p => p.ParentId === "1" || p.ParentId === p.RegistrationId) || allRecords[0];
+            if (!headRecord) return;
+            recordIdInput.value = headRecord.RegistrationId || '0';
+            headNameInput.value = [headRecord.Firstname, headRecord.Middlename, headRecord.Lastname].filter(Boolean).join(' ');
+            mobileNoInput.value = headRecord.MobileNo || '';
+            altMobileNoInput.value = headRecord.AlternateMobileNo || '';
+            areaSelect.value = headRecord.AreaId || '';
+            headAddressInput.value = headRecord.Address || '';
+            existingPhotoInput.value = headRecord.IdProofFileName || '';
+            
+            // ✅ CORRECTED: The lines that tried to set values for the head's commented-out Gender and DOB fields are now also commented out to prevent errors.
+            // headGenderSelect.value = (headRecord.Gender && headRecord.Gender !== "0") ? headRecord.Gender : '1';
+            // if (headRecord.DateOfBirth && /^\d+$/.test(headRecord.DateOfBirth) && headRecord.DateOfBirth !== "0") { try { const d = new Date(parseInt(headRecord.DateOfBirth) * 1000); headDobInput.value = d.toISOString().split('T')[0]; } catch (e) {} } else { headDobInput.value = ''; }
+            
+            familyMembers = allRecords.filter(p => p.RegistrationId !== headRecord.RegistrationId).map(member => {
+                let dobForPicker = '';
+                if (member.DateOfBirth && /^\d+$/.test(member.DateOfBirth) && member.DateOfBirth !== "0") { try { const d = new Date(parseInt(member.DateOfBirth) * 1000); dobForPicker = d.toISOString().split('T')[0]; } catch (e) {} }
+                return { uniqueId: Date.now() + Math.random(), registrationId: member.RegistrationId, name: [member.Firstname, member.Middlename, member.Lastname].filter(Boolean).join(' '), dob: dobForPicker, gender: (member.Gender && member.Gender !== "0") ? member.Gender : '1' };
+            });
+            renderFamilyList();
+        }
+        
+        editFamilyModalEl.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const rationCard = button.getAttribute('data-ration-card');
+            rationCardInput.value = rationCard;
+            setTimeout(() => { checkBtn.click(); }, 100);
+        });
+
+        editFamilyModalEl.addEventListener('hidden.bs.modal', function () {
+            mainForm.classList.add('d-none');
+            form.reset();
+            familyMembers = [];
+            renderFamilyList();
+        });
+    });
+
+    // --- ✅ ADD THE LOGIC FOR THE NEW PHOTO MODAL ---
+    const photoModalEl = document.getElementById('photoModal');
+    const sharePhotoButton = document.getElementById('sharePhotoButton');
+
+    // 1. Logic to set the image source when the modal is about to open
+    if (photoModalEl) {
+        photoModalEl.addEventListener('show.bs.modal', function (event) {
+            // Button that triggered the modal
+            const button = event.relatedTarget;
+            // Extract info from data-* attributes
+            const photoUrl = button.getAttribute('data-photo-url');
+            // Update the modal's content.
+            const modalImage = photoModalEl.querySelector('#modalPhotoImage');
+            modalImage.src = photoUrl;
+        });
+    }
+
+    // 2. Logic for the Share Button
+    // Hide share button if the Web Share API is not supported
+    if (!navigator.share) {
+        sharePhotoButton.style.display = 'none';
+    } else {
+        sharePhotoButton.addEventListener('click', async () => {
+            const imageUrl = document.getElementById('modalPhotoImage').src;
+            const imageTitle = 'Ration Card Photo';
+
+            try {
+                // Fetch the image and convert it to a blob
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const file = new File([blob], 'ration-card.jpg', { type: blob.type });
+
+                // Use the Web Share API to share the file
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: imageTitle,
+                        text: 'Please find the attached ration card photo.',
+                    });
+                    console.log('Image shared successfully!');
+                } else {
+                    // Fallback for browsers that can't share files
+                    Swal.fire('Not Supported', 'Your browser does not support sharing this file.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error sharing the image:', error);
+                Swal.fire('Sharing Failed', 'Could not share the image at this time.', 'error');
+            }
+        });
+    }
+
+    const familyListContainer = document.getElementById('familyList');
+        if (familyListContainer) {
+            familyListContainer.addEventListener('click', async function(event) {
+                const changeTokenButton = event.target.closest('.btn-change-token');
+                if (!changeTokenButton) return;
+
+                const oldToken = changeTokenButton.dataset.oldToken;
+                const regId = changeTokenButton.dataset.regId;
+
+                const { value: newToken } = await Swal.fire({
+                    title: 'Change Token Number',
+                    html: `Enter the new token number for Registration ID: <strong>${regId}</strong>.<br>Current Token is: <strong>${oldToken}</strong>`,
+                    input: 'number',
+                    inputLabel: 'New Token Number',
+                    inputPlaceholder: 'Enter new token...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Change Token',
+                    inputValidator: (value) => {
+                        if (!value || isNaN(value) || parseInt(value) <= 0) {
+                            return 'Please enter a valid positive number!'
+                        }
+                    }
+                });
+
+                if (newToken) {
+                    // Show a loading indicator
+                    Swal.fire({
+                        title: 'Updating...',
+                        text: 'Please wait while we change the token.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    try {
+                        const response = await fetch("{% url 'change_diwali_token' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie("csrftoken") // Assuming getCookie function exists
+                            },
+                            body: JSON.stringify({
+                                OldTokenNo: oldToken,
+                                NewTokenNo: newToken,
+                                RegistrationId: regId
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: result.message,
+                            });
+                            window.location.reload(); // Reload the page to see the change
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: result.message || 'Something went wrong!',
+                            });
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Network Error',
+                            text: 'Could not connect to the server. Please try again.',
+                        });
+                    }
+                }
+            });
+        }
+
+        function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function filterFamilies() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const list = document.getElementById("familyList");
+        const items = list.getElementsByClassName("accordion-item");
+        for (let i = 0; i < items.length; i++) {
+            const headName = items[i].querySelector(".head-name");
+            const rationNo = items[i].querySelector(".ration-no");
+            const txtValue = (headName.textContent || "") + (rationNo.textContent || "");
+            items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>

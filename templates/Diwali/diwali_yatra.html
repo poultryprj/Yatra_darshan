@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Diwali Kirana Registration</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- ✅ STEP 1: Add the CSS and JS links for Select2 library -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- ✅ STEP 2: Add jQuery and Select2 JavaScript files (after Bootstrap) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <style>
+    :root {
+      --brand-primary: #667eea;
+      --brand-secondary: #764ba2;
+      --brand-accent: #ff6b35;
+      --text-dark: #2d3748;
+      --text-light: #718096;
+      --border-color: #e2e8f0;
+      --bg-light: #f8f9ff;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-light); }
+    .container { max-width: 480px; margin: 0 auto; background: white; padding: 0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, var(--brand-accent), #f7931e); color: white; padding: 15px; text-align: center; position: relative; }
+    .back-btn { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: white; font-size: 20px; text-decoration: none;}
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+    .header p { font-size: 14px; opacity: 0.9; margin:0; }
+    .content { padding: 25px; }
+
+    /* Floating Animated Labels */
+    .form-group { position: relative; margin-bottom: 25px; animation: slideUp 0.6s ease; }
+    .form-label {
+      position: absolute; top: 16px; left: 16px; background: white; padding: 0 4px; color: var(--text-light);
+      font-size: 16px; font-weight: 600; transition: all 0.3s ease; pointer-events: none; z-index: 1;
+    }
+    .form-control, .form-select {
+      width: 100%; padding: 13px; border: 2px solid var(--border-color); border-radius: 10px;
+      font-size: 16px; transition: 0.3s; color: #5b02f4; background-color: white;
+    }
+    .form-control:focus, .form-select:focus { outline: none; border-color: var(--brand-primary); box-shadow: none; }
+    
+    .form-control:focus + .form-label,
+    .form-control:not(:placeholder-shown) + .form-label,
+    .form-select.has-value + .form-label {
+      top: -10px; left: 12px; font-size: 13px; color: var(--brand-primary);
+    }
+    input[type="file"] + .form-label { top: -10px; left: 12px; font-size: 13px; }
+
+    .btn {
+      padding: 14px 20px; border: none; border-radius: 10px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: white; }
+    .btn-secondary { background-color: var(--text-light); color: white; }
+    .spinner {width: 18px;height: 18px;border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;border-top-color: white;animation: spin 1s linear infinite;}
+
+    #checkSection .form-control { padding-right: 100px !important; }
+    #checkSection .btn-check-append {
+        position: absolute; top: 2px; right: 2px; height: calc(100% - 4px);
+        border-radius: 0 8px 8px 0; width: 90px;
+    }
+    
+    /* Read-Only Display for Existing Record */
+    #existingRecordDisplay {
+      border-radius: 16px;
+      padding: 25px; text-align: center; animation: popIn 0.6s ease;
+      background-color: white;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+      margin-top: 20px;
+    }
+    #existingRecordDisplay .icon {
+      font-size: 32px; color: white; margin-bottom: 15px;
+      width: 60px; height: 60px; border-radius: 50%;
+      background-color: #28a745; display: inline-flex;
+      align-items: center; justify-content: center;
+    }
+    #existingRecordDisplay h3 { font-size: 22px; color: var(--text-dark); font-weight: 700; margin-bottom: 5px; }
+    #existingRecordDisplay p { color: var(--text-light); margin-bottom: 25px;}
+    .info-grid { text-align: left; }
+    .info-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--border-color); }
+    .info-item:last-child { border-bottom: none; }
+    .info-item i { color: var(--brand-primary); width: 24px; margin-right: 15px; text-align: center; font-size: 16px;}
+    .info-item span { color: var(--text-dark); font-weight: 600; }
+
+    @keyframes slideUp { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+    @keyframes popIn { from {opacity:0; transform: scale(0.9);} to {opacity:1; transform: scale(1);} }
+    @keyframes spin {to { transform: rotate(360deg); }}
+
+    textarea.form-control-new,
+    #headAddress { 
+        height: 60px; /* Smaller address box */
+        padding-top: 12px; 
+    }
+
+    /* Fade-out alert style */
+    .info-alert {
+        background-color: #e0f7fa;
+        border: 1px solid #b2ebf2;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #006064;
+        transition: opacity 0.5s ease;
+    }
+
+    /* FIX 1: Force Select2 height to match other inputs */
+.select2-container--bootstrap-5 .select2-selection {
+    min-height: 50px !important; /* Adjust '50px' to match your form-control height */
+    padding-top: 11px !important; /* Vertically align the text */
+}
+
+/* FIX 2 (CSS Part): A class to manually float the label */
+.form-group .form-label.is-floating {
+    top: -10px;
+    left: 12px;
+    font-size: 13px;
+    color: var(--brand-primary);
+}
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1>Diwali Kit Registration</h1>
+    </div>
+
+    <div class="content">
+        <div id="alerts"></div>
+
+        <!--<div id="checkSection">
+            <div class="form-group">
+                <input type="text" class="form-control" id="checkRationCardNo" placeholder=" " required>
+                <label class="form-label"><i class="fas fa-id-card"></i> Ration Card Number</label>
+                <button type="button" class="btn btn-primary btn-check-append" id="btnCheck">
+                    <span class="btn-text">Check</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>-->
+
+        <div id="checkSection">
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="checkRationCardNo" 
+                    placeholder=" " 
+                    required 
+                    oninput="this.value = this.value.replace(/\s/g, '').toUpperCase()">
+
+                <label class="form-label"><i class="fas fa-id-card"></i> Ration Card Number</label>
+                <button type="button" class="btn btn-primary btn-check-append" id="btnCheck">
+                    <span class="btn-text">Check</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+
+
+        <div id="resultContainer"></div>
+    </div>
+</div>
+<!-- ✅ Add this modal HTML at the bottom of your page (before </body>) -->
+<!-- ✅ Updated modal with close button -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-3">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-success">Registration Completed Successfully</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div id="tokenInfo" class="mt-2"></div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button id="shareBtn" class="btn btn-primary">Share QR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkBtn = document.getElementById('btnCheck');
+    const checkRationInput = document.getElementById('checkRationCardNo');
+    const resultContainer = document.getElementById('resultContainer');
+    const alertsContainer = document.getElementById('alerts');
+
+    // ✅ --- NEW SCRIPT TO AUTO-LOAD FAMILY DATA FROM URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const rationCardFromUrl = urlParams.get('ration_card');
+
+        if (rationCardFromUrl) {
+            // 1. Put the ration card number from the URL into the input field
+            rationCardInput.value = rationCardFromUrl;
+            
+            // 2. Automatically click the "Check" button to load the data
+            // We use a small timeout to make sure the page is fully ready.
+            setTimeout(() => {
+                checkBtn.click();
+            }, 100); 
+        }
+
+    const getCookie = (name) => {
+        let cValue = null;
+        if (document.cookie) {
+            for (const c of document.cookie.split(';')) {
+                const [key, value] = c.trim().split('=');
+                if (key === name) { cValue = decodeURIComponent(value); break; }
+            }
+        }
+        return cValue;
+    };
+
+    const showAlert = (message, type = 'danger') => {
+        alertsContainer.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+    };
+
+    const toggleSpinner = (button, show) => {
+        button.disabled = show;
+        const btnText = button.querySelector('.btn-text');
+        const spinner = button.querySelector('.spinner');
+        if (btnText) btnText.style.display = show ? 'none' : 'inline';
+        if (spinner) spinner.style.display = show ? 'inline-block' : 'none';
+    };
+
+    const getRegistrationFormHTML = (rationNo) => `
+        <div class="info-alert">Ration card not found. Please fill the details below to register.</div>
+        <form id="diwaliForm" onsubmit="return false;">
+            <input type="hidden" id="rationCardNo" value="${rationNo}">
+            <div class="form-group">
+                <input type="text" class="form-control" id="headName" placeholder=" " required>
+                <label class="form-label"><i class="fas fa-user"></i> Head of Family Name</label></div>
+            <div class="row">
+              <div class="col-6"><div class="form-group"><input 
+        type="tel" 
+        class="form-control" 
+        id="mobileNo" 
+        placeholder=" " 
+        minlength="1" 
+        maxlength="10"
+        pattern="[0-9]{10}"
+        title="Please enter exactly 10 digits"
+        oninput="this.value = this.value.replace(/[^0-9]/g, ''); 
+                 if(this.value.length > 0 && this.value.length < 10){
+                   this.setCustomValidity('Mobile number must be exactly 10 digits');
+                 } else {
+                   this.setCustomValidity('');
+                 }"
+        required
+      ><label class="form-label"><i class="fas fa-phone"></i> Mobile</label></div>
+            </div>
+
+              <div class="col-6"><div class="form-group"><input type="tel" class="form-control" id="altMobileNo" placeholder=" " maxlength="10"><label class="form-label"><i class="fas fa-mobile-alt"></i> Alternate</label></div></div>
+            </div>
+            
+            <div class="form-group"><select class="form-select" id="areaId" required><option value="" disabled selected></option></select><label class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label></div>
+
+            <div class="form-group"><textarea class="form-control" id="headAddress" rows="3" placeholder=" " required></textarea><label class="form-label"><i class="fas fa-home"></i> Address</label></div>
+
+            
+
+            <div class="form-group"><input type="file" class="form-control" id="rationCardPhoto" accept="image/*,.pdf">
+    <label class="form-label"><i class="fas fa-image"></i> Ration Card Photo</label>
+</div>
+
+<!-- Move optional details here -->
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="toggleOptionalDetails">
+    <label class="form-check-label" for="toggleOptionalDetails">Add Optional Details (Gender/DOB)</label>
+</div>
+
+<div id="optionalDetails" style="display: none;">
+    <div class="row">
+        <div class="col-6">
+            <div class="form-group">
+                <select class="form-select" id="headGender">
+                    <option value="" disabled selected>Gender</option>
+                    <option value="2">Male</option>
+                    <option value="3">Female</option>
+                </select>
+                <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-group">
+                <input type="text" class="form-control" id="headDob" placeholder="Date of Birth" onfocus="(this.type='date')" onblur="(this.type='text')">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> DOB</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!--<div class="form-group">
+                <input type="text" class="form-control" id="tokenNo" placeholder=" " required>
+                <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
+    </div> -->
+
+<div class="form-group">
+    <input 
+        type="number" 
+        inputmode="numeric" 
+        pattern="[0-9]*" 
+        class="form-control" 
+        id="tokenNo" 
+        placeholder=" " 
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+    >
+    <label class="form-label"><i class="fas fa-ticket-alt"></i> Token No</label>
+</div>
+
+
+            
+            <button type="submit" class="btn btn-primary w-100 mt-3" id="submitBtn">
+                <i class="fas fa-save"></i>
+                <span class="btn-text">Submit Registration</span>
+                <span class="spinner" style="display:none;"></span>
+            </button>
+        </form>
+    `;
+
+    const getExistingRecordHTML = (headRecord) => {
+        const headName = [headRecord.Firstname, headRecord.Middlename, headRecord.Lastname].filter(Boolean).join(' ');
+        return `
+            <div id="existingRecordDisplay">
+                <div class="icon"><i class="fas fa-check"></i></div>
+                <h3>Record Found</h3>
+                <p>This Ration Card is already registered.</p>
+                <div class="info-grid">
+                    <div class="info-item"><i class="fas fa-user"></i> <span>${headName || 'N/A'}</span></div>
+                    <div class="info-item"><i class="fas fa-phone"></i> <span>${headRecord.MobileNo || 'N/A'}</span></div>
+                    <!-- <div class="info-item"><i class="fas fa-map-marker-alt"></i> <span>${headRecord.AreaName || 'N/A'}</span></div> -->
+
+                    <div class="info-item"><i class="fas fa-home"></i> <span>${headRecord.Address || 'N/A'}</span></div>
+                </div>
+                <button type="button" class="btn btn-secondary w-100 mt-4" id="btnRegisterAnother">Register Another</button>
+            </div>`;
+    };
+
+    checkBtn.addEventListener('click', () => {
+        const rationNo = checkRationInput.value.trim();
+        if (!rationNo) { showAlert('Please enter a Ration Card number.'); return; }
+        toggleSpinner(checkBtn, true);
+        resultContainer.innerHTML = ''; 
+
+        fetch("{% url 'diwali_registration' %}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")},
+            body: JSON.stringify({ action: "check_ration", RationCardNo: rationNo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message_code === 1000 && data.message_data && data.message_data.length > 0) {
+                const headRecord = data.message_data.find(p => p.ParentId === "1" || p.ParentId === p.RegistrationId) || data.message_data[0];
+                resultContainer.innerHTML = getExistingRecordHTML(headRecord);
+            } else {
+                resultContainer.innerHTML = getRegistrationFormHTML(rationNo);
+                attachFormListeners();
+                loadAreas();
+
+                // Fade-out info alert after 4s
+                const infoAlert = resultContainer.querySelector('.info-alert');
+                if (infoAlert) {
+                    setTimeout(() => {
+                        infoAlert.style.opacity = '0';
+                        setTimeout(() => infoAlert.remove(), 500);
+                    }, 4000);
+                }
+            }
+        })
+        .catch(err => showAlert("An error occurred while checking."))
+        .finally(() => toggleSpinner(checkBtn, false));
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'btnRegisterAnother') {
+            resultContainer.innerHTML = '';
+            checkRationInput.value = '';
+            alertsContainer.innerHTML = ''; 
+            checkRationInput.focus();
+        }
+    });
+
+    function attachFormListeners() {
+        document.getElementById('diwaliForm').addEventListener('submit', handleFormSubmit);
+        document.querySelectorAll('.form-select').forEach(select => {
+            const updateLabel = () => select.classList.toggle('has-value', !!select.value);
+            select.addEventListener('change', updateLabel);
+            updateLabel();
+        });
+
+        const toggleCheckbox = document.getElementById('toggleOptionalDetails');
+        const optionalDetailsDiv = document.getElementById('optionalDetails');
+        if (toggleCheckbox && optionalDetailsDiv) {
+            toggleCheckbox.addEventListener('change', function() {
+                optionalDetailsDiv.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    }
+
+    // const loadAreas = async () => {
+    //     const areaSelect = document.getElementById('areaId');
+    //     if (!areaSelect) return;
+    //     try {
+    //         const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
+    //         const data = await response.json();
+    //         if (data.message_code === 1000) {
+    //             areaSelect.innerHTML = '<option value="" disabled selected></option>';
+    //             data.message_data.forEach(area => { areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`; });
+               
+    //             const $areaSelect = $('#areaId');
+                
+    //             $areaSelect.select2({
+    //                 theme: 'bootstrap-5',
+    //                 placeholder: 'Select an area',
+    //             });
+
+
+    //             const $label = $areaSelect.closest('.form-group').find('.form-label');
+
+    //             // 1. When the dropdown is opened, always float the label up.
+    //             $areaSelect.on('select2:open', () => {
+    //                 $label.addClass('is-floating');
+    //             });
+
+    //             // 2. When the dropdown is closed, check if a value was selected.
+    //             $areaSelect.on('select2:close', () => {
+    //                 // If there's no value, let the label float back down.
+    //                 if (!$areaSelect.val() || $areaSelect.val() === "") {
+    //                     $label.removeClass('is-floating');
+    //                 }
+    //             });
+
+    //             // 3. When a value is changed/selected, ensure the label stays up.
+    //             $areaSelect.on('change', () => {
+    //                 if ($areaSelect.val() && $areaSelect.val() !== "") {
+    //                     $label.addClass('is-floating');
+    //                 }
+    //             });
+            
+    //         }
+    //     } catch (error) { console.error('Error loading areas:', error); }
+    // };
+    // FIX 2 (JS Part): Replace your existing 'loadAreas' function with this.
+
+    const loadAreas = async () => {
+        const areaSelect = document.getElementById('areaId');
+        if (!areaSelect) return;
+        try {
+            const response = await fetch("{% url 'registration_api1' %}", { method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: new URLSearchParams({action: 'list_area'}) });
+            const data = await response.json();
+            if (data.message_code === 1000) {
+                areaSelect.innerHTML = '<option value=""></option>';
+                data.message_data.forEach(area => { areaSelect.innerHTML += `<option value="${area.AreaId}">${area.AreaName}</option>`; });
+            
+                const $areaSelect = $('#areaId');
+                
+                $areaSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Select an area',
+                });
+
+                // This is the crucial line: find the label and force it to float up.
+                $areaSelect.closest('.form-group').find('.form-label').addClass('is-floating');
+            }
+        } catch (error) { console.error('Error loading areas:', error); }
+    };
+
+    // function handleFormSubmit(e) {
+    //     e.preventDefault();
+    //     const submitBtn = document.getElementById('submitBtn');
+    //     toggleSpinner(submitBtn, true);
+        
+    //     const splitName = (fullName) => { const parts = fullName.trim().split(/\s+/); return { firstname: parts.shift() || '', lastname: parts.length > 0 ? parts.pop() : '', middlename: parts.join(' ') }; };
+    //     const headNameParts = splitName(document.getElementById('headName').value);
+        
+    //     const headData = { 
+    //         userFirstname: headNameParts.firstname, 
+    //         userMiddlename: headNameParts.middlename, 
+    //         userLastname: headNameParts.lastname, 
+    //         userMobileNo: document.getElementById('mobileNo').value, 
+    //         userAlternateMobileNo: document.getElementById('altMobileNo').value, 
+    //         AreaId: document.getElementById('areaId').value,
+    //         address: document.getElementById('headAddress').value ,
+    //         tokenNo: document.getElementById('tokenNo').value
+    //     };
+
+    //     const formData = new FormData();
+    //     formData.append('action', 'submit');
+    //     formData.append('rationCardNo', document.getElementById('rationCardNo').value);
+    //     formData.append('head', JSON.stringify(headData));
+    //     formData.append('family', JSON.stringify([]));
+        
+    //     const rationPhoto = document.getElementById('rationCardPhoto').files[0];
+    //     if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+
+    //     fetch("{% url 'diwali_registration' %}", { method: "POST", headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData })
+    //     .then(res => res.json())
+    //     .then(res => {
+    //         // if (res.status === "success") {
+    //         //     showAlert(res.message, "success");
+    //         //     resultContainer.innerHTML = '';
+    //         //     checkRationInput.value = '';
+    //         if (res.status === "success") {
+    //         // ✅ Clear previous data
+    //         resultContainer.innerHTML = '';
+    //         checkRationInput.value = '';
+
+    //         // ✅ Prepare QR and Token display
+    //         const qrPath = `/Yatra_darshan/static/assets/img/tokenqr/${res.reg_id}.png`;
+    //         const tokenInfo = `
+    //             <p><strong>Token No:</strong> ${res.TokenNo}</p>
+    //             <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
+    //         `;
+    //         document.getElementById('tokenInfo').innerHTML = tokenInfo;
+
+    //         // ✅ Show modal
+    //         const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    //         modal.show();
+
+    //         // ✅ Share QR Image
+    //         document.getElementById('shareBtn').onclick = async () => {
+    //             try {
+    //                 const response = await fetch(qrPath);
+    //                 const blob = await response.blob();
+    //                 const file = new File([blob], `${res.reg_id}.png`, { type: blob.type });
+
+    //                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    //                     await navigator.share({
+    //                         files: [file],
+    //                         title: 'Diwali Kirana Token',
+    //                         text: `Your Token No: ${res.TokenNo}`,
+    //                     });
+    //                 } else {
+    //                     alert("Sharing not supported on this device.");
+    //                 }
+    //             } catch (err) {
+    //                 console.error("Share failed:", err);
+    //             }
+    //         };
+    //         } else { 
+    //             showAlert(res.message || "An error occurred."); 
+    //         }
+    //     })
+    //     .catch(err => showAlert("A server error occurred."))
+    //     .finally(() => toggleSpinner(submitBtn, false));
+    // }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        toggleSpinner(submitBtn, true);
+
+        const tokenNo = document.getElementById('tokenNo').value.trim();
+
+        // This is the core logic for submitting the registration data.
+        // It's placed in a function so it can be called from multiple places without repetition.
+        const proceedWithRegistration = () => {
+            const splitName = (fullName) => {
+                const parts = fullName.trim().split(/\s+/);
+                return {
+                    firstname: parts.shift() || '',
+                    lastname: parts.length > 0 ? parts.pop() : '',
+                    middlename: parts.join(' ')
+                };
+            };
+            const headNameParts = splitName(document.getElementById('headName').value);
+
+            const headData = { 
+                userFirstname: headNameParts.firstname, 
+                userMiddlename: headNameParts.middlename, 
+                userLastname: headNameParts.lastname, 
+                userMobileNo: document.getElementById('mobileNo').value, 
+                userAlternateMobileNo: document.getElementById('altMobileNo').value, 
+                AreaId: document.getElementById('areaId').value,
+                address: document.getElementById('headAddress').value,
+                tokenNo: tokenNo // Pass the token (or empty string)
+            };
+
+            const formData = new FormData();
+            formData.append('action', 'submit');
+            formData.append('rationCardNo', document.getElementById('rationCardNo').value);
+            formData.append('head', JSON.stringify(headData));
+            formData.append('family', JSON.stringify([]));
+
+            const rationPhoto = document.getElementById('rationCardPhoto').files[0];
+            if (rationPhoto) { formData.append('RationCardPhoto', rationPhoto); }
+
+            fetch("{% url 'diwali_registration' %}", { 
+                method: "POST", 
+                headers: {'X-CSRFToken': getCookie("csrftoken")}, 
+                body: formData 
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    resultContainer.innerHTML = '';
+                    checkRationInput.value = '';
+
+                    const qrPath = `/Yatra_darshan/static/assets/img/tokenqr/${res.reg_id}.png`;
+                    const tokenInfo = `
+                        <p><strong>Token No:</strong> ${res.TokenNo}</p>
+                        <img src="${qrPath}" alt="Token QR" class="img-fluid" style="width:150px;height:150px;">
+                    `;
+                    document.getElementById('tokenInfo').innerHTML = tokenInfo;
+
+                    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+
+                    document.getElementById('shareBtn').onclick = async () => {
+                        // ... (share logic remains the same)
+                    };
+                } else { 
+                    showAlert(res.message || "An error occurred."); 
+                }
+            })
+            .catch(err => showAlert("A server error occurred."))
+            .finally(() => toggleSpinner(submitBtn, false));
+        };
+
+        // --- Main Conditional Logic ---
+        // If a token number is provided, check it first.
+        if (tokenNo) {
+            fetch("http://127.0.0.1:8000/LakshyaPratishthan/api/check_diwali_token/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ TokenNo: tokenNo })
+            })
+            .then(response => response.json())
+            .then(checkData => {
+                if (checkData.message_code === 999) {
+                    // Token is invalid/used, show error and stop.
+                    Swal.fire("This token is already allotted!", "Please enter another token.", "warning");
+                    toggleSpinner(submitBtn, false);
+                } else {
+                    // Token is valid, proceed with the registration.
+                    proceedWithRegistration();
+                }
+            })
+            .catch(err => {
+                Swal.fire("Token check failed!", "A network error occurred. Please try again.", "error");
+                toggleSpinner(submitBtn, false);
+            });
+        } else {
+            // If no token is provided, skip the check and register directly.
+            proceedWithRegistration();
+        }
+    }
+});
+</script>
+</body>
+</html>
