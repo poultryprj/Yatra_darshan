@@ -34,6 +34,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
 import qrcode
+import json
 
 headers = {
     "Accept": "application/json, text/plain, */*",
@@ -450,7 +451,6 @@ def registration_api1(request):
                 reg_ids_json = request.POST.get("regids", "[]")
                 
                 # Convert the JSON string into a Python list
-                import json
                 reg_ids_list = json.loads(reg_ids_json)
 
                 # The URL of your external API endpoint
@@ -2121,7 +2121,6 @@ def send_whatsapp_api(request):
 
             # ✅ --- ADDED FOR DEBUGGING: Print data being sent to external API ---
             print("--- WhatsApp API: Payload Sent to External API ---")
-            import json
             print(json.dumps(payload, indent=2))
             print("--------------------------------------------------")
 
