@@ -2788,3 +2788,149 @@ def diwali_report_page(request):
 
 # userMobileNo:9850180648
 # userPassword:999999
+
+
+# Event Managment ###################
+
+import requests
+import json
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+# Assume your API is running at this base URL
+API_BASE_URL = "http://127.0.0.1:8000/LakshyaPratishthan/api/" # Change if needed
+
+# Define common headers if you have authentication, etc.
+# For now, a basic header is fine.
+HEADERS = {'Content-Type': 'application/json'}
+
+def event_list_page(request):
+    """
+    Fetches all non-deleted events from the API and displays them on a page.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login') # Assuming you have a login URL
+
+    events = []
+    try:
+        api_url = f"{API_BASE_URL}/get/"
+        response = requests.get(api_url, headers=HEADERS, verify=False, timeout=20)
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data.get("message_code") == 1000:
+                events = response_data.get("message_data", [])
+            else:
+                error_message = response_data.get('message_text', 'An unknown API error occurred.')
+                messages.error(request, f"API Error: {error_message}")
+        else:
+            messages.error(request, f"API request failed with status code: {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Could not connect to the API: {e}")
+    except Exception as e:
+        messages.error(request, f"An unexpected error occurred: {e}")
+
+    return render(request, "events/event_list.html", {"events": events})
+
+
+def add_edit_event_page(request, event_id=None):
+    """
+    Handles both creating a new event and editing an existing one.
+    - If event_id is None, it's in 'Add' mode.
+    - If event_id is provided, it's in 'Edit' mode.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    event_data = {}
+    
+    # If editing, fetch the existing event data first to pre-fill the form
+    if event_id:
+        try:
+            api_url = f"{API_BASE_URL}/get/?eventId={event_id}"
+            response = requests.get(api_url, headers=HEADERS, verify=False, timeout=20)
+            if response.status_code == 200 and response.json().get("message_code") == 1000:
+                event_data = response.json().get("message_data", [{}])[0]
+            else:
+                messages.error(request, "Could not find the event to edit.")
+                return redirect('event_list_page')
+        except Exception as e:
+            messages.error(request, f"Error fetching event details: {e}")
+            return redirect('event_list_page')
+
+    # Handle form submission (for both Add and Edit)
+    if request.method == 'POST':
+        # Collect data from the form
+        payload = {
+            'title': request.POST.get('title'),
+            'description': request.POST.get('description'),
+            'eventType': request.POST.get('eventType'),
+            'capacity': request.POST.get('capacity'),
+            'entryFees': request.POST.get('entryFees'),
+            'startDateTime': request.POST.get('startDateTime'),
+            'endDateTime': request.POST.get('endDateTime'),
+            'registrationStart': request.POST.get('registrationStart'),
+            'registrationEnd': request.POST.get('registrationEnd'),
+        }
+
+        try:
+            if event_id:
+                # This is an UPDATE operation
+                payload['eventId'] = event_id
+                api_url = f"{API_BASE_URL}/update/"
+                response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+                action_text = "updated"
+            else:
+                # This is a CREATE operation
+                api_url = f"{API_BASE_URL}/create/"
+                response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+                action_text = "created"
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                if response_data.get("message_code") == 1000:
+                    messages.success(request, f"Event {action_text} successfully!")
+                    return redirect('event_list_page')
+                else:
+                    messages.error(request, f"Failed to {action_text} event: {response_data.get('message_text')}")
+            else:
+                messages.error(request, f"API request failed with status {response.status_code}.")
+
+        except requests.exceptions.RequestException as e:
+            messages.error(request, f"Could not connect to the API: {e}")
+            
+    # Render the form (either empty for 'Add' or pre-filled for 'Edit')
+    return render(request, "events/event_form.html", {"event": event_data})
+
+
+def delete_event_page(request, event_id):
+    """
+    Handles the deletion of an event by calling the delete API.
+    This should be a POST request to prevent accidental deletion.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+        
+    if request.method == 'POST':
+        try:
+            api_url = f"{API_BASE_URL}/delete/"
+            payload = {'eventId': event_id}
+            response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                if response_data.get("message_code") == 1000:
+                    messages.success(request, "Event deleted successfully.")
+                else:
+                    messages.error(request, f"Failed to delete event: {response_data.get('message_text')}")
+            else:
+                 messages.error(request, f"API request failed with status {response.status_code}.")
+
+        except requests.exceptions.RequestException as e:
+            messages.error(request, f"Could not connect to the API: {e}")
+
+    return redirect('event_list_page')

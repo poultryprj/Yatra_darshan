@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if event.eventId %}Edit Event{% else %}Create New Event{% endif %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    
+    <style>
+        /* --- NEW ANIMATED, MODERN MOBILE FORM STYLES --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            /* Add padding to the bottom to prevent content from being hidden by the fixed footer */
+            padding-bottom: 100px;
+        }
+        .navbar { 
+            background-color: #ff7b00; 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .navbar-brand { font-weight: 600; }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        
+        .page-content {
+            padding: 1rem;
+        }
+
+        .page-header {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        /* The core of the new design: The Form Section Card */
+        .form-section {
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            padding: 1.25rem 1rem;
+            box-shadow: 0 4px M12px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            opacity: 0; /* Initially hidden for animation */
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        /* Stagger the animation for each card */
+        .form-section:nth-of-type(1) { animation-delay: 0.1s; }
+        .form-section:nth-of-type(2) { animation-delay: 0.2s; }
+
+        .form-section h4 {
+            font-weight: 600;
+            color: #ff7b00;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Modern Input Styling with Icons */
+        .input-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .input-wrapper i {
+            font-size: 1.3rem;
+            color: #ced4da;
+            margin-top: 0.8rem;
+            transition: color 0.3s;
+        }
+        .input-wrapper .input-field {
+            width: 100%;
+        }
+        .input-field label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .input-field .form-control {
+            border: none;
+            border-radius: 0;
+            padding-left: 0;
+            box-shadow: none;
+            border-bottom: 2px solid #dee2e6;
+            transition: border-color 0.3s;
+        }
+        .input-field .form-control:focus {
+            border-bottom-color: #ff7b00;
+        }
+        .input-field .form-control:focus ~ i {
+            color: #ff7b00; /* This won't work due to sibling selector, focus is on parent */
+        }
+        .input-wrapper:focus-within i { /* This works! */
+            color: #ff7b00;
+        }
+
+        /* Fixed Action Footer */
+        .action-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            padding: 1rem;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+            border-top: 1px solid #e9ecef;
+            z-index: 100;
+            animation: fadeInUp 0.4s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+        .btn-save {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: #ff7b00;
+            border: none;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-save:hover {
+            background-color: #e66a00;
+        }
+
+    </style>
+</head>
+<body>
+
+<nav class="navbar sticky-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'event_list_page' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1">{% if event.eventId %}Edit Event{% else %}New Event{% endif %}</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="page-content">
+    <div class="page-header">
+        <!-- <h1 class="page-title">Event Details</h1> -->
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Section 1: Core Details -->
+        <!-- Section 1: Core Details -->
+        <div class="form-section">
+            <h4><i class="bi bi-info-circle-fill me-2"></i>General Information</h4>
+            
+            <!-- LOGIC: Removed the icon and simplified the wrapper for Title -->
+            <div class="input-field mb-4">
+                <label for="title">Event Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required>
+            </div>
+
+            <!-- LOGIC: Removed the icon and simplified the wrapper for Description -->
+            <div class="input-field mb-4">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ event.description }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <!-- LOGIC: Removed the icon and simplified the wrapper for Event Type -->
+                    <div class="input-field mb-4">
+                        <label for="eventType">Event Type</label>
+                        <input type="text" class="form-control" id="eventType" name="eventType" value="{{ event.eventType }}">
+                    </div>
+                </div>
+                <div class="col-6">
+                     <!-- LOGIC: Removed the icon and simplified the wrapper for Capacity -->
+                    <div class="input-field mb-4">
+                        <label for="capacity">Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" value="{{ event.capacity }}">
+                    </div>
+                </div>
+                <div class="col-6">
+                     <!-- LOGIC: Removed the icon and simplified the wrapper for Entry Fees -->
+                    <div class="input-field mb-4">
+                        <label for="entryFees">Entry Fees</label>
+                        <input type="text" class="form-control" id="entryFees" name="entryFees" value="{{ event.entryFees }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Date & Time -->
+        <div class="form-section">
+            <h4><i class="bi bi-calendar-check-fill me-2"></i>Scheduling</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-wrapper">
+                        <i class="bi bi-calendar-event"></i>
+                        <div class="input-field">
+                            <label for="startDateTime">Start Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="startDateTime" name="startDateTime" value="{{ event.startDateTime|date:'Y-m-d\TH:i' }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-wrapper">
+                        <i class="bi bi-calendar-event"></i>
+                        <div class="input-field">
+                            <label for="endDateTime">End Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="endDateTime" name="endDateTime" value="{{ event.endDateTime|date:'Y-m-d\TH:i' }}">
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-md-6">
+                    <div class="input-wrapper">
+                        <i class="bi bi-calendar-plus"></i>
+                        <div class="input-field">
+                            <label for="registrationStart">Registration Start</label>
+                            <input type="datetime-local" class="form-control" id="registrationStart" name="registrationStart" value="{{ event.registrationStart|date:'Y-m-d\TH:i' }}">
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-md-6">
+                    <div class="input-wrapper">
+                        <i class="bi bi-calendar-x"></i>
+                        <div class="input-field">
+                            <label for="registrationEnd">Registration End</label>
+                            <input type="datetime-local" class="form-control" id="registrationEnd" name="registrationEnd" value="{{ event.registrationEnd|date:'Y-m-d\TH:i' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- The Fixed Footer for Actions -->
+        <div class="action-footer">
+            <button type="submit" class="btn btn-save">
+                <i class="bi bi-check-circle me-2"></i>Save Event
+            </button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

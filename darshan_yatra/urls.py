@@ -80,5 +80,13 @@ urlpatterns = [
 
     path('diwali_report/', views.diwali_report_page, name='diwali_report_page'),
 
+
+    # Event Manag,emt ########
+
+    path('events/', views.event_list_page, name='event_list_page'),
+    path('events_add/', views.add_edit_event_page, name='add_event_page'),
+    path('events_edit/<int:event_id>/', views.add_edit_event_page, name='edit_event_page'),
+    path('events_delete/<int:event_id>/', views.delete_event_page, name='delete_event_page'),
+
         
 ]

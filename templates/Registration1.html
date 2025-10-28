@@ -624,12 +624,29 @@
         }
         /* ----- END OF NEW CSS ----- */
 
+        .back-btn i {
+        color: white;
+        font-size: 28px;
+        }
+        .back-btn i:hover {
+        color: #ddd; /* Optional hover effect */
+        }
+
     </style>
 </head>
 <body>
     <!-- Topbar -->
-    <nav class="navbar fixed-top">
+    <!-- <nav class="navbar fixed-top">
         <span class="navbar-brand">Yatra Darshan Booking</span>
+    </nav> -->
+    <nav class="navbar fixed-top">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard' %}" class="back-btn">
+            <i class="bi bi-arrow-left-circle"></i>
+        </a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Yatra Darshan Booking</span>
+        <span style="width: 30px;"></span>
+        </div>
     </nav>
 
     <!-- Main Content Container -->
