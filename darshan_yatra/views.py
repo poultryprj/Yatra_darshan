@@ -443,7 +443,120 @@ def registration_api1(request):
                     "message_code": 999,
                     "message_text": f"An unexpected server error occurred: {str(e)}"
                 }, status=500)
+            
+        elif action == "check_booked_tickets":
+            try:
+                # Get the JSON string of registration IDs from the frontend
+                reg_ids_json = request.POST.get("regids", "[]")
+                
+                # Convert the JSON string into a Python list
+                import json
+                reg_ids_list = json.loads(reg_ids_json)
 
+                # The URL of your external API endpoint
+                api_url = f"{API_BASE_URL}CheckTicketsForReg/" # Make sure this URL is correct
+
+                # The payload the external API is expecting
+                payload = {"regids": reg_ids_list}
+                
+                # Make the request to the external API
+                response = requests.post(api_url, json=payload, verify=False)
+                response.raise_for_status() # Raise an exception for bad status codes
+
+                # Return the external API's response directly to the frontend
+                return JsonResponse(response.json())
+
+            except json.JSONDecodeError:
+                return JsonResponse({"message_code": 997, "message_text": "Invalid format for registration IDs."}, status=400)
+            except requests.exceptions.RequestException as e:
+                return JsonResponse({"message_code": 996, "message_text": f"Could not connect to the booking history service: {str(e)}"}, status=503)
+  
+
+        elif action == "get_pilgrim_card":
+            try:
+                registration_id = request.POST.get("RegistrationId")
+                if not registration_id:
+                    return JsonResponse({"message_code": 998, "message_text": "Registration ID is required."}, status=400)
+
+                # Construct the full URL to the external API endpoint
+                api_url = f"{API_BASE_URL}getpilgrimcard/" 
+                payload = {"RegistrationId": registration_id}
+                
+                # Call the external API
+                response = requests.post(api_url, json=payload, verify=False)
+                response.raise_for_status()
+
+                # --- START: CORRECT URL CONSTRUCTION ---
+                response_data = response.json()
+
+                # Check if the API call was successful
+                if response_data.get('message_code') == 1000 and response_data.get('message_data'):
+                    # This is the partial path from the API: "/LakshyaPratishthan/media/cards/18.png"
+                    partial_path = response_data['message_data']  
+
+                    # Let's dynamically and safely extract the domain from your existing constant
+                    from urllib.parse import urlparse
+                    
+                    # urlparse("http://127.0.0.1:8000/LakshyaPratishthan/api/")
+                    parsed_base = urlparse(API_BASE_URL) 
+                    
+                    # This will correctly result in "http://127.0.0.1:8000"
+                    api_domain = f"{parsed_base.scheme}://{parsed_base.netloc}" 
+                    
+                    # This creates the final, correct URL:
+                    # "http://127.0.0.1:8000" + "/LakshyaPratishthan/media/cards/18.png"
+                    full_url = f"{api_domain}{partial_path}"
+                    
+                    # Update the response data with the full URL before sending it to the frontend
+                    response_data['message_data'] = full_url
+
+                # Return the modified JSON with the full URL to the frontend
+                return JsonResponse(response_data)
+                # --- END: CORRECT URL CONSTRUCTION ---
+
+            except requests.exceptions.RequestException as e:
+                return JsonResponse({"message_code": 996, "message_text": f"Could not connect to the card generation service: {str(e)}"}, status=503)
+
+        elif action == "cancel_ticket":
+            try:
+                registration_id = request.POST.get("RegistrationId")
+                if not registration_id:
+                    return JsonResponse({"message_code": 998, "message_text": "Registration ID is required for cancellation."}, status=400)
+
+                # Call the internal cancelticket API endpoint
+                api_url = f"{API_BASE_URL}cancelticket/" 
+                payload = {"RegistrationId": registration_id}
+                
+                print(f"✅ Sending cancellation request to API: {api_url} with payload: {payload}")
+                response = requests.post(api_url, json=payload, verify=False)
+                response.raise_for_status() # Raise an exception for bad status codes
+
+                api_response_data = response.json()
+                print(f"✅ Cancellation API response: {api_response_data}")
+                
+                if str(api_response_data.get("message_code")) == "1000":
+                    return JsonResponse({
+                        "message_code": 1000,
+                        "message_text": api_response_data.get("message_text", "Tickets cancelled successfully."),
+                        "message_data": api_response_data.get("message_data", {})
+                    })
+                else:
+                    return JsonResponse({
+                        "message_code": 998,
+                        "message_text": api_response_data.get("message_text", "An error occurred during cancellation.")
+                    }, status=400)
+
+            except requests.exceptions.RequestException as e:
+                return JsonResponse({
+                    "message_code": 996,
+                    "message_text": f"Could not connect to the cancellation service: {str(e)}"
+                }, status=503)
+            except Exception as e:
+                return JsonResponse({
+                    "message_code": 999,
+                    "message_text": f"An unexpected server error occurred during cancellation: {str(e)}"
+                }, status=500)        
+            
         elif action == "list_bloodgroup":
             # api_url = "https://www.lakshyapratishthan.com/apis/listbloodgroup"
             api_url = f"{API_BASE_URL}listbloodgroup/"

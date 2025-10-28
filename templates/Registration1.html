@@ -624,6 +624,33 @@
         }
         /* ----- END OF NEW CSS ----- */
 
+        /* ----- NEW CSS FOR COMPACT LAYOUT ----- */
+        .container-main {
+            margin: 65px auto 30px; /* Reduced top margin */
+        }
+        .search-bar-top {
+            padding: 12px 15px; /* Reduced padding */
+        }
+        .tab-content {
+            padding: 15px; /* Reduced padding inside tabs */
+        }
+        .registration-list-header {
+            margin-bottom: 10px; /* Tighter spacing */
+        }
+        .section-header {
+            margin-top: 15px;  /* Tighter spacing above headers */
+            margin-bottom: 10px; /* Tighter spacing below headers */
+            padding-bottom: 5px;
+        }
+        .list-group-item {
+            padding-top: 8px !important;    /* Reduced vertical padding on all list items */
+            padding-bottom: 8px !important;
+        }
+        .next-tab-button {
+            margin-top: 15px; /* Reduced space above "Next" button */
+        }
+        /* ----- END OF NEW CSS ----- */
+
         .back-btn i {
         color: white;
         font-size: 28px;
@@ -694,22 +721,9 @@
                     </div>
 
                     <div class="section-header">Booking History</div>
-                    <div class="history-filters">
-                        <div class="floating">
-                            <select id="historyPassenger" placeholder=" ">
-                                <option value="">Select Passenger</option>
-                            </select>
-                            <label>Passenger</label>
-                        </div>
-                        <div class="floating">
-                            <select id="historyYear" placeholder=" ">
-                                <option value="">Select Year</option>
-                            </select>
-                            <label>Year</label>
-                        </div>
-                    </div>
+                    
                     <div id="bookingHistoryList" class="list-group">
-                         <li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>
+                         <li class="list-group-item text-center text-muted py-4">Booking history will appear here after a search.</li>
                     </div>
                 </div>
 
@@ -1069,8 +1083,6 @@
     const regActionBar = new bootstrap.Offcanvas(document.getElementById('regActionBar'));
     const regForm = document.getElementById('regForm');
     const btnRegNext = document.getElementById('btnRegNext');
-    const historyYearSelect = document.getElementById('historyYear');
-    const historyPassengerSelect = document.getElementById('historyPassenger');
     const bookingHistoryList = document.getElementById('bookingHistoryList');
     const selectRoute = document.getElementById('selectRoute');
     const selectYatra = document.getElementById('selectYatra');
@@ -1114,12 +1126,12 @@
             labelMobile.textContent = mob;
             regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading registrations...</li>';
 
-            try {
+             try {
                 const resp = await postForm('search_list', { search: mob });
                 if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
                     currentRegistrations = resp.message_data;
                     renderRegistrationList(currentRegistrations, mob);
-                    populatePassengerDropdown(currentRegistrations);
+                    // REMOVE populatePassengerDropdown(currentRegistrations);
                     populatePassengerBookingDropdown(currentRegistrations);
                     if (isExplicitSearch) {
                         showMsg('success', `${currentRegistrations.length} registrations found.`);
@@ -1127,7 +1139,7 @@
                 } else {
                     currentRegistrations = [];
                     renderRegistrationList([], mob);
-                    populatePassengerDropdown([]);
+                    // REMOVE populatePassengerDropdown([]);
                     populatePassengerBookingDropdown([]);
                     showMsg('info', resp.message_text || 'No records found for this number.');
                 }
@@ -1135,17 +1147,18 @@
                 console.error("Search failed:", err);
                 showMsg('error', 'Search failed. Please try again.');
             }
+            // MODIFICATION: Always call fetchBookingHistory after a search attempt.
             await fetchBookingHistory();
         }
 
-        function populatePassengerDropdown(registrations) {
-            historyPassengerSelect.innerHTML = '<option value="">All Passengers</option>';
-            registrations.forEach(r => {
-                const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
-                const option = new Option(fullName, r.RegistrationId);
-                historyPassengerSelect.appendChild(option);
-            });
-        }
+        // function populatePassengerDropdown(registrations) {
+        //     historyPassengerSelect.innerHTML = '<option value="">All Passengers</option>';
+        //     registrations.forEach(r => {
+        //         const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
+        //         const option = new Option(fullName, r.RegistrationId);
+        //         historyPassengerSelect.appendChild(option);
+        //     });
+        // }
 
         function renderRegistrationList(registrations, mob) {
             regItemsList.innerHTML = '';
@@ -1164,59 +1177,73 @@
             });
         }
 
-        function populateHistoryYears() {
-            const currentYear = new Date().getFullYear();
-            historyYearSelect.innerHTML = '<option value="">Select Year</option>';
-            for (let i = currentYear; i >= currentYear - 5; i--) {
-                const option = new Option(i, i);
-                historyYearSelect.appendChild(option);
-            }
-            historyYearSelect.value = currentYear;
-        }
 
         async function fetchBookingHistory() {
-            const mob = searchMobileInput.value.trim();
-            const year = historyYearSelect.value;
-            const passengerId = historyPassengerSelect.value;
-
-            if (!validMobile(mob) || !year) {
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+            if (!currentRegistrations || currentRegistrations.length === 0) {
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search for a mobile number to see booking history.</li>';
                 return;
             }
-            bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading history...</li>';
+
+            const allRegIds = currentRegistrations.map(reg => reg.RegistrationId);
+            bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading booking history...</li>';
+
             try {
-                const resp = await postForm('get_booking_history', { mobile: mob, year: year, passengerId: passengerId });
-                if (resp.message_code === 1000 && Array.isArray(resp.message_data) && resp.message_data.length > 0) {
-                    renderBookingHistory(resp.message_data);
+                // We must stringify the array for it to be sent correctly via FormData
+                const payload = { regids: JSON.stringify(allRegIds) };
+                const resp = await postForm('check_booked_tickets', payload);
+
+                if (resp.message_code === 1000 && resp.message_data && resp.message_data.regIdsWithBookedTicket) {
+                    renderBookingHistory(resp.message_data.regIdsWithBookedTicket);
                 } else {
                     bookingHistoryList.innerHTML = `<li class="list-group-item text-center text-muted py-4">${resp.message_text || 'No booking history found.'}</li>`;
                 }
             } catch (err) {
                 console.error("Failed to fetch booking history:", err);
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Error fetching history.</li>';
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Error fetching booking history.</li>';
             }
         }
 
-        function renderBookingHistory(history) {
+        function renderBookingHistory(bookedRegIds) {
             bookingHistoryList.innerHTML = '';
-            history.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.innerHTML = `
-                    <div>
-                        <strong>Yatra:</strong> ${item.YatraName || 'N/A'}<br>
-                        <strong>Date:</strong> ${item.YatraDate || 'N/A'}<br>
-                        <strong>Seats:</strong>${item.Seats || 'N/A'}
-                    </div>
-                    <div>
-                        <strong>Total:</strong>₹${item.AmountPaid || '0'}<br>
-                        <span class="badge bg-secondary">${item.Status || 'Booked'}</span>
-                    </div>`;
-                bookingHistoryList.appendChild(li);
+
+            if (bookedRegIds.length === 0) {
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No active bookings found for these registrations.</li>';
+                return;
+            }
+
+            // Sort the IDs numerically as requested before displaying
+            const sortedIds = bookedRegIds.map(id => parseInt(id, 10)).sort((a, b) => a - b);
+
+            sortedIds.forEach(id => {
+                const registration = currentRegistrations.find(reg => parseInt(reg.RegistrationId, 10) === id);
+
+                if (registration) {
+                    const fullName = `${registration.Firstname || ''} ${registration.Lastname || ''}`.trim();
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                    // START: MODIFY THIS HTML BLOCK
+                    li.innerHTML = `
+                        <span>${fullName}</span>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-booking" title="Edit Booking" data-reg-id="${registration.RegistrationId}">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-booking" title="Delete Booking" data-reg-id="${registration.RegistrationId}">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-print-card" title="Print Ticket" data-reg-id="${registration.RegistrationId}">
+                                <i class="bi bi-printer-fill"></i>
+                            </button>
+                        </div>
+                    `;
+                    // END: MODIFY THIS HTML BLOCK
+                    bookingHistoryList.appendChild(li);
+                }
             });
         }
 
-        return { doSearch, populateHistoryYears, fetchBookingHistory };
+        return { doSearch, fetchBookingHistory };
     })();
 
     // --- MODULE FOR REGISTRATION FORM (OFFCANVAS) ---
@@ -1711,7 +1738,7 @@
         ticketDetailsModal = new bootstrap.Modal(document.getElementById('ticketDetailsModal'));
         
         // 2. Set up initial page state for Registration tab
-        RegistrationDisplay.populateHistoryYears();
+        //RegistrationDisplay.populateHistoryYears();
         sessionStorage.removeItem('lastSearchMobile');
         searchMobileInput.value = '';
         labelMobile.textContent = '';
@@ -1735,8 +1762,8 @@
             RegistrationForm.openForm('insert', null, mob);
         });
         regForm.addEventListener('submit', RegistrationForm.handleSubmit);
-        historyYearSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
-        historyPassengerSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
+        // historyYearSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
+        // historyPassengerSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
         btnRegNext.addEventListener('click', () => { new bootstrap.Tab(document.getElementById('booking-tab')).show(); });
         bookingTabButton.addEventListener('shown.bs.tab', () => {
             Booking.loadBookingData();
@@ -1790,6 +1817,82 @@
                 Booking.renderAddedTickets();
                 Booking.calculateTotalFees();
              }
+        });
+
+        // START: ADD THIS NEW EVENT LISTENER
+        bookingHistoryList.addEventListener('click', async (e) => {
+
+            const deleteBtn = e.target.closest('.btn-delete-booking'); // Use closest to handle clicks on the icon inside the button
+            if (deleteBtn) {
+                const regIdToCancel = deleteBtn.dataset.regId;
+
+                if (!regIdToCancel) {
+                    showMsg('error', 'Could not find Registration ID for cancellation.');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to cancel all tickets associated with this registration. This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, cancel it!'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        showMsg('info', 'Cancelling tickets...', 'Please Wait');
+                        try {
+                            const payload = {
+                                action: 'cancel_ticket', // This action will be handled by registration_api1 proxy
+                                RegistrationId: regIdToCancel
+                            };
+                            const resp = await postForm('cancel_ticket', payload); // Call the proxy endpoint with the new action
+
+                            if (resp.message_code === 1000) {
+                                showMsg('success', resp.message_text || 'Tickets cancelled successfully.');
+                                // Refresh the booking history to reflect changes
+                                RegistrationDisplay.fetchBookingHistory(); 
+                            } else {
+                                showMsg('error', resp.message_text || 'Failed to cancel tickets.');
+                            }
+                        } catch (err) {
+                            console.error("Cancellation failed:", err);
+                            showMsg('error', 'An error occurred during cancellation. Please try again.');
+                        }
+                    }
+                });
+            }
+            const printBtn = e.target.closest('.btn-print-card');
+
+            if (printBtn) {
+                const regId = printBtn.dataset.regId;
+                if (!regId) {
+                    showMsg('error', 'Could not find Registration ID.');
+                    return;
+                }
+
+                showMsg('info', 'Generating pilgrim card...', 'Please Wait');
+
+                try {
+                    const resp = await postForm('get_pilgrim_card', { RegistrationId: regId });
+                    console.log('Final URL from backend:', resp.message_data);
+
+                    if (resp.message_code === 1000 && resp.message_data) {
+                        // The backend now sends the complete URL. No more cleaning needed.
+                        const fullImageUrl = resp.message_data;
+                        
+                        // Open the URL directly
+                        window.open(fullImageUrl, '_blank');
+                        Swal.close();
+                    } else {
+                        showMsg('error', resp.message_text || 'Failed to generate card.');
+                    }
+                } catch (err) {
+                    console.error("Print card failed:", err);
+                    showMsg('error', 'An error occurred while contacting the server.');
+                }
+            }
         });
     });
 </script>
