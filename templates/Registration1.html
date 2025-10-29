@@ -422,108 +422,113 @@
             color: #6c757d;
         }
 
-        /* ----- NEW CSS FOR SEAT MAP ----- */
-        .seat-map {
+        /* ----- FINAL CSS (BORDER FIX) ----- */
+        .bus-layout-final {
+            padding: 10px;
+            background-color: #fff;
+            /* REMOVED: border: 1px solid #e9ecef; */ /* This line is now removed */
+            border-radius: 12px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .seat-map-grid {
             display: grid;
-            /* This makes the middle (aisle) column narrower than the seat columns */
             grid-template-columns: 1fr 1fr 0.5fr 1fr 1fr;
             gap: 8px;
-            width: 100%;
-            max-width: 320px; /* Slightly increased width for better spacing */
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #f8f9fa;
         }
-
-        .seat {
-            height: 35px;
-            border-radius: 5px;
+        .seat, .seat-placeholder {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            border: 1px solid;
-            user-select: none; /* Prevents text selection on click */
+            border: 1px solid #ced4da;
+            user-select: none;
+            transition: all 0.2s ease-in-out;
         }
-
-        .seat.aisle {
-            background: transparent;
+        .seat-placeholder {
             border: none;
+            background: transparent;
             cursor: default;
         }
+        .front-icon-area {
+            grid-column: 5 / span 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            color: #adb5bd;
+        }
 
-        /* --- Seat Statuses --- */
+        /* --- Seat Statuses (no changes) --- */
         .seat.available {
             background-color: #fff;
-            border-color: #28a745; /* Green border */
+            border-color: #28a745;
             color: #28a745;
         }
         .seat.available:hover {
             background-color: #e9f7ef;
+            transform: scale(1.05);
         }
-
-        /* Reserved for Swayamsevak (Grey) */
         .seat.reserved {
-            background-color: #808080;
-            border-color: #6c757d;
+            background-color: #6c757d;
+            border-color: #5a6268;
             color: white;
             cursor: not-allowed;
         }
-
-        /* Booked by other pilgrims (Faint Black / Light Grey) */
         .seat.booked {
-            background-color: #e9ecef; /* Faint black */
+            background-color: #e9ecef;
             border-color: #ced4da;
-            color: #6c757d;
+            color: #adb5bd;
             cursor: not-allowed;
         }
-
-        /* Seat selected by the current user (Solid Green) */
         .seat.selected {
             background-color: #28a745;
             border-color: #218838;
             color: white;
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
         }
 
-        /* --- Legend Styling --- */
+        /* --- Legend Styling (no changes) --- */
+        #seatLegend {
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center !important;
+        }
         .legend-item {
             display: flex;
             align-items: center;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 500;
         }
         .legend-box {
-            width: 15px;
-            height: 15px;
+            width: 12px;
+            height: 12px;
             margin-right: 5px;
             border-radius: 3px;
-            border: 1px solid #ddd;
+            display: inline-block;
+            vertical-align: middle;
         }
-        /* ----- END OF NEW CSS ----- */
+        .legend-box.available { background: #fff; border: 1px solid #28a745; }
+        .legend-box.booked { background: #e9ecef; border: 1px solid #ced4da; }
+        .legend-box.reserved { background: #6c757d; border: 1px solid #5a6268; }
+        .legend-box.selected { background: #28a745; border: 1px solid #218838; }
 
-
-        @media (max-width: 767px) {
-            .passenger-checkbox-list-container {
-                min-height: 130px;
-                max-height: 150px;
-            }
-            
-            .compact-booking-layout .right-stacked-fields .floating {
-                margin-bottom: 8px;
-            }
-            
-            .compact-booking-layout .right-stacked-fields select {
-                height: 40px;
-            }
-            
-            .compact-booking-layout .form-text {
-                font-size: 0.65rem;
-            }
+        /* --- Modal Body Adjustments (no changes) --- */
+        #seatSelectionModal .modal-body {
+            padding: 1rem 1rem 0.75rem;
         }
+        #seatSelectionModal .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        /* ----- END OF FINAL CSS ----- */
 
-        /* ----- NEW CSS FOR COMPACT TICKETS ----- */
         .compact-ticket-item {
             display: flex;
             align-items: center;
@@ -920,12 +925,8 @@
     <div class="offcanvas offcanvas-end" tabindex="-1" id="regActionBar" aria-labelledby="regActionBarLabel">
         <div class="offcanvas-header">
             <h5 id="regActionBarLabel" class="offcanvas-title">Pilgrim Registration</h5>
-            <div> <!-- Wrapper for buttons on the right -->
-                <button type="button" class="btn-toggle-optional" data-bs-toggle="collapse" data-bs-target="#optionalFieldsWrapper" title="Toggle Optional Details">
-                    <i id="toggleOptionalIcon" class="bi bi-plus-circle"></i>
-                </button>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
+            <!-- The toggle button has been removed from here -->
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
             <form id="regForm" class="compact-form" autocomplete="off">
@@ -975,7 +976,16 @@
                             <label>Address *</label>
                         </div>
                     </div>
-                    <!-- START: New Single-Toggle Optional Fields Section -->
+
+                    <!-- START: ADD THIS NEW CHECKBOX -->
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="toggleOptionalCheckbox">
+                            <label class="form-check-label" for="toggleOptionalCheckbox">
+                                Add Optional Details (Gender/DOB/etc.)
+                            </label>
+                        </div>
+                    </div>
                     <!-- This single container holds all optional fields -->
                     <div class="collapse" id="optionalFieldsWrapper">
                         <div class="row g-2">
@@ -1384,9 +1394,16 @@
         async function openForm(mode, row = null, mobile = '') {
             regForm.reset();
 
-            // Always hide the optional fields section when the form opens
+            // Get references to optional elements
             const optionalWrapper = document.getElementById('optionalFieldsWrapper');
-            bootstrap.Collapse.getOrCreateInstance(optionalWrapper).hide();
+            const optionalCollapse = bootstrap.Collapse.getOrCreateInstance(optionalWrapper);
+            const optionalCheckbox = document.getElementById('toggleOptionalCheckbox');
+
+            // Always hide section and uncheck box when form opens
+            optionalCollapse.hide();
+            if (optionalCheckbox) {
+                optionalCheckbox.checked = false;
+            }
 
             // Reset standard form fields and title
             document.getElementById('RegistrationId').value = '0';
@@ -1428,13 +1445,17 @@
                 const genderValue = row.GenderId || row.Gender;
                 const bloodGroupValue = row.BloodGroupId;
 
-                // 2. Check if ANY optional field has data. If yes, show the whole section.
+                // 2. Check if ANY optional field has data.
                 if ((genderValue && genderValue !== '1' && genderValue !== 'Select') ||
                     (bloodGroupValue && bloodGroupValue !== '1' && bloodGroupValue !== 'Select') ||
                     document.getElementById('DateOfBirth').value ||
                     row.AadharNumber) 
                 {
-                    bootstrap.Collapse.getOrCreateInstance(optionalWrapper).show();
+                    // If yes, show the section and check the box
+                    optionalCollapse.show();
+                    if (optionalCheckbox) {
+                        optionalCheckbox.checked = true;
+                    }
                 }
                 
                 // 3. Use setTimeout to ensure dropdowns are populated correctly
@@ -1599,34 +1620,80 @@
             }
         }
 
-        function renderSeatMap(data) {
-            const seatMapContainer = document.getElementById('seatMapContainer');
-            document.getElementById('seatLegend').innerHTML = `
-                <div class="legend-item"><div class="legend-box" style="background: #fff; border-color: #28a745;"></div>Available</div>
-                <div class="legend-item"><div class="legend-box" style="background: #e9ecef;"></div>Booked</div>
-                <div class="legend-item"><div class="legend-box" style="background: #808080;"></div>Reserved</div>
-                <div class="legend-item"><div class="legend-box" style="background: #28a745;"></div>Selected</div>`;
-            const seatMap = document.createElement('div');
-            seatMap.className = 'seat-map';
-            seatMap.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; margin-bottom: 10px; font-size: 12px; color: #6c757d;">◄ Front of Bus</div>`;
-            for (let i = 1; i <= data.Capacity; i++) {
-                const seat = document.createElement('div');
-                seat.className = 'seat';
-                seat.dataset.seatNumber = i;
-                seat.textContent = i;
-                if (data.reserved_for_swayamsevak.includes(i)) seat.classList.add('reserved');
-                else if (data.booked_seats.includes(i)) seat.classList.add('booked');
-                else seat.classList.add('available');
-                if (currentlySelectedSeats.includes(i)) seat.classList.add('selected');
-                seatMap.appendChild(seat);
-                if (i % 4 === 2) {
-                    const aisle = document.createElement('div');
-                    aisle.className = 'seat aisle';
-                    seatMap.appendChild(aisle);
-                }
+        // Helper function to generate a single seat's HTML (no changes needed here, but included for completeness)
+        function generateSeatHtml(seatNum, data) {
+            // A seat number of null, undefined, or greater than capacity will be a placeholder
+            if (!seatNum || seatNum > data.Capacity) {
+                return '<div class="seat-placeholder"></div>';
             }
-            seatMapContainer.innerHTML = '';
-            seatMapContainer.appendChild(seatMap);
+
+            let classList = 'seat';
+            if (data.reserved_for_swayamsevak.includes(seatNum)) {
+                classList += ' reserved';
+            } else if (data.booked_seats.includes(seatNum)) {
+                classList += ' booked';
+            } else {
+                classList += ' available';
+            }
+            if (currentlySelectedSeats.includes(seatNum)) {
+                classList += ' selected';
+            }
+            return `<div class="${classList}" data-seat-number="${seatNum}">${seatNum}</div>`;
+        }
+
+        function renderSeatMap(data) {
+            // 1. Update the legend
+            document.getElementById('seatLegend').innerHTML = `
+                <div class="legend-item"><span class="legend-box available"></span> Available</div>
+                <div class="legend-item"><span class="legend-box booked"></span> Booked</div>
+                <div class="legend-item"><span class="legend-box reserved"></span> Reserved</div>
+                <div class="legend-item"><span class="legend-box selected"></span> Selected</div>`;
+
+            const seatMapContainer = document.getElementById('seatMapContainer');
+            const totalCapacity = parseInt(data.Capacity, 10);
+            
+            let mapHtml = `
+                <div class="bus-layout-final">
+                    <div class="seat-map-grid">
+                        <!-- First Visual Row: 4 placeholders and the icon -->
+                        <div class="seat-placeholder"></div>
+                        <div class="seat-placeholder"></div>
+                        <div class="seat-placeholder"></div>
+                        <div class="seat-placeholder"></div>
+                        <div class="front-icon-area"><i class="bi bi-dash-circle"></i></div>
+            `;
+
+            let currentSeat = 1;
+
+            // 2. Second Visual Row (Seats 1 and 2)
+            // This is a special case that only fills the right side.
+            if (currentSeat <= totalCapacity) {
+                mapHtml += `<div class="seat-placeholder"></div>`;
+                mapHtml += `<div class="seat-placeholder"></div>`;
+                mapHtml += `<div class="seat-placeholder"></div>`; // Aisle
+                mapHtml += generateSeatHtml(currentSeat++, data);
+                mapHtml += generateSeatHtml(currentSeat++, data);
+            }
+
+            // 3. Dynamically generate all subsequent full and partial 2x2 rows
+            while (currentSeat <= totalCapacity) {
+                // Left pair of seats
+                mapHtml += generateSeatHtml(currentSeat++, data);
+                mapHtml += generateSeatHtml(currentSeat++, data);
+                
+                // Aisle placeholder
+                mapHtml += `<div class="seat-placeholder"></div>`;
+                
+                // Right pair of seats
+                mapHtml += generateSeatHtml(currentSeat++, data);
+                mapHtml += generateSeatHtml(currentSeat++, data);
+            }
+
+            // 4. Close the container divs
+            mapHtml += `</div></div>`;
+
+            // 5. Inject the final HTML
+            seatMapContainer.innerHTML = mapHtml;
         }
 
         document.getElementById('seatMapContainer').addEventListener('click', (e) => {
@@ -1897,41 +1964,33 @@
         Booking.renderAddedTickets();
         Booking.calculateTotalFees();
 
-        // START: CORRECTED LOGIC FOR OPTIONAL FIELDS
-        // This code clears the values of all optional fields whenever the section is hidden.
-        const optionalWrapper = document.getElementById('optionalFieldsWrapper');
-        if (optionalWrapper) {
-            optionalWrapper.addEventListener('hide.bs.collapse', () => {
-                // Find all inputs and selects inside the wrapper
-                const inputs = optionalWrapper.querySelectorAll('input, select');
-                inputs.forEach(input => {
-                    if (input.tagName.toLowerCase() === 'select') {
-                        input.value = ''; // Reset dropdown
-                    } else {
-                        input.value = ''; // Clear text/date inputs
-                    }
-                    // This makes the floating label return to its original position
-                    input.dispatchEvent(new Event('input'));
-                });
-            });
-        }
-        // END: CORRECTED LOGIC FOR OPTIONAL FIELDS
+        // START: NEW LOGIC FOR OPTIONAL DETAILS CHECKBOX
+        const toggleOptionalCheckbox = document.getElementById('toggleOptionalCheckbox');
+        const optionalFieldsWrapper = document.getElementById('optionalFieldsWrapper');
+        const optionalCollapseInstance = new bootstrap.Collapse(optionalFieldsWrapper, { toggle: false });
 
-        // START: NEW LOGIC FOR ICON SWAPPING
-        const toggleIcon = document.getElementById('toggleOptionalIcon');
-        if (optionalWrapper && toggleIcon) {
-            // When the section starts to show, change icon to 'minus'
-            optionalWrapper.addEventListener('show.bs.collapse', () => {
-                toggleIcon.classList.remove('bi-plus-circle');
-                toggleIcon.classList.add('bi-dash-circle');
-            });
-            // When the section starts to hide, change icon back to 'plus'
-            optionalWrapper.addEventListener('hide.bs.collapse', () => {
-                toggleIcon.classList.remove('bi-dash-circle');
-                toggleIcon.classList.add('bi-plus-circle');
+        if (toggleOptionalCheckbox && optionalFieldsWrapper) {
+            toggleOptionalCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    optionalCollapseInstance.show();
+                } else {
+                    optionalCollapseInstance.hide();
+                    
+                    // When hiding, clear all values inside the optional section
+                    const inputs = optionalFieldsWrapper.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (input.tagName.toLowerCase() === 'select') {
+                            input.value = ''; // Reset dropdown
+                        } else {
+                            input.value = ''; // Clear text/date inputs
+                        }
+                        // Trigger input event to reset floating labels
+                        input.dispatchEvent(new Event('input'));
+                    });
+                }
             });
         }
-        // END: NEW LOGIC FOR ICON SWAPPING
+        // END: NEW LOGIC FOR OPTIONAL DETAILS CHECKBOX
 
         // --- ALL EVENT LISTENERS ARE HERE ---
 
