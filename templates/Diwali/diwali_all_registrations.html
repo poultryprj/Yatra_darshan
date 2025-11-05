@@ -124,6 +124,10 @@
                         <div class="actions-container">
                             <p class="me-auto text-muted mb-0">Token: <strong>{{ family.token }}</strong></p>
 
+                            <a href="{% url 'manage_family_members' family.ration_card_no %}" class="btn-action btn-view" style="background-color: #3498db;" title="Manage Family Members">
+                                <i class="fas fa-users"></i>
+                            </a>
+
                              <!-- --- ✅ ADD THIS BLOCK --- -->
                             {% if family.ration_card_photo %}
                             <!-- This HTML will ONLY be rendered if the condition is true -->

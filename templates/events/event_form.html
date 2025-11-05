@@ -20,11 +20,9 @@
                 transform: translateY(0);
             }
         }
-
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             background-color: #f0f2f5; 
-            /* Add padding to the bottom to prevent content from being hidden by the fixed footer */
             padding-bottom: 100px;
         }
         .navbar { 
@@ -34,45 +32,25 @@
         }
         .navbar-brand { font-weight: 600; }
         .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
-        
-        .page-content {
-            padding: 1rem;
-        }
-
-        .page-header {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-        /* The core of the new design: The Form Section Card */
+        .page-content { padding: 1rem; }
         .form-section {
             background: #ffffff;
             border-radius: 12px;
             margin-bottom: 1rem;
             padding: 1.25rem 1rem;
-            box-shadow: 0 4px M12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid #e9ecef;
-            opacity: 0; /* Initially hidden for animation */
+            opacity: 0;
             animation: fadeInUp 0.4s ease-out forwards;
         }
-
-        /* Stagger the animation for each card */
         .form-section:nth-of-type(1) { animation-delay: 0.1s; }
         .form-section:nth-of-type(2) { animation-delay: 0.2s; }
-
         .form-section h4 {
             font-weight: 600;
             color: #ff7b00;
             margin-bottom: 1.5rem;
             font-size: 1.1rem;
         }
-
-        /* Modern Input Styling with Icons */
         .input-wrapper {
             display: flex;
             align-items: flex-start;
@@ -85,9 +63,7 @@
             margin-top: 0.8rem;
             transition: color 0.3s;
         }
-        .input-wrapper .input-field {
-            width: 100%;
-        }
+        .input-wrapper .input-field { width: 100%; }
         .input-field label {
             font-size: 0.8rem;
             color: #6c757d;
@@ -101,17 +77,8 @@
             border-bottom: 2px solid #dee2e6;
             transition: border-color 0.3s;
         }
-        .input-field .form-control:focus {
-            border-bottom-color: #ff7b00;
-        }
-        .input-field .form-control:focus ~ i {
-            color: #ff7b00; /* This won't work due to sibling selector, focus is on parent */
-        }
-        .input-wrapper:focus-within i { /* This works! */
-            color: #ff7b00;
-        }
-
-        /* Fixed Action Footer */
+        .input-field .form-control:focus { border-bottom-color: #ff7b00; }
+        .input-wrapper:focus-within i { color: #ff7b00; }
         .action-footer {
             position: fixed;
             bottom: 0;
@@ -135,10 +102,7 @@
             color: white;
             transition: background-color 0.3s;
         }
-        .btn-save:hover {
-            background-color: #e66a00;
-        }
-
+        .btn-save:hover { background-color: #e66a00; }
     </style>
 </head>
 <body>
@@ -152,10 +116,6 @@
 </nav>
 
 <div class="page-content">
-    <div class="page-header">
-        <!-- <h1 class="page-title">Event Details</h1> -->
-    </div>
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -169,42 +129,36 @@
         {% csrf_token %}
 
         <!-- Section 1: Core Details -->
-        <!-- Section 1: Core Details -->
         <div class="form-section">
             <h4><i class="bi bi-info-circle-fill me-2"></i>General Information</h4>
             
-            <!-- LOGIC: Removed the icon and simplified the wrapper for Title -->
             <div class="input-field mb-4">
                 <label for="title">Event Title <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required>
             </div>
 
-            <!-- LOGIC: Removed the icon and simplified the wrapper for Description -->
             <div class="input-field mb-4">
                 <label for="description">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="3">{{ event.description }}</textarea>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ event.description|default_if_none:'' }}</textarea>
             </div>
 
             <div class="row">
                 <div class="col-12">
-                    <!-- LOGIC: Removed the icon and simplified the wrapper for Event Type -->
                     <div class="input-field mb-4">
                         <label for="eventType">Event Type</label>
-                        <input type="text" class="form-control" id="eventType" name="eventType" value="{{ event.eventType }}">
+                        <input type="text" class="form-control" id="eventType" name="eventType" value="{{ event.eventType|default_if_none:'' }}">
                     </div>
                 </div>
                 <div class="col-6">
-                     <!-- LOGIC: Removed the icon and simplified the wrapper for Capacity -->
                     <div class="input-field mb-4">
                         <label for="capacity">Capacity</label>
-                        <input type="number" class="form-control" id="capacity" name="capacity" value="{{ event.capacity }}">
+                        <input type="number" class="form-control" id="capacity" name="capacity" value="{{ event.capacity|default_if_none:'' }}">
                     </div>
                 </div>
                 <div class="col-6">
-                     <!-- LOGIC: Removed the icon and simplified the wrapper for Entry Fees -->
                     <div class="input-field mb-4">
                         <label for="entryFees">Entry Fees</label>
-                        <input type="text" class="form-control" id="entryFees" name="entryFees" value="{{ event.entryFees }}">
+                        <input type="text" class="form-control" id="entryFees" name="entryFees" value="{{ event.entryFees|default_if_none:'' }}">
                     </div>
                 </div>
             </div>
@@ -219,7 +173,8 @@
                         <i class="bi bi-calendar-event"></i>
                         <div class="input-field">
                             <label for="startDateTime">Start Date & Time <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="startDateTime" name="startDateTime" value="{{ event.startDateTime|date:'Y-m-d\TH:i' }}" required>
+                            <!-- FIXED: Removed the date filter. The view now provides the correctly formatted string. -->
+                            <input type="datetime-local" class="form-control" id="startDateTime" name="startDateTime" value="{{ event.startDateTime }}" required>
                         </div>
                     </div>
                 </div>
@@ -228,7 +183,8 @@
                         <i class="bi bi-calendar-event"></i>
                         <div class="input-field">
                             <label for="endDateTime">End Date & Time</label>
-                            <input type="datetime-local" class="form-control" id="endDateTime" name="endDateTime" value="{{ event.endDateTime|date:'Y-m-d\TH:i' }}">
+                            <!-- FIXED: Removed the date filter. -->
+                            <input type="datetime-local" class="form-control" id="endDateTime" name="endDateTime" value="{{ event.endDateTime }}">
                         </div>
                     </div>
                 </div>
@@ -237,7 +193,8 @@
                         <i class="bi bi-calendar-plus"></i>
                         <div class="input-field">
                             <label for="registrationStart">Registration Start</label>
-                            <input type="datetime-local" class="form-control" id="registrationStart" name="registrationStart" value="{{ event.registrationStart|date:'Y-m-d\TH:i' }}">
+                            <!-- FIXED: Removed the date filter. -->
+                            <input type="datetime-local" class="form-control" id="registrationStart" name="registrationStart" value="{{ event.registrationStart }}">
                         </div>
                     </div>
                 </div>
@@ -246,7 +203,8 @@
                         <i class="bi bi-calendar-x"></i>
                         <div class="input-field">
                             <label for="registrationEnd">Registration End</label>
-                            <input type="datetime-local" class="form-control" id="registrationEnd" name="registrationEnd" value="{{ event.registrationEnd|date:'Y-m-d\TH:i' }}">
+                            <!-- FIXED: Removed the date filter. -->
+                            <input type="datetime-local" class="form-control" id="registrationEnd" name="registrationEnd" value="{{ event.registrationEnd }}">
                         </div>
                     </div>
                 </div>

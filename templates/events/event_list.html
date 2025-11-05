@@ -9,10 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     
     <style>
-        /* --- NEW, MODERN MOBILE-FIRST STYLES --- */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             background-color: #f0f2f5; 
+            padding-bottom: 100px;
         }
         .navbar { 
             background-color: #ff7b00; 
@@ -21,24 +21,19 @@
         }
         .navbar-brand { font-weight: 600; }
         .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
-        
         .page-title {
             padding: 1rem 1rem 0 1rem;
             font-size: 1.8rem;
             font-weight: 700;
             color: #333;
         }
-
-        /* The core of the new design: The Event Card */
         .event-card {
             background: #ffffff;
             border-radius: 12px;
             margin: 0 1rem 1rem 1rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
             border: 1px solid #e9ecef;
         }
-
         .event-card-header {
             display: flex;
             justify-content: space-between;
@@ -46,33 +41,27 @@
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #f1f1f1;
         }
-
         .event-title {
             font-size: 1.15rem;
             font-weight: 600;
             color: #212529;
         }
-
         .event-card-body {
             padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem; /* Space between info items */
+            gap: 0.75rem;
         }
-        
         .event-info-item {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             color: #495057;
         }
-
         .event-info-item i {
             color: #ff7b00;
             font-size: 1.1rem;
         }
-        
-        /* Floating Action Button (FAB) for "Add Event" */
         .fab {
             position: fixed;
             width: 56px;
@@ -95,8 +84,6 @@
             background-color: #e66a00;
             color: #fff;
         }
-
-        /* Empty state styling */
         .empty-state {
             text-align: center;
             padding: 4rem 1rem;
@@ -117,7 +104,6 @@
 <div class="container-fluid px-0">
     <h1 class="page-title">Upcoming Events</h1>
 
-    <!-- Message Display Area -->
     {% if messages %}
         <div class="px-3">
         {% for message in messages %}
@@ -129,13 +115,11 @@
         </div>
     {% endif %}
 
-    <!-- NEW: Event Card Layout -->
     <div class="event-list mt-3">
         {% for event in events %}
         <div class="event-card">
             <div class="event-card-header">
                 <span class="event-title">{{ event.title }}</span>
-                <!-- NEW: Kebab Menu for Actions -->
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-three-dots-vertical"></i>
@@ -144,6 +128,24 @@
                         <li>
                             <a class="dropdown-item" href="{% url 'edit_event_page' event.eventId %}">
                                 <i class="bi bi-pencil-square me-2"></i>Edit
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{% url 'configure_event_fields_page' event_id=event.eventId %}">
+                                <i class="bi bi-card-checklist me-2"></i>Configure Fields
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{% url 'view_registrations_page' event_id=event.eventId %}">
+                                <i class="bi bi-people-fill me-2"></i>View Registrations
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{% url 'public_registration_page' event_id=event.eventId %}">
+                                <i class="bi bi-box-arrow-up-right me-2"></i>View Public Form
                             </a>
                         </li>
                         <li>
@@ -158,18 +160,37 @@
                 </div>
             </div>
             <div class="event-card-body">
+
+                <!-- FIXED: Check if the date exists before trying to display it -->
+                {% if event.startDateTime %}
                 <div class="event-info-item">
                     <i class="bi bi-calendar-event"></i>
-                    <span>{{ event.startDateTime|date:"D, d M Y - h:i A" }}</span>
+                    <!-- This filter now works because the view provides a real datetime object -->
+                    <span>{{ event.startDateTime|date:"d/m/y, h:i A" }}</span>
                 </div>
+                {% endif %}
+
+                <!-- FIXED: Check if eventType exists -->
+                {% if event.eventType %}
                 <div class="event-info-item">
                     <i class="bi bi-tag"></i>
-                    <span>{{ event.eventType|default:"General" }}</span>
+                    <span>{{ event.eventType }}</span>
                 </div>
+                {% endif %}
+
+                <!-- FIXED: Check if capacity exists and provide a default -->
+                {% if event.capacity %}
                 <div class="event-info-item">
                     <i class="bi bi-people"></i>
-                    <span>Capacity: {{ event.capacity|default:"Unlimited" }}</span>
+                    <span>Capacity: {{ event.capacity }}</span>
                 </div>
+                {% else %}
+                 <div class="event-info-item">
+                    <i class="bi bi-people"></i>
+                    <span>Capacity: Unlimited</span>
+                </div>
+                {% endif %}
+
             </div>
         </div>
         {% empty %}
@@ -182,12 +203,10 @@
     </div>
 </div>
 
-<!-- NEW: Floating Action Button -->
 <a href="{% url 'add_event_page' %}" class="fab" title="Add New Event">
     <i class="bi bi-plus"></i>
 </a>
 
-<!-- Required JS for Bootstrap dropdowns -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

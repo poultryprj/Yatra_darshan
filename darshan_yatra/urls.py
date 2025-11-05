@@ -66,6 +66,7 @@ urlpatterns = [
     # #########  Diwali Yatra ##################
 
     path('home/', views.home, name='home'),
+    
     path('diwali_yatra/', views.diwali_yatra_page, name='diwali_yatra_page'),
 
     path("diwali_registration/", views.diwali_registration, name="diwali_registration"),
@@ -80,13 +81,27 @@ urlpatterns = [
 
     path('diwali_report/', views.diwali_report_page, name='diwali_report_page'),
 
+    path("manage_family/<str:ration_card_no>/", views.manage_family_members, name='manage_family_members'),
+
+    path("delete_diwali_member/<int:reg_id>/", views.delete_diwali_member, name='delete_diwali_member'),
+
+
+    path('darshan_yatra/', views.darshan_yatra_management, name='darshan_yatra_management'),
+
 
     # Event Manag,emt ########
+
 
     path('events/', views.event_list_page, name='event_list_page'),
     path('events_add/', views.add_edit_event_page, name='add_event_page'),
     path('events_edit/<int:event_id>/', views.add_edit_event_page, name='edit_event_page'),
     path('events_delete/<int:event_id>/', views.delete_event_page, name='delete_event_page'),
 
+
+    path('event/<int:event_id>/configure/', views.configure_event_fields_page, name='configure_event_fields_page'),
+
+    path('event/<int:event_id>/registrations/', views.view_registrations_page, name='view_registrations_page'),
+
+    path('register/<int:event_id>/', views.public_registration_page, name='public_registration_page'),
         
 ]

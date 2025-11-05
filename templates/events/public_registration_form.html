@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Event Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        :root {
+            --brand-primary: #667eea;
+            --brand-secondary: #764ba2;
+            --brand-accent: #ff7b00;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-color: #e2e8f0;
+            --bg-light: #f8f9ff;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-light); }
+        .container { max-width: 480px; margin: 0 auto; background: white; padding: 0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, var(--brand-accent), #f7931e); color: white; padding: 15px; text-align: center; position: relative; }
+        .back-btn { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: white; font-size: 20px; text-decoration: none;}
+        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 0; }
+        .content { padding: 25px; overflow-y: auto; padding-bottom: 120px; }
+        .form-group { position: relative; margin-bottom: 25px; animation: slideUp 0.6s ease; }
+        .form-label { position: absolute; top: 16px; left: 16px; background: white; padding: 0 4px; color: var(--text-light); font-size: 16px; font-weight: 600; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
+        .form-control, .form-select { width: 100%; padding: 13px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 16px; transition: 0.3s; color: var(--text-dark); background-color: white; min-height: 50px; }
+        .form-control:focus, .form-select:focus { outline: none; border-color: var(--brand-primary); box-shadow: none; }
+        .form-control:focus + .form-label, .form-control:not(:placeholder-shown) + .form-label, .form-select.has-value + .form-label, .form-group .form-label.is-floating { top: -10px; left: 12px; font-size: 13px; color: var(--brand-primary); }
+        .form-footer { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: white; padding: 15px; border-top: 1px solid var(--border-color); z-index: 100; }
+        .btn-primary { padding: 14px 20px; border: none; border-radius: 10px; width: 100%; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 16px; background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: white; }
+        .loader { padding: 40px; text-align: center; }
+        .error-message { color: #dc3545; font-size: 0.875em; margin-top: 5px; padding-left: 5px; }
+        .select2-container--bootstrap-5 .select2-selection { min-height: 50px !important; padding-top: 11px !important; }
+        @keyframes slideUp { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="{% url 'event_list_page' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 id="event-title">Event Registration</h1>
+    </div>
+
+    <div class="content">
+        <div id="initial-loader" class="loader">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p class="mt-2">Loading registration form...</p>
+        </div>
+        <form id="registration-form" novalidate style="display: none;">
+            <!-- Your existing form fields here... they are dynamically shown by JS -->
+            <div class="form-group" style="display: none;" data-field-name="firstname"><input type="text" class="form-control" id="firstname" name="firstname" placeholder=" "><label for="firstname" class="form-label"><i class="fas fa-user"></i> First Name</label><div class="error-message" id="error-firstname"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="middlename"><input type="text" class="form-control" id="middlename" name="middlename" placeholder=" "><label for="middlename" class="form-label"><i class="fas fa-user"></i> Middle Name</label><div class="error-message" id="error-middlename"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="lastname"><input type="text" class="form-control" id="lastname" name="lastname" placeholder=" "><label for="lastname" class="form-label"><i class="fas fa-user"></i> Last Name</label><div class="error-message" id="error-lastname"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="mobileNo"><input type="tel" class="form-control" id="mobileNo" name="mobileNo" placeholder=" " maxlength="10"><label for="mobileNo" class="form-label"><i class="fas fa-phone"></i> Mobile Number</label><div class="error-message" id="error-mobileNo"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="alternateMobileNo"><input type="tel" class="form-control" id="alternateMobileNo" name="alternateMobileNo" placeholder=" " maxlength="10"><label for="alternateMobileNo" class="form-label"><i class="fas fa-mobile-alt"></i> Alternate Mobile</label><div class="error-message" id="error-alternateMobileNo"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="BookingMobileNo"><input type="tel" class="form-control" id="BookingMobileNo" name="BookingMobileNo" placeholder=" " maxlength="10"><label for="BookingMobileNo" class="form-label"><i class="fas fa-receipt"></i> Booking Mobile</label><div class="error-message" id="error-BookingMobileNo"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="aadharNumber"><input type="text" class="form-control" id="aadharNumber" name="aadharNumber" placeholder=" "><label for="aadharNumber" class="form-label"><i class="fas fa-id-card"></i> Aadhar Number</label><div class="error-message" id="error-aadharNumber"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="bloodGroup"><select class="form-select" id="bloodGroup" name="bloodGroup"></select><label for="bloodGroup" class="form-label"><i class="fas fa-tint"></i> Blood Group</label><div class="error-message" id="error-bloodGroup"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="dateOfBirth"><input type="text" class="form-control" id="dateOfBirth" name="dateOfBirth" placeholder=" " onfocus="(this.type='date')" onblur="(this.type='text')"><label for="dateOfBirth" class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label><div class="error-message" id="error-dateOfBirth"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="gender"><select class="form-select" id="gender" name="gender"><option value=""></option><option value="1">Female</option><option value="2">Male</option></select><label for="gender" class="form-label"><i class="fas fa-venus-mars"></i> Gender</label><div class="error-message" id="error-gender"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="areaId"><select class="form-select" id="areaId" name="areaId"></select><label for="areaId" class="form-label"><i class="fas fa-map-marker-alt"></i> Area</label><div class="error-message" id="error-areaId"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="address"><textarea class="form-control" id="address" name="address" rows="2" placeholder=" "></textarea><label for="address" class="form-label"><i class="fas fa-home"></i> Address</label><div class="error-message" id="error-address"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="age"><input type="number" class="form-control" id="age" name="age" placeholder=" "><label for="age" class="form-label"><i class="fas fa-birthday-cake"></i> Age</label><div class="error-message" id="error-age"></div></div>
+            <div class="form-group" style="display: none;" data-field-name="ration_card_no"><input type="text" class="form-control" id="ration_card_no" name="ration_card_no" placeholder=" "><label for="ration_card_no" class="form-label"><i class="fas fa-id-badge"></i> Ration Card No</label><div class="error-message" id="error-ration_card_no"></div></div>
+        </form>
+    </div>
+
+    <footer id="form-footer" class="form-footer" style="display: none;">
+        <button type="submit" form="registration-form" class="btn btn-primary" id="submit-button">
+            Submit Registration
+        </button>
+    </footer>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="successModalLabel">Registration Successful!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="location.reload()"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Your Token Number is:</p>
+                <h2 class="fw-bold text-primary" id="token-number-display"></h2>
+                <div class="my-3">
+                    <img id="qr-code-img" src="" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                </div>
+                <p class="text-muted small">Show this QR code at the event entrance.</p>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" id="share-btn"><i class="fas fa-share-alt me-2"></i>Share</button>
+                <a href="#" id="download-btn" class="btn btn-primary" download="event-qr-code.png"><i class="fas fa-download me-2"></i>Download</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const eventId = "{{ event_id }}";
+    const API_BASE_URL = "http://127.0.0.1:8000/LakshyaPratishthan/api/";
+    
+    // Your existing elements...
+    const initialLoader = document.getElementById('initial-loader');
+    const form = document.getElementById('registration-form');
+    const formFooter = document.getElementById('form-footer');
+    const submitButton = document.getElementById('submit-button');
+    let allowedFields = new Set();
+    const apiGetUrl = `${API_BASE_URL}event_register/${eventId}/`;
+
+    // Modal elements
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const tokenDisplay = document.getElementById('token-number-display');
+    const qrCodeImg = document.getElementById('qr-code-img');
+    const downloadBtn = document.getElementById('download-btn');
+    const shareBtn = document.getElementById('share-btn');
+    
+    // (Your existing loadForm function remains unchanged, it works perfectly)
+    const loadForm = async () => {
+        try {
+            const response = await fetch(apiGetUrl);
+            if (!response.ok) throw new Error(`Network response was not ok. Status: ${response.status}`);
+            const apiData = await response.json();
+            if (apiData.message_code !== 1000 || !apiData.message_data[0]?.fields) {
+                throw new Error(apiData.message_text || "Registration is not available.");
+            }
+
+            const formData = apiData.message_data[0];
+            document.getElementById('event-title').textContent = formData.event_title;
+            allowedFields = new Set(formData.fields.map(f => f.field_name));
+            
+            document.querySelectorAll('.form-group').forEach(group => {
+                const fieldName = group.dataset.fieldName;
+                if (allowedFields.has(fieldName)) {
+                    group.style.display = 'block';
+                    const fieldConfig = formData.fields.find(f => f.field_name === fieldName);
+                    if (fieldConfig?.is_required) {
+                        group.querySelector('input, select, textarea')?.setAttribute('required', true);
+                        const label = group.querySelector('label');
+                        if (label) label.innerHTML += ' <span class="text-danger">*</span>';
+                    }
+                }
+            });
+
+            formData.fields.forEach(field => {
+                if (field.field_type === 'select' && field.choices.length > 0) {
+                    const selectElement = document.getElementById(field.field_name);
+                    if (selectElement) {
+                        selectElement.innerHTML = '<option></option>' + field.choices.map(c => `<option value="${c.value}">${c.display}</option>`).join('');
+                    }
+                }
+            });
+
+            $('.form-select').each(function() {
+                if ($(this).closest('.form-group').css('display') !== 'none') {
+                    const $select = $(this);
+                    $select.select2({ theme: 'bootstrap-5', placeholder: ' ' });
+                    const $label = $select.closest('.form-group').find('.form-label');
+                    $select.on('select2:open', () => $label.addClass('is-floating'));
+                    $select.on('select2:close', () => { if (!$select.val()) $label.removeClass('is-floating'); });
+                    $select.on('change', () => { if ($select.val()) $label.addClass('is-floating'); });
+                }
+            });
+
+            initialLoader.style.display = 'none';
+            form.style.display = 'block';
+            formFooter.style.display = 'block';
+
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            initialLoader.innerHTML = `<div class="alert alert-danger p-4 text-center">${error.message}</div>`;
+        }
+    };
+
+
+    // Event listener for form submission (UPDATED)
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            submitButton.disabled = true;
+            submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...`;
+
+            const formData = new FormData(e.target);
+            const dataToSend = {};
+            allowedFields.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (value !== null && value.trim() !== "") dataToSend[fieldName] = value.trim();
+            });
+            for (const key in dataToSend) { 
+                const element = document.getElementById(key);
+                if (element?.tagName === 'SELECT' && dataToSend[key]) {
+                    dataToSend[key] = parseInt(dataToSend[key], 10);
+                }
+            }
+
+            try {
+                const submitResponse = await fetch(apiGetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+                const result = await submitResponse.json();
+                
+                if (result.message_code !== 1000) {
+                    if (result.message_text === 'Validation Error' && result.message_data.length > 0) {
+                        const errors = result.message_data[0];
+                        for (const fieldName in errors) {
+                            const errorEl = document.getElementById(`error-${fieldName}`);
+                            if (errorEl) errorEl.textContent = Array.isArray(errors[fieldName]) ? errors[fieldName].join(', ') : errors[fieldName];
+                        }
+                    } else {
+                        alert(result.message_text);
+                    }
+                } else {
+                    // --- SUCCESS LOGIC ---
+                    const registrationData = result.message_data[0];
+                    tokenDisplay.textContent = `#${registrationData.token_no}`;
+                    const qrBase64 = `data:image/png;base64,${registrationData.qr_code_base64}`;
+                    qrCodeImg.src = qrBase64;
+                    downloadBtn.href = qrBase64;
+                    
+                    shareBtn.onclick = () => {
+                        if (navigator.share) {
+                             navigator.share({
+                                title: 'Event Registration QR Code',
+                                text: `Here is my token and QR for the event. Token: #${registrationData.token_no}`,
+                                // Note: Sharing base64 images directly is tricky. This is a basic share.
+                            }).catch(console.error);
+                        } else {
+                            alert("Share feature is not supported on your browser. Please download the image.");
+                        }
+                    };
+
+                    successModal.show();
+                }
+            } catch (error) {
+                alert('A network error occurred. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Submit Registration';
+            }
+        });
+    }
+
+    loadForm();
+});
+</script>
+
+</body>
+</html>

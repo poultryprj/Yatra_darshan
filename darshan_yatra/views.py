@@ -2203,6 +2203,7 @@ def get_whatsapp_templates_api(request):
 
 
 
+
 # ########### Diwali Kirana ####################
 
 
@@ -2456,6 +2457,21 @@ def diwali_registration(request):
                         dest.write(chunk)
                 ration_card_url = f"https://www.lakshyapratishthan.com/Yatra_darshan/static/assets/ration_cards/{file_name}"
 
+            voter_id_url = None
+            voter_id_file = request.FILES.get("VoterIdPhoto")
+            if voter_id_file:
+                ext = os.path.splitext(voter_id_file.name)[1].lower() or '.jpg'
+                file_name = f"voter-{uuid.uuid4().hex}{ext}"
+                # Save to a new directory to keep things organized
+                img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voter_ids")
+                os.makedirs(img_directory, exist_ok=True)
+                save_path = os.path.join(img_directory, file_name)
+                with open(save_path, "wb+") as dest:
+                    for chunk in voter_id_file.chunks():
+                        dest.write(chunk)
+                # This should be the public URL to access the file
+                voter_id_url = f"/static/assets/voter_ids/{file_name}"
+
             head_details = json.loads(request.POST.get("head"))
             family_members_data = json.loads(request.POST.get("family"))
             ration_card_no = request.POST.get("rationCardNo")
@@ -2483,6 +2499,8 @@ def diwali_registration(request):
                 "Address": head_details.get("address", ""),
                 "RationCardPhoto": ration_card_url or head_details.get("existingRationCardPhoto", ""),
                 "UserId":request.session["user_id"],
+                "VoterIdProof": voter_id_url or head_details.get("existingVoterIdPhoto", ""),
+                "Age": head_details.get("Age", 0),
             }
 
             if record_id and record_id != "0":
@@ -2641,6 +2659,7 @@ def diwali_all_registrations(request):
                         families_dict[ration_card].append(record)
                 
                 for ration_card, members in families_dict.items():
+                    members.sort(key=lambda x: int(x.get("RegistrationId", 0)))
                     head = next((m for m in members if m.get("ParentId") in ["1", str(m.get("RegistrationId"))]), members[0])
                     # token_res = requests.post("https://www.lakshyapratishthan.com/apis/diwalikirana", json={"RegistrationId":head.get("RegistrationId"),"RationCardNo":ration_card},  headers=headers, verify=False, timeout=20)
                     # print(token_res.text)
@@ -2816,6 +2835,8 @@ def change_diwali_token(request):
         return JsonResponse({"status": "error", "message": f"An unexpected error occurred: {str(e)}"}, status=500)
     
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 def diwali_report_page(request):
     """
     Directly generates and serves an Excel file with all registration data.
@@ -2896,25 +2917,157 @@ def diwali_report_page(request):
         messages.error(request, f"An error occurred while generating the report: {str(e)}")
         # Redirect back to the home page or another safe page on error
         return redirect('home')    
+    
 
 
-# userMobileNo:9850180648
-# userPassword:999999
+def manage_family_members(request, ration_card_no):
+    """
+    Fetches data for a single family by ration card number and renders the 
+    member management page.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    head_details = None
+    family_members = []
+    
+    try:
+        # We reuse the existing API to get all members for this ration card
+        api_url_check = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
+        payload = {"SearchString": ration_card_no}
+        response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
+
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("message_code") == 1000 and data.get("message_data"):
+                all_records = data["message_data"]
+                # Find the head of the family
+                head_details = next((m for m in all_records if m.get("ParentId") in ["1", str(m.get("RegistrationId"))]), all_records[0])
+                # List everyone else as a family member
+                family_members = [m for m in all_records if str(m.get("RegistrationId")) != str(head_details.get("RegistrationId"))]
+            else:
+                messages.error(request, f"Could not find family with ration card: {ration_card_no}")
+        else:
+            messages.error(request, "Failed to connect to the data API.")
+
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"API connection error: {e}")
+        
+    context = {
+        'head': head_details,
+        'members': family_members,
+        'ration_card_no': ration_card_no
+    }
+    return render(request, "Diwali/manage_family_members.html", context)
+
+
+@csrf_exempt
+def delete_diwali_member(request, reg_id):
+    """
+    API proxy to delete a registration record.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    try:
+        # This will call the new API endpoint we will create in Step 5
+        api_url = f"http://127.0.0.1:8000/LakshyaPratishthan/api/delete_diwali_member/{reg_id}/"
+        response = requests.post(api_url, headers=headers, verify=False, timeout=10)
+        
+        if response.ok:
+            return JsonResponse(response.json())
+        else:
+            return JsonResponse({"status": "error", "message": "API call failed"}, status=response.status_code)
+            
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+
+
+
+# your_app/views.py
+
+def darshan_yatra_management(request):
+    """
+    Fetches all families and all areas to display on the Darshan Yatra page,
+    which is focused on adding members to existing families.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    all_families = []
+    all_areas = []
+    area_map = {} # Dictionary to map AreaId to AreaName
+
+    try:
+        # 1. Fetch all ACTIVE areas using your 'listarea' API
+        # ✅ CHANGED: Updated the API endpoint URL
+        area_api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/listarea/"
+        
+        # ✅ CHANGED: Switched from POST to GET request as required by your API decorator @api_view(['GET'])
+        area_response = requests.get(area_api_url, headers=headers, verify=False, timeout=15)
+        
+        if area_response.ok and area_response.json().get("message_code") == 1000:
+            all_areas = area_response.json().get("message_data", [])
+            # Create the mapping (this logic remains the same)
+            for area in all_areas:
+                area_map[area.get("AreaId")] = area.get("AreaName")
+
+        # 2. Fetch all registered families (this logic is unchanged)
+        api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
+        response = requests.post(api_url, json={}, headers=headers, verify=False, timeout=20)
+
+        if response.ok and response.json().get("message_code") == 1000:
+            all_records = response.json().get("message_data", [])
+            
+            families_dict = {}
+            for record in all_records:
+                ration_card = record.get("RationCardNo")
+                if ration_card:
+                    families_dict.setdefault(ration_card, []).append(record)
+            
+            for ration_card, members in families_dict.items():
+                members.sort(key=lambda x: int(x.get("RegistrationId", 0)))
+                head = next((m for m in members if m.get("ParentId") in ["1", str(m.get("RegistrationId"))]), members[0])
+                
+                # Add the AreaName to the head's data using the map
+                head['AreaName'] = area_map.get(head.get("AreaId"), "Unknown Area")
+                
+                family_data = {
+                    'head': head,
+                    'members': [m for m in members if str(m.get("RegistrationId")) != str(head.get("RegistrationId"))],
+                    'ration_card_no': ration_card,
+                }
+                all_families.append(family_data)
+            
+            all_families.sort(key=lambda x: x['head'].get('Firstname', '').lower())
+        else:
+            api_error_message = "Unknown API error"
+            try:
+                api_error_message = response.json().get('message_text', 'No message')
+            except:
+                pass 
+            messages.error(request, f"API returned an error while fetching families: {api_error_message}")
+
+
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Could not connect to the API: {str(e)}")
+    except Exception as e:
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+    context = {
+        "families": all_families,
+        "areas": all_areas
+    }
+    return render(request, "Diwali/darshan_yatra_management.html", context)
+
+
 
 
 # Event Managment ###################
-
-import requests
-import json
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-# Assume your API is running at this base URL
-API_BASE_URL = "http://127.0.0.1:8000/LakshyaPratishthan/api/" # Change if needed
-
-# Define common headers if you have authentication, etc.
-# For now, a basic header is fine.
-HEADERS = {'Content-Type': 'application/json'}
 
 def event_list_page(request):
     """
@@ -2922,17 +3075,36 @@ def event_list_page(request):
     """
     if 'user_id' not in request.session:
         messages.error(request, "Please login first.")
-        return redirect('login') # Assuming you have a login URL
+        return redirect('login') 
 
     events = []
     try:
-        api_url = f"{API_BASE_URL}/get/"
-        response = requests.get(api_url, headers=HEADERS, verify=False, timeout=20)
+        api_url = f"{API_BASE_URL}event_list/" 
+        # Make sure you are using HEADERS, not a variable 'headers'
+        response = requests.get(api_url, headers=headers, verify=False, timeout=20)
         
         if response.status_code == 200:
             response_data = response.json()
             if response_data.get("message_code") == 1000:
-                events = response_data.get("message_data", [])
+                # Get the raw list of event dictionaries from the API
+                events_from_api = response_data.get("message_data", [])
+
+                # --- START OF THE FIX ---
+                # Process the list to convert date strings into datetime objects
+                for event in events_from_api:
+                    datetime_str = event.get('startDateTime')
+                    if datetime_str:
+                        try:
+                            # Parse the string and replace it with a real datetime object
+                            event['startDateTime'] = datetime.fromisoformat(datetime_str)
+                        except (ValueError, TypeError):
+                            # If the date string is bad or null, set it to None
+                            event['startDateTime'] = None
+                
+                # Now, events is the processed list
+                events = events_from_api
+                # --- END OF THE FIX ---
+
             else:
                 error_message = response_data.get('message_text', 'An unknown API error occurred.')
                 messages.error(request, f"API Error: {error_message}")
@@ -2947,11 +3119,85 @@ def event_list_page(request):
     return render(request, "events/event_list.html", {"events": events})
 
 
+# def add_edit_event_page(request, event_id=None):
+#     """
+#     Handles both creating a new event and editing an existing one.
+#     """
+#     if 'user_id' not in request.session:
+#         messages.error(request, "Please login first.")
+#         return redirect('login')
+
+#     event_data = {}
+    
+#     if event_id:
+#         try:
+#             api_url = f"{API_BASE_URL}event_list/?eventId={event_id}" 
+#             response = requests.get(api_url, headers=headers, verify=False, timeout=20)
+#             if response.status_code == 200 and response.json().get("message_code") == 1000:
+#                 event_data = response.json().get("message_data", [{}])[0]
+#             else:
+#                 messages.error(request, "Could not find the event to edit.")
+#                 return redirect('event_list_page')
+#         except Exception as e:
+#             messages.error(request, f"Error fetching event details: {e}")
+#             return redirect('event_list_page')
+
+#     # Handle form submission
+#     if request.method == 'POST':
+#         payload = {
+#             'title': request.POST.get('title'),
+#             'description': request.POST.get('description'),
+#             'eventType': request.POST.get('eventType'),
+#             'capacity': request.POST.get('capacity'),
+#             'entryFees': request.POST.get('entryFees'),
+#             'startDateTime': request.POST.get('startDateTime') or None, 
+#             'endDateTime': request.POST.get('endDateTime') or None,
+#             'registrationStart': request.POST.get('registrationStart') or None,
+#             'registrationEnd': request.POST.get('registrationEnd') or None,
+#         }
+        
+#         payload_clean = {k: v for k, v in payload.items() if v is not None and v != ''}
+
+#         try:
+#             if event_id:
+#                 payload_clean['eventId'] = event_id
+#                 api_url = f"{API_BASE_URL}event_update/"
+#                 response = requests.post(api_url, json=payload_clean, headers=headers, verify=False)
+#                 action_text = "updated"
+#             else:
+#                 api_url = f"{API_BASE_URL}event_create/" 
+#                 response = requests.post(api_url, json=payload_clean, headers=headers, verify=False)
+#                 action_text = "created"
+            
+#             if response.status_code == 200:
+#                 response_data = response.json()
+#                 if response_data.get("message_code") == 1000:
+#                     messages.success(request, f"Event {action_text} successfully!")
+#                     return redirect('event_list_page')
+#                 else:
+#                     messages.error(request, f"Failed to {action_text} event: {response_data.get('message_text')}")
+#             else:
+#                 messages.error(request, f"API request failed with status {response.status_code}.")
+
+#         except requests.exceptions.RequestException as e:
+#             messages.error(request, f"Could not connect to the API: {e}")
+            
+#     return render(request, "events/event_form.html", {"event": event_data})
+
+
+# Darshan Yatra views.py
+
+import requests
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from datetime import datetime # <--- IMPORT THIS
+
+# ... (keep your API_BASE_URL and HEADERS as they are) ...
+# ... (event_list_page and delete_event_page are fine, no changes needed there) ...
+
 def add_edit_event_page(request, event_id=None):
     """
     Handles both creating a new event and editing an existing one.
-    - If event_id is None, it's in 'Add' mode.
-    - If event_id is provided, it's in 'Edit' mode.
     """
     if 'user_id' not in request.session:
         messages.error(request, "Please login first.")
@@ -2959,13 +3205,35 @@ def add_edit_event_page(request, event_id=None):
 
     event_data = {}
     
-    # If editing, fetch the existing event data first to pre-fill the form
+    # If editing, fetch the existing event data
     if event_id:
         try:
-            api_url = f"{API_BASE_URL}/get/?eventId={event_id}"
-            response = requests.get(api_url, headers=HEADERS, verify=False, timeout=20)
+            api_url = f"{API_BASE_URL}event_list/?eventId={event_id}"
+            response = requests.get(api_url, headers=headers, verify=False, timeout=20)
             if response.status_code == 200 and response.json().get("message_code") == 1000:
                 event_data = response.json().get("message_data", [{}])[0]
+
+                # --- START OF THE FIX ---
+                # List of date fields to process
+                date_fields = ['startDateTime', 'endDateTime', 'registrationStart', 'registrationEnd']
+                
+                for field in date_fields:
+                    # Get the date string from the API data (e.g., "2025-11-01T23:30:00+05:30")
+                    datetime_str = event_data.get(field)
+                    
+                    if datetime_str:
+                        try:
+                            # Parse the ISO format string into a datetime object
+                            dt_obj = datetime.fromisoformat(datetime_str)
+                            
+                            # Format it into the string that <input type="datetime-local"> needs
+                            # The required format is YYYY-MM-DDTHH:MM
+                            event_data[field] = dt_obj.strftime('%Y-%m-%dT%H:%M')
+                        except (ValueError, TypeError):
+                            # If parsing fails or the field is not a string, leave it blank
+                            event_data[field] = ""
+                # --- END OF THE FIX ---
+
             else:
                 messages.error(request, "Could not find the event to edit.")
                 return redirect('event_list_page')
@@ -2973,7 +3241,7 @@ def add_edit_event_page(request, event_id=None):
             messages.error(request, f"Error fetching event details: {e}")
             return redirect('event_list_page')
 
-    # Handle form submission (for both Add and Edit)
+    # ... (The rest of your POST handling logic is fine, no changes needed there) ...
     if request.method == 'POST':
         # Collect data from the form
         payload = {
@@ -2982,23 +3250,22 @@ def add_edit_event_page(request, event_id=None):
             'eventType': request.POST.get('eventType'),
             'capacity': request.POST.get('capacity'),
             'entryFees': request.POST.get('entryFees'),
-            'startDateTime': request.POST.get('startDateTime'),
-            'endDateTime': request.POST.get('endDateTime'),
-            'registrationStart': request.POST.get('registrationStart'),
-            'registrationEnd': request.POST.get('registrationEnd'),
+            'startDateTime': request.POST.get('startDateTime') or None,
+            'endDateTime': request.POST.get('endDateTime') or None,
+            'registrationStart': request.POST.get('registrationStart') or None,
+            'registrationEnd': request.POST.get('registrationEnd') or None,
         }
+        payload_clean = {k: v for k, v in payload.items() if v is not None and v != ''}
 
         try:
             if event_id:
-                # This is an UPDATE operation
-                payload['eventId'] = event_id
-                api_url = f"{API_BASE_URL}/update/"
-                response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+                payload_clean['eventId'] = event_id
+                api_url = f"{API_BASE_URL}event_update/"
+                response = requests.post(api_url, json=payload_clean, headers=headers, verify=False)
                 action_text = "updated"
             else:
-                # This is a CREATE operation
-                api_url = f"{API_BASE_URL}/create/"
-                response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+                api_url = f"{API_BASE_URL}event_create/"
+                response = requests.post(api_url, json=payload_clean, headers=headers, verify=False)
                 action_text = "created"
             
             if response.status_code == 200:
@@ -3014,14 +3281,11 @@ def add_edit_event_page(request, event_id=None):
         except requests.exceptions.RequestException as e:
             messages.error(request, f"Could not connect to the API: {e}")
             
-    # Render the form (either empty for 'Add' or pre-filled for 'Edit')
     return render(request, "events/event_form.html", {"event": event_data})
-
 
 def delete_event_page(request, event_id):
     """
     Handles the deletion of an event by calling the delete API.
-    This should be a POST request to prevent accidental deletion.
     """
     if 'user_id' not in request.session:
         messages.error(request, "Please login first.")
@@ -3029,9 +3293,9 @@ def delete_event_page(request, event_id):
         
     if request.method == 'POST':
         try:
-            api_url = f"{API_BASE_URL}/delete/"
+            api_url = f"{API_BASE_URL}event_delete/" 
             payload = {'eventId': event_id}
-            response = requests.post(api_url, json=payload, headers=HEADERS, verify=False)
+            response = requests.post(api_url, json=payload, headers=headers, verify=False)
             
             if response.status_code == 200:
                 response_data = response.json()
@@ -3046,3 +3310,200 @@ def delete_event_page(request, event_id):
             messages.error(request, f"Could not connect to the API: {e}")
 
     return redirect('event_list_page')
+
+
+
+
+# def configure_event_fields_page(request, event_id):
+#     """
+#     Handles fetching and updating the registration field configuration for an event
+#     by calling our custom API.
+#     """
+#     if 'user_id' not in request.session:
+#         messages.error(request, "Please login first.")
+#         return redirect('login')
+
+#     context = {
+#         "event_id": event_id,
+#         "config_data": {} # Initialize empty config data
+#     }
+#     api_url = f"{API_BASE_URL}events/{event_id}/configure-fields/"
+
+#     # --- GET Request Logic: Fetch existing configuration to display ---
+#     try:
+#         response = requests.get(api_url, headers=headers, verify=False, timeout=20)
+        
+#         if response.status_code == 200:
+#             context["config_data"] = response.json()
+#         elif response.status_code == 404:
+#              messages.warning(request, "This event has not been configured yet. Select fields and save.")
+#              # We still need all possible fields to render the form
+#              # Let's create a default structure if the API returns 404
+#              context["config_data"] = {
+#                  "event_title": "Unknown Event", # You might want to fetch event title separately
+#                  "all_possible_fields": [
+#                     'firstname', 'middlename', 'lastname', 'mobileNo', 'alternateMobileNo',
+#                     'BookingMobileNo', 'aadharNumber', 'bloodGroup', 'dateOfBirth',
+#                     'zonePreference', 'gender', 'areaId', 'address', 'photoFileName',
+#                     'idProofFileName', 'voterIdProof', 'age', 'ration_card_no', 'ration_card_photo'
+#                  ],
+#                  "selected_fields": []
+#              }
+#         else:
+#             messages.error(request, f"Could not fetch configuration. API returned status {response.status_code}.")
+#             return redirect('event_list_page') # Redirect to your event list page
+            
+#     except requests.exceptions.RequestException as e:
+#         messages.error(request, f"Error connecting to the API: {e}")
+#         return redirect('event_list_page')
+
+#     # --- POST Request Logic: Handle form submission ---
+#     if request.method == 'POST':
+#         # Getlist is used to capture all values from checkboxes with the same name
+#         selected_fields = request.POST.getlist('selected_fields')
+        
+#         payload = {
+#             'selected_fields': selected_fields
+#         }
+
+#         try:
+#             # The API uses POST for updates as per our design
+#             response = requests.post(api_url, json=payload, headers=headers, verify=False)
+            
+#             if response.status_code == 200:
+#                 response_data = response.json()
+#                 messages.success(request, response_data.get('message', 'Configuration updated successfully!'))
+#                 return redirect('event_list_page') # Redirect on success
+#             else:
+#                 messages.error(request, f"API request failed with status {response.status_code}.")
+
+#         except requests.exceptions.RequestException as e:
+#             messages.error(request, f"Could not connect to the API to save changes: {e}")
+
+#     # Render the page on a GET request or if a POST request fails
+#     return render(request, "events/configure_fields_form.html", context)
+
+
+
+def configure_event_fields_page(request, event_id):
+    """
+    Handles fetching and updating the registration field configuration for an event.
+    This version has the CORRECT API URL and works with your standardized backend.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    context = {
+        "event_id": event_id,
+        "config_data": {}
+    }
+    
+    # FIX: The URL now correctly matches your backend urls.py
+    api_url = f"{API_BASE_URL}event_configure/{event_id}/"
+
+    # --- GET Request Logic ---
+    if request.method == 'GET':
+        try:
+            response = requests.get(api_url, headers=headers, verify=False, timeout=20)
+            
+            if response.status_code == 200:
+                api_data = response.json()
+                
+                if api_data.get('message_code') == 1000:
+                    if api_data.get('message_data'):
+                        context['config_data'] = api_data['message_data'][0]
+                        if not context['config_data'].get('selected_fields'):
+                            messages.warning(request, "This event has not been configured yet. Select fields and save.")
+                    else:
+                        messages.error(request, "API returned success but the data was empty.")
+                        return redirect('event_list_page')
+                else:
+                    error_text = api_data.get('message_text', 'An unknown API error occurred.')
+                    messages.error(request, error_text)
+                    return redirect('event_list_page')
+            else:
+                messages.error(request, f"API server error. Status: {response.status_code}")
+                return redirect('event_list_page')
+                
+        except requests.exceptions.RequestException as e:
+            messages.error(request, f"Error connecting to the API: {e}")
+            return redirect('event_list_page')
+
+    # --- POST Request Logic ---
+    if request.method == 'POST':
+        selected_fields = request.POST.getlist('selected_fields')
+        payload = {'selected_fields': selected_fields}
+
+        try:
+            response = requests.post(api_url, json=payload, headers=headers, verify=False)
+            
+            if response.status_code == 200:
+                api_data = response.json()
+                if api_data.get('message_code') == 1000:
+                    messages.success(request, 'Configuration updated successfully!')
+                    return redirect('event_list_page')
+                else:
+                    error_text = api_data.get('message_text', 'Failed to save configuration.')
+                    messages.error(request, error_text)
+                    # Re-fetch data to show the form again with the error message
+                    get_response = requests.get(api_url, headers=headers, verify=False)
+                    if get_response.status_code == 200 and get_response.json().get('message_code') == 1000:
+                         context['config_data'] = get_response.json()['message_data'][0]
+            else:
+                messages.error(request, f"API server error on save. Status: {response.status_code}")
+
+        except requests.exceptions.RequestException as e:
+            messages.error(request, f"Could not connect to the API to save changes: {e}")
+
+    return render(request, "events/configure_fields_form.html", context)
+
+
+def view_registrations_page(request, event_id):
+    """
+    Displays a dynamic table of registrations for a specific event.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+
+    context = {
+        'registration_data': {},
+        'event_id': event_id
+    }
+    # Use the new API URL
+    api_url = f"{API_BASE_URL}event_registrations/{event_id}/"
+
+    try:
+        response = requests.get(api_url, headers=headers, verify=False, timeout=20)
+        
+        if response.status_code == 200:
+            api_data = response.json()
+            if api_data.get('message_code') == 1000:
+                if api_data.get('message_data'):
+                    context['registration_data'] = api_data['message_data'][0]
+                else:
+                    # This handles the case where no fields are configured
+                    messages.warning(request, api_data.get('message_text', 'No fields configured for this event.'))
+                    context['registration_data']['event_title'] = "Event Registrations" # Fallback title
+            else:
+                messages.error(request, api_data.get('message_text', 'API returned a failure code.'))
+        else:
+            messages.error(request, f"API server error. Status: {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Error connecting to the API: {e}")
+
+    return render(request, "events/view_registrations.html", context)
+
+
+
+def public_registration_page(request, event_id):
+    """
+    Renders the public-facing registration page for a specific event.
+    The form itself is built dynamically by JavaScript in the template.
+    """
+    context = {
+        'event_id': event_id
+    }
+    return render(request, "events/public_registration_form.html", context)
