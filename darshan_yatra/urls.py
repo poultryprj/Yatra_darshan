@@ -4,6 +4,8 @@ from .import views
 
 urlpatterns = [
 
+    
+
     # path('hello/', views.hello, name='hello'),
 
     path('', views.login, name='login'),
@@ -103,5 +105,9 @@ urlpatterns = [
     path('event/<int:event_id>/registrations/', views.view_registrations_page, name='view_registrations_page'),
 
     path('register/<int:event_id>/', views.public_registration_page, name='public_registration_page'),
+
+    path('verify/<int:event_id>/<int:registration_id>/', views.registration_details_page, name='registration_details_page'),
+
+    path('scan-qr/', views.qr_scanner_page, name='qr_scanner_page'),
         
 ]

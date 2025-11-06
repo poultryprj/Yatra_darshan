@@ -3507,3 +3507,21 @@ def public_registration_page(request, event_id):
         'event_id': event_id
     }
     return render(request, "events/public_registration_form.html", context)
+
+
+def registration_details_page(request, event_id, registration_id):
+    """
+    Renders the public verification page. This page uses JavaScript
+    to fetch and display the registration details from the backend API.
+    """
+    # You need to pass the backend API URL to the template
+    context = {
+        'event_id': event_id,
+        'registration_id': registration_id,
+        'api_base_url': "http://127.0.0.1:8000/LakshyaPratishthan/api/" # Or your actual API URL
+    }
+    return render(request, "events/registration_details.html", context)
+
+def qr_scanner_page(request):
+    """ Renders a page with a QR code scanner. """
+    return render(request, "events/qr_scanner.html")

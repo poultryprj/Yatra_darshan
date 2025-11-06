@@ -36,6 +36,29 @@
         .error-message { color: #dc3545; font-size: 0.875em; margin-top: 5px; padding-left: 5px; }
         .select2-container--bootstrap-5 .select2-selection { min-height: 50px !important; padding-top: 11px !important; }
         @keyframes slideUp { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+
+        /* --- START OF MODAL STYLE FIXES --- */
+        #successModal .modal-header {
+            text-align: center;
+            padding-bottom: 0;
+        }
+        #successModal .modal-title {
+            font-weight: 600;
+        }
+        #successModal .btn-close {
+            /* Position the close button without affecting the title's centering */
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+        #successModal .modal-footer {
+            padding-top: 0;
+        }
+        #successModal .btn {
+            padding: 10px;
+            font-weight: 600;
+        }
+        /* --- END OF MODAL STYLE FIXES --- */
     </style>
 </head>
 <body>
@@ -77,29 +100,35 @@
     </footer>
 </div>
 
-<!-- Success Modal -->
+<!-- Success Modal (UPDATED HTML) -->
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="successModalLabel">Registration Successful!</h5>
+        <div class="modal-content border-0" style="border-radius: 15px;">
+            <div class="modal-header text-center border-0">
+                <h5 class="modal-title w-100" id="successModalLabel">Registration Successful!</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="location.reload()"></button>
             </div>
             <div class="modal-body text-center">
-                <p>Your Token Number is:</p>
-                <h2 class="fw-bold text-primary" id="token-number-display"></h2>
+                <h4 class="fw-bold mb-3" id="token-number-display"></h4>
                 <div class="my-3">
-                    <img id="qr-code-img" src="" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                    <img id="qr-code-img" src="" alt="QR Code" class="img-fluid" style="max-width: 250px; border-radius: 8px;">
                 </div>
                 <p class="text-muted small">Show this QR code at the event entrance.</p>
             </div>
-            <div class="modal-footer border-0 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" id="share-btn"><i class="fas fa-share-alt me-2"></i>Share</button>
-                <a href="#" id="download-btn" class="btn btn-primary" download="event-qr-code.png"><i class="fas fa-download me-2"></i>Download</a>
+            <div class="modal-footer border-0">
+                <div class="row w-100 g-2">
+                    <div class="col-6">
+                         <button type="button" class="btn btn-success w-100" id="share-btn"><i class="fas fa-share-alt me-2"></i>Share</button>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" id="download-btn" class="btn btn-primary w-100" download="event-qr-code.png"><i class="fas fa-download me-2"></i>Download</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -223,9 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert(result.message_text);
                     }
                 } else {
-                    // --- SUCCESS LOGIC ---
+                    // --- SUCCESS LOGIC (UPDATED) ---
                     const registrationData = result.message_data[0];
-                    tokenDisplay.textContent = `#${registrationData.token_no}`;
+                    
+                    // Update token display text
+                    tokenDisplay.innerHTML = `Token No. <span class="text-primary">${registrationData.token_no}</span>`;
+                    
                     const qrBase64 = `data:image/png;base64,${registrationData.qr_code_base64}`;
                     qrCodeImg.src = qrBase64;
                     downloadBtn.href = qrBase64;
@@ -234,8 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (navigator.share) {
                              navigator.share({
                                 title: 'Event Registration QR Code',
-                                text: `Here is my token and QR for the event. Token: #${registrationData.token_no}`,
-                                // Note: Sharing base64 images directly is tricky. This is a basic share.
+                                text: `Here is my token and QR for the event. Token No. ${registrationData.token_no}`,
                             }).catch(console.error);
                         } else {
                             alert("Share feature is not supported on your browser. Please download the image.");

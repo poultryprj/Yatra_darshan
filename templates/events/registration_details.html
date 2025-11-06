@@ -1,0 +1,107 @@
+<!-- templates/events/registration_details.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f0f2f5; }
+        .card { max-width: 500px; margin: 40px auto; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .card-header { background-color: #28a745; color: white; text-align: center; border-top-left-radius: 15px; border-top-right-radius: 15px; }
+        .card-header h2 { margin-bottom: 0; font-weight: 600; }
+        .card-body { padding: 2rem; }
+        .detail-item { font-size: 1.1rem; margin-bottom: 1.5rem; }
+        .detail-item strong { color: #333; }
+        .loader { text-align: center; padding: 3rem; }
+        .error { text-align: center; padding: 3rem; color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div id="details-container" class="container">
+    <div class="card">
+        <div id="card-header" class="card-header py-3">
+             <h2 id="status-text"><i class="bi bi-patch-check-fill"></i> Verified</h2>
+        </div>
+        <div class="card-body">
+            <div id="loader" class="loader">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Fetching details...</p>
+            </div>
+            <div id="error-message" class="error" style="display: none;"></div>
+            <div id="details-content" style="display: none;">
+                <div class="detail-item">
+                    <i class="bi bi-person-circle text-primary me-2"></i>
+                    <strong>Customer Name:</strong>
+                    <span id="customer-name"></span>
+                </div>
+                <div class="detail-item">
+                    <i class="bi bi-calendar-event text-primary me-2"></i>
+                    <strong>Event:</strong>
+                    <span id="event-title"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const eventId = "{{ event_id }}";
+    const registrationId = "{{ registration_id }}";
+    const apiBaseUrl = "{{ api_base_url }}";
+    
+    // UI Elements
+    const loader = document.getElementById('loader');
+    const errorMessage = document.getElementById('error-message');
+    const detailsContent = document.getElementById('details-content');
+    const customerNameEl = document.getElementById('customer-name');
+    const eventTitleEl = document.getElementById('event-title');
+    const cardHeader = document.getElementById('card-header');
+    const statusText = document.getElementById('status-text');
+
+    const fetchDetails = async () => {
+        try {
+            const apiUrl = `${apiBaseUrl}public/verify/${eventId}/${registrationId}/`;
+            const response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                throw new Error(`Registration not found or server error.`);
+            }
+
+            const result = await response.json();
+
+            if (result.message_code === 1000 && result.message_data.length > 0) {
+                const data = result.message_data[0];
+                customerNameEl.textContent = data.customer_name;
+                eventTitleEl.textContent = data.event_title;
+                loader.style.display = 'none';
+                detailsContent.style.display = 'block';
+            } else {
+                throw new Error(result.message_text || 'Could not retrieve details.');
+            }
+
+        } catch (error) {
+            loader.style.display = 'none';
+            errorMessage.textContent = error.message;
+            errorMessage.style.display = 'block';
+            statusText.innerHTML = '<i class="bi bi-x-octagon-fill"></i> Invalid';
+            cardHeader.classList.remove('bg-success');
+            cardHeader.classList.add('bg-danger');
+        }
+    };
+
+    fetchDetails();
+});
+</script>
+
+</body>
+</html>
+

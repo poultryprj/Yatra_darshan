@@ -1,0 +1,141 @@
+<!-- templates/events/qr_scanner.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan QR Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .scanner-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        #qr-reader {
+            width: 100%;
+            border: none;
+            border-radius: 0;
+        }
+        .scanner-body { padding: 1.5rem; }
+        .upload-section {
+            border-top: 1px solid #e9ecef;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .upload-section h5 { font-weight: 600; color: #333; }
+        #qr-reader-results {
+            margin-top: 20px;
+            text-align: center;
+            color: #333;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar sticky-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <!-- FIXED: Back button now points to the 'home' URL name -->
+        <a href="{% url 'home' %}" class="text-white fs-4 text-decoration-none"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1 text-white">Scan & Verify</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<main class="container">
+    <div class="scanner-container">
+        <!-- Section 1: Live Camera Scanner -->
+        <div id="qr-reader"></div>
+        
+        <div class="scanner-body">
+            <!-- Section 2: File Upload Option -->
+            <div class="upload-section">
+                <h5><i class="bi bi-upload me-2"></i>Or Upload an Image</h5>
+                <p class="text-muted small">If you can't use your camera, upload a QR code from your device.</p>
+                <input class="form-control" type="file" id="qr-input-file" accept="image/*">
+            </div>
+
+            <!-- Section 3: Results Display -->
+            <div id="qr-reader-results">
+                <div class="alert alert-light border">Point your camera at a QR code to scan.</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+    // --- Common function to handle a successful scan from either camera or file ---
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop the camera scanner if it's running
+        if (window.html5QrcodeScanner && window.html5QrcodeScanner.getState() === 2) { // 2 means SCANNING
+             html5QrcodeScanner.clear();
+        }
+        
+        const resultContainer = document.getElementById('qr-reader-results');
+        resultContainer.innerHTML = `
+            <div class="alert alert-success">
+                <h4><i class="bi bi-check-circle-fill me-2"></i>Scan Successful!</h4>
+                <p class="mb-1">Redirecting you to the verification page...</p>
+                <a href="${decodedText}" class="alert-link small">${decodedText}</a>
+            </div>
+        `;
+
+        // Redirect the browser to the URL found in the QR code
+        window.location.href = decodedText;
+    }
+
+    // --- Function to handle scan failures ---
+    function onScanFailure(error) {
+        // This function can be verbose, so we'll only update the UI for file scan errors.
+        // For camera errors, we can ignore them as it tries continuously.
+        console.warn(`QR code scan failed: ${error}`);
+    }
+
+    // --- Initialize and render the camera scanner ---
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", 
+        { fps: 10, qrbox: {width: 250, height: 250} }, 
+        /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+
+    // --- NEW: Add event listener for the file input ---
+    const fileInput = document.getElementById('qr-input-file');
+    fileInput.addEventListener('change', e => {
+        if (e.target.files.length == 0) {
+            return;
+        }
+
+        const resultContainer = document.getElementById('qr-reader-results');
+        resultContainer.innerHTML = `<div class="alert alert-info">Processing image...</div>`;
+
+        // Use the Html5Qrcode library to scan the selected file
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.scanFile(e.target.files[0], true)
+        .then(decodedText => {
+            // If successful, call the same success handler
+            onScanSuccess(decodedText);
+        })
+        .catch(err => {
+            // If it fails, show an error message
+            resultContainer.innerHTML = `<div class="alert alert-danger">Could not scan QR code from image. Please try another file.</div>`;
+            console.error(`File scan error: ${err}`);
+        });
+    });
+
+</script>
+
+</body>
+</html>
