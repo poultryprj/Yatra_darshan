@@ -3525,3 +3525,18 @@ def registration_details_page(request, event_id, registration_id):
 def qr_scanner_page(request):
     """ Renders a page with a QR code scanner. """
     return render(request, "events/qr_scanner.html")
+
+
+def digital_pass_page(request, event_id, registration_id):
+    """
+    Renders the public-facing digital pass page.
+    This page uses JavaScript to fetch the details from the backend API.
+    """
+    context = {
+        'event_id': event_id,
+        'registration_id': registration_id,
+        # IMPORTANT: This URL must point to your BACKEND project's API.
+        'api_base_url': "http://127.0.0.1:8000/LakshyaPratishthan/api/" 
+    }
+    # Render the new template you just created
+    return render(request, "events/digital_pass.html", context)
