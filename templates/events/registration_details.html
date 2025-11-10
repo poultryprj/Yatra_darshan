@@ -1,5 +1,3 @@
-<!-- templates/events/registration_details.html -->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- ADD SWEETALERT2 LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { background-color: #f0f2f5; }
         .card { max-width: 500px; margin: 40px auto; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
@@ -19,6 +19,7 @@
         .detail-item strong { color: #333; }
         .loader { text-align: center; padding: 3rem; }
         .error { text-align: center; padding: 3rem; color: #dc3545; }
+        .action-buttons { border-top: 1px solid #eee; padding-top: 1.5rem; margin-top: 1.5rem; }
     </style>
 </head>
 <body>
@@ -30,23 +31,20 @@
         </div>
         <div class="card-body">
             <div id="loader" class="loader">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
                 <p class="mt-2">Fetching details...</p>
             </div>
             <div id="error-message" class="error" style="display: none;"></div>
+
             <div id="details-content" style="display: none;">
-                <div class="detail-item">
-                    <i class="bi bi-person-circle text-primary me-2"></i>
-                    <strong>Customer Name:</strong>
-                    <span id="customer-name"></span>
-                </div>
-                <div class="detail-item">
-                    <i class="bi bi-calendar-event text-primary me-2"></i>
-                    <strong>Event:</strong>
-                    <span id="event-title"></span>
-                </div>
+                <!-- Registration Info -->
+                <div class="detail-item"><i class="bi bi-person-circle text-primary me-2"></i><strong>Customer Name:</strong> <span id="customer-name"></span></div>
+                <div class="detail-item"><i class="bi bi-calendar-event text-primary me-2"></i><strong>Event:</strong> <span id="event-title"></span></div>
+                <div class="detail-item"><i class="bi bi-tags-fill text-primary me-2"></i><strong>Event Type:</strong> <span id="event-type"></span></div>
+                <div class="detail-item"><i class="bi bi-question-circle-fill text-primary me-2"></i><strong>Status:</strong> <span id="reg-status-display" class="fw-bold"></span></div>
+
+                <!-- Action Buttons Area -->
+                <div id="actions-container" class="action-buttons"></div>
             </div>
         </div>
     </div>
@@ -56,45 +54,137 @@
 document.addEventListener('DOMContentLoaded', () => {
     const eventId = "{{ event_id }}";
     const registrationId = "{{ registration_id }}";
-    const apiBaseUrl = "{{ api_base_url }}";
+    const apiBaseUrl = "http://127.0.0.1:8000/LakshyaPratishthan/api/";
     
     // UI Elements
-    const loader = document.getElementById('loader');
-    const errorMessage = document.getElementById('error-message');
-    const detailsContent = document.getElementById('details-content');
-    const customerNameEl = document.getElementById('customer-name');
-    const eventTitleEl = document.getElementById('event-title');
-    const cardHeader = document.getElementById('card-header');
-    const statusText = document.getElementById('status-text');
+    const actionsContainer = document.getElementById('actions-container');
 
-    const fetchDetails = async () => {
+    // --- CORRECTED EVENT HANDLING ---
+    // Use a single event listener on the parent container
+    actionsContainer.addEventListener('click', function(event) {
+        const target = event.target.closest('button'); // Get the button element
+        if (!target) return; // Exit if the click was not on a button
+
+        const action = target.dataset.action;
+        if (action === 'update-status') {
+            const newStatus = parseInt(target.dataset.status, 10);
+            updateStatus(newStatus);
+        } else if (action === 'cancel') {
+            cancelRegistration();
+        }
+    });
+    
+    // --- API CALL FUNCTIONS (NOW CORRECTLY SCOPED) ---
+    async function updateStatus(newStatus) {
+        actionsContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Updating...</div>`;
         try {
-            const apiUrl = `${apiBaseUrl}public/verify/${eventId}/${registrationId}/`;
-            const response = await fetch(apiUrl);
+            const response = await fetch(`${apiBaseUrl}public/update_status/${eventId}/${registrationId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (!response.ok) throw new Error("Failed to update status.");
+            
+            Swal.fire('Success!', 'The status has been updated.', 'success');
+            fetchDetails(); // Refresh data
+        } catch (error) {
+            Swal.fire('Error!', error.message, 'error');
+            fetchDetails(); // Refresh data
+        }
+    };
 
-            if (!response.ok) {
-                throw new Error(`Registration not found or server error.`);
+    async function cancelRegistration() {
+        // Use SweetAlert for a better confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                actionsContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Cancelling...</div>`;
+                try {
+                    const response = await fetch(`${apiBaseUrl}public/cancel/${eventId}/${registrationId}/`, { method: 'POST' });
+                    if (!response.ok) throw new Error("Failed to cancel registration.");
+
+                    Swal.fire('Cancelled!', 'This registration has been cancelled.', 'success');
+                    
+                    // Update UI to show cancelled state
+                    document.getElementById('details-content').innerHTML = `<div class="alert alert-danger text-center">This registration has been successfully cancelled.</div>`;
+                    document.getElementById('status-text').innerHTML = '<i class="bi bi-x-octagon-fill"></i> Cancelled';
+                    document.getElementById('card-header').className = 'card-header py-3 bg-danger';
+
+                } catch (error) {
+                    Swal.fire('Error!', error.message, 'error');
+                    fetchDetails();
+                }
             }
+        });
+    };
 
+    // --- MAIN FETCH AND RENDER FUNCTION ---
+    async function fetchDetails() {
+        const loader = document.getElementById('loader');
+        const errorMessageEl = document.getElementById('error-message');
+        const detailsContent = document.getElementById('details-content');
+
+        try {
+            const response = await fetch(`${apiBaseUrl}public/verify/${eventId}/${registrationId}/`);
+            if (!response.ok) throw new Error(`Registration not found or server error.`);
             const result = await response.json();
-
-            if (result.message_code === 1000 && result.message_data.length > 0) {
-                const data = result.message_data[0];
-                customerNameEl.textContent = data.customer_name;
-                eventTitleEl.textContent = data.event_title;
-                loader.style.display = 'none';
-                detailsContent.style.display = 'block';
-            } else {
+            if (result.message_code !== 1000 || !result.message_data.length) {
                 throw new Error(result.message_text || 'Could not retrieve details.');
             }
 
+            const data = result.message_data[0];
+            
+            document.getElementById('customer-name').textContent = data.customer_name;
+            document.getElementById('event-title').textContent = data.event_title;
+            document.getElementById('event-type').textContent = data.event_type;
+            
+            let actionButtonsHtml = '';
+            if (data.reg_status === null) {
+                document.getElementById('reg-status-display').textContent = 'Pending Action';
+                document.getElementById('reg-status-display').className = 'fw-bold text-warning';
+                
+                let statusButtons = '';
+                // Use data attributes instead of onclick
+                if (data.event_type_key === 'distribution') {
+                    statusButtons = `
+                        <div class="d-grid gap-2">
+                             <button class="btn btn-success" data-action="update-status" data-status="1">Mark as Delivered</button>
+                             <button class="btn btn-warning" data-action="update-status" data-status="0">Mark as Not Delivered</button>
+                        </div>`;
+                } else { // Default to normal event
+                    statusButtons = `
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" data-action="update-status" data-status="1">Mark as Present</button>
+                            <button class="btn btn-warning" data-action="update-status" data-status="0">Mark as Absent</button>
+                        </div>`;
+                }
+
+                const cancelButton = `<hr><div class="d-grid"><button class="btn btn-danger" data-action="cancel">Cancel this QR</button></div>`;
+                actionButtonsHtml = statusButtons + cancelButton;
+
+            } else {
+                 document.getElementById('reg-status-display').textContent = (data.reg_status === 1) ? 'Action Recorded (Positive)' : 'Action Recorded (Negative)';
+                 document.getElementById('reg-status-display').className = (data.reg_status === 1) ? 'fw-bold text-success' : 'fw-bold text-danger';
+                 actionButtonsHtml = '<p class="text-center text-muted">Status has already been recorded.</p>';
+            }
+
+            actionsContainer.innerHTML = actionButtonsHtml;
+            loader.style.display = 'none';
+            detailsContent.style.display = 'block';
+
         } catch (error) {
             loader.style.display = 'none';
-            errorMessage.textContent = error.message;
-            errorMessage.style.display = 'block';
-            statusText.innerHTML = '<i class="bi bi-x-octagon-fill"></i> Invalid';
-            cardHeader.classList.remove('bg-success');
-            cardHeader.classList.add('bg-danger');
+            errorMessageEl.textContent = error.message;
+            errorMessageEl.style.display = 'block';
+            document.getElementById('status-text').innerHTML = '<i class="bi bi-x-octagon-fill"></i> Invalid';
+            document.getElementById('card-header').className = 'card-header py-3 bg-danger';
         }
     };
 
@@ -104,4 +194,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-

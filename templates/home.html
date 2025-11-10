@@ -51,6 +51,77 @@
     .home-button:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
     .btn-registration { background-color: var(--brand-blue); color: #fff; }
     .btn-diwali { background-color: var(--brand-green); color: #fff; }
+
+
+    .btn-event {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 25px;
+    font-weight: 600;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease-in-out;
+}
+.btn-event:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 30px rgba(118, 75, 162, 0.6);
+}
+
+
+ /* --- NEW STYLES FOR ATTRACTIVE DROPDOWNS --- */
+    .drawer a {
+        border-radius: 8px;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        font-weight: 500;
+    }
+    .drawer a:hover {
+        background-color: var(--light-gray);
+        color: var(--brand-orange) !important;
+    }
+    /* Style for the main dropdown trigger link */
+    .drawer a[data-bs-toggle="collapse"] {
+        position: relative;
+        background-color: #f8f9fa;
+    }
+    /* Chevron icon for the dropdown trigger */
+    .drawer a[data-bs-toggle="collapse"]::after {
+        content: '\f282'; /* Bootstrap Icons chevron down */
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: transform 0.3s ease;
+        font-weight: bold;
+    }
+    /* Rotate chevron when dropdown is open */
+    .drawer a[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+        transform: translateY(-50%) rotate(180deg);
+    }
+    /* Style for the active/open dropdown trigger */
+    .drawer a[data-bs-toggle="collapse"][aria-expanded="true"] {
+        background-color: var(--brand-orange);
+        color: white !important;
+    }
+    /* Style for the submenu container */
+    .submenu {
+        padding-left: 20px !important;
+        margin-left: 10px;
+        border-left: 2px solid #e9ecef;
+    }
+    /* Style for individual links within the submenu */
+    .submenu a {
+        font-size: 0.95rem;
+        color: #555 !important;
+    }
+    .submenu a:hover {
+        background-color: #f0f2f5;
+    }
+
   </style>
 </head>
 <body>
@@ -81,108 +152,109 @@
         </a>
     </li>
 
-    <!-- <li>
-        <a href="{% url 'dashboard' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
+    <!-- Yatra Booking Section -->
+    <li>
+        <a href="#yatraSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="text-decoration-none text-dark d-block py-2">
+            <i class="bi bi-person-plus-fill me-2"></i> Yatra Booking
         </a>
-    </li> -->
+        <ul class="collapse list-unstyled submenu" id="yatraSubmenu">
+            {% if request.session.user_role != "2" %}
+                <li>
+                    <a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2">
+                        <i class="bi bi-people-fill me-2"></i> User Management
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2">
+                        <i class="bi bi-geo-alt-fill me-2"></i> Route Master
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2">
+                        <i class="bi bi-map-fill me-2"></i> Area Master
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2">
+                        <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master
+                    </a>
+                </li>
+            {% endif %}
+            <li>
+                <a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-cash-coin me-2"></i> Daily Collection
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-printer-fill me-2"></i> Print Report
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'passenger_documents' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-person-badge me-2"></i> Passenger Docs
+                </a>
+            </li>
+            <li>
+              <a href="{% url 'area_report' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-pin-map-fill me-2"></i> Area Report</a>
+            </li>
 
-    {% if request.session.user_role != "2" %}
-        <li>
-            <a href="{% url 'user_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-people-fill me-2"></i> User Management
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'route_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-geo-alt-fill me-2"></i> Route Master
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'area_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-map-fill me-2"></i> Area Master
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'yatra_master' %}" class="text-decoration-none text-dark d-block py-2">
-                <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master
-            </a>
-        </li>
-    {% endif %}
 
+            <li>
+                <a href="{% url 'whatsapp_messaging_page' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-whatsapp me-2"></i> WhatsApp SMS
+                </a>
+            </li>
+
+        </ul>
+    </li>
+
+    <!-- Diwali Kirana Section -->
     <li>
-        <a href="{% url 'daily_report' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-cash-coin me-2"></i> Daily Collection
+        <a href="#diwaliSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="text-decoration-none text-dark d-block py-2">
+            <i class="bi bi-brightness-high-fill me-2"></i> Diwali Kirana
         </a>
+        <ul class="collapse list-unstyled submenu" id="diwaliSubmenu">
+            <li>
+                <a href="{% url 'rationcardscan' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-patch-check me-2"></i> Verify Kit Delivery
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'diwali_report_page' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-file-earmark-arrow-down me-2"></i> Download Report
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'diwali_all_registrations' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-list-ul me-2"></i> View All Registrations
+                </a>
+            </li>
+                         <li>
+                <a href="{% url 'darshan_yatra_management' %}" class="text-decoration-none text-dark d-block py-2">
+                    <i class="bi bi-people me-2"></i> Add Membar
+                </a>
+            </li>
+        </ul>
     </li>
 
+    <!-- Event Management Section -->
     <li>
-        <a href="{% url 'print_report_page' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-printer-fill me-2"></i> Print Report
+        <a href="#eventSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="text-decoration-none text-dark d-block py-2">
+            <i class="bi bi-calendar-event me-2"></i> Event Management
         </a>
-    </li>
-
-    <li>
-        <a href="{% url 'passenger_documents' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-person-badge me-2"></i> Passenger Docs
-        </a>
-    </li>
-
-    <li>
-      <a href="{% url 'area_report' %}" class="text-decoration-none text-dark d-block py-2"><i class="bi bi-pin-map-fill me-2"></i> Area Report</a>
-    </li>
-
-    <li>
-      <a href="{% url 'whatsapp_messaging_page' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-whatsapp me-2"></i> WhatsApp SMS
-      </a>
-    </li>
-
-
-    <li>
-        <a href="{% url 'rationcardscan' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-patch-check me-2"></i> Verify Kit Delivery
-        </a>
-    </li>
-
-        <li>
-            <a href="{% url 'diwali_report_page' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-file-earmark-arrow-down me-2"></i> Download Report
-            </a>
-        </li>
-
-
-
-
-
-    <li>
-        <a href="{% url 'diwali_all_registrations' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-list-ul me-2"></i> View All Registrations
-        </a>
-    </li>
-
-    <li>
-      <a href="{% url 'event_list_page' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-calendar-event me-2"></i> Event Management
-      </a>
-    </li>
-
-    <li>
-      <a href="{% url 'qr_scanner_page' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-calendar-event me-2"></i> QR Scan
-      </a>
-    </li>
-
-    <!-- <li>
-      <a href="{% url 'diwali_all_registrations' %}" class="text-decoration-none text-dark d-block py-2">
-        <i class="bi bi-people me-2"></i> Family Management
-      </a>
-    </li> -->
-
-    <li>
-        <a href="{% url 'darshan_yatra_management' %}" class="text-decoration-none text-dark d-block py-2">
-            <i class="bi bi-people me-2"></i> Darshan Yatra
-        </a>
+        <ul class="collapse list-unstyled submenu" id="eventSubmenu">
+            <li>
+              <a href="{% url 'event_list_page' %}" class="text-decoration-none text-dark d-block py-2">
+                <i class="bi bi-calendar-event me-2"></i> Event List
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'qr_scanner_page' %}" class="text-decoration-none text-dark d-block py-2">
+                <i class="bi bi-qr-code-scan me-2"></i> QR Scan
+              </a>
+            </li>
+        </ul>
     </li>
 
     <li>
@@ -204,16 +276,23 @@
         <a href="{% url 'diwali_yatra_page' %}" class="home-button btn-diwali">
             <i class="bi bi-brightness-high-fill me-2"></i> Diwali Kirana
         </a>
+       <a href="{% url 'event_list_page' %}" class="home-button btn-event">
+            <i class="bi bi-calendar-event-fill me-2"></i> Event Management
+            </a>
     {% elif request.session.user_role == "2" %}
         <!-- Operator: cannot access Yatra Booking -->
         <a href="{% url 'diwali_yatra_page' %}" class="home-button btn-diwali">
             <i class="bi bi-brightness-high-fill me-2"></i> Diwali Kirana
         </a>
+        <a href="{% url 'event_list_page' %}" class="home-button btn-event">
+            <i class="bi bi-calendar-event-fill me-2"></i> Event Management
     {% else %}
         <!-- Other roles, only show Diwali Kirana -->
         <a href="{% url 'diwali_yatra_page' %}" class="home-button btn-diwali">
             <i class="bi bi-brightness-high-fill me-2"></i> Diwali Kirana
         </a>
+        <a href="{% url 'event_list_page' %}" class="home-button btn-event">
+            <i class="bi bi-calendar-event-fill me-2"></i> Event Management
     {% endif %}
 </div>
 
