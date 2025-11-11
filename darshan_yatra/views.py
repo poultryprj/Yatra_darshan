@@ -19,7 +19,7 @@
 # from openpyxl import Workbook
 # from openpyxl.styles import Font, Alignment
 import datetime
-from msilib.schema import Font
+# from msilib.schema import Font
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, JsonResponse
 import requests
