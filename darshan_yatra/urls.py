@@ -4,12 +4,14 @@ from .import views
 
 urlpatterns = [
 
+    
+
     # path('hello/', views.hello, name='hello'),
 
     path('', views.login, name='login'),
 
-    path('Registrationpage', views.Registrationpage, name='Registrationpage'),
-    path("registration_api/", views.registration_api, name="registration_api"),
+    # path('TicketBooking', views.TicketBooking, name='TicketBooking'),
+    # path('TicketBookingApi', views.TicketBookingApi, name='TicketBookingApi'),
     
     path('Registrationpage1', views.Registrationpage1, name='Registrationpage1'),
     path("registration_api1/", views.registration_api1, name="registration_api1"),
@@ -53,8 +55,8 @@ urlpatterns = [
     path('area_report_pdf/<int:route_id>/<str:area_name>/', views.area_report_pdf, name='area_report_pdf'),
 
 
-    # path('bus_master/', views.bus_master, name='bus_master'),
-    # path('bus_master_api/', views.bus_master_api, name='bus_master_api'),
+    path('yatra_bus_master/', views.yatra_bus_master, name='yatra_bus_master'),
+    path('yatra_bus_master_api/', views.yatra_bus_master_api, name='yatra_bus_master_api'),
 
 
     path('send_whatsapp_api/', views.send_whatsapp_api, name='send_whatsapp_api'),
@@ -62,9 +64,11 @@ urlpatterns = [
 
     path('get_whatsapp_templates_api/', views.get_whatsapp_templates_api, name='get_whatsapp_templates_api'),
 
-# #########  Diwali Yatra ##################
+
+    # #########  Diwali Yatra ##################
 
     path('home/', views.home, name='home'),
+    
     path('diwali_yatra/', views.diwali_yatra_page, name='diwali_yatra_page'),
 
     path("diwali_registration/", views.diwali_registration, name="diwali_registration"),
@@ -76,4 +80,34 @@ urlpatterns = [
 
 
     path("change_diwali_token/", views.change_diwali_token, name="change_diwali_token"), 
+
+    path('diwali_report/', views.diwali_report_page, name='diwali_report_page'),
+
+    path("manage_family/<str:ration_card_no>/", views.manage_family_members, name='manage_family_members'),
+
+    path("delete_diwali_member/<int:reg_id>/", views.delete_diwali_member, name='delete_diwali_member'),
+
+
+    path('darshan_yatra/', views.darshan_yatra_management, name='darshan_yatra_management'),
+
+
+    # Event Manag,emt ########
+
+
+    path('events/', views.event_list_page, name='event_list_page'),
+    path('events_add/', views.add_edit_event_page, name='add_event_page'),
+    path('events_edit/<int:event_id>/', views.add_edit_event_page, name='edit_event_page'),
+    path('events_delete/<int:event_id>/', views.delete_event_page, name='delete_event_page'),
+
+
+    path('event/<int:event_id>/configure/', views.configure_event_fields_page, name='configure_event_fields_page'),
+
+    path('event/<int:event_id>/registrations/', views.view_registrations_page, name='view_registrations_page'),
+
+    path('register/<int:event_id>/', views.public_registration_page, name='public_registration_page'),
+
+    path('verify/<int:event_id>/<int:registration_id>/', views.registration_details_page, name='registration_details_page'),
+
+    path('scan-qr/', views.qr_scanner_page, name='qr_scanner_page'),
+        
 ]

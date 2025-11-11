@@ -22,8 +22,6 @@
         .modal-body label { font-weight: bold; color: #003399; }
         .form-control, .form-select { border-radius: 6px; border: 1px solid #ccc; }
         .form-control:focus, .form-select:focus { border-color: #006633; box-shadow: 0 0 5px rgba(0,102,51,0.4); }
-
-        /* **** NEW STYLES FOR THE CARD LAYOUT **** */
         .yatra-card { padding: 0.75rem; border-bottom: 1px solid #dee2e6; }
         .yatra-card:last-child { border-bottom: none; }
         .yatra-row-1 { display: flex; justify-content: space-between; align-items: center; }
@@ -42,7 +40,7 @@
 
 <nav class="navbar fixed-top">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a href="{% url 'home' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <a href="{% url 'dashboard' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
         <span class="navbar-brand mb-0 h1" style="color:white">Yatra Master</span>
         <span style="width: 30px;"></span> 
     </div>
@@ -54,7 +52,6 @@
         <button class="btn btn-custom" id="addYatraBtn"><i class="bi bi-plus-circle"></i> Add Yatra</button>
     </div>
 
-    <!-- **** UPDATED LIST STRUCTURE **** -->
     <div id="yatraTableBody">
         {% for yatra in yatras %}
         <div class="yatra-card" 
@@ -64,7 +61,7 @@
             <div class="yatra-row-1">
                 <span class="yatra-name">{{ yatra.YatraRouteName }}</span>
                 <div class="yatra-actions">
-                    {% if yatra.YatraStatus == "1" %}<span class="badge bg-success">Active</span>
+                    {% if yatra.YatraStatus == 1 %}<span class="badge bg-success">Active</span>
                     {% else %}<span class="badge bg-danger">Inactive</span>{% endif %}
                     <button class="btn btn-sm btn-outline-primary edit-btn"><i class="bi bi-pencil-fill"></i></button>
                 </div>
@@ -92,7 +89,13 @@
             <div class="mb-3"><label for="formRouteId" class="form-label">Route</label><select class="form-select" id="formRouteId" style="width:100%;" required><option value="">Select a Route</option>{% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}</select></div>
             <div class="mb-3"><label for="formDateTime" class="form-label">Date and Time</label><input type="datetime-local" class="form-control" id="formDateTime" required></div>
             <div class="mb-3"><label for="formFees" class="form-label">Fees</label><input type="number" class="form-control" id="formFees" placeholder="Enter fees" required></div>
-            <div class="mb-3"><label for="formStatus" class="form-label">Status</label><select class="form-select" id="formStatus" style="width:100%;"><option value="1">Active</option><option value="0">Deactivated</option></select></div>
+            <div class="mb-3"><label for="formStatus" class="form-label">Status</label>
+                <select class="form-select" id="formStatus" style="width:100%;">
+                    <option value="1">Active</option>
+                    <!-- **** THIS IS THE FIX **** -->
+                    <option value="2">Deactivated</option>
+                </select>
+            </div>
         </form>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-custom" id="saveYatraBtn">Save Yatra</button></div>
@@ -108,7 +111,6 @@
     const yatraModal = new bootstrap.Modal(document.getElementById('yatraModal'));
     const yatraTableBody = document.getElementById('yatraTableBody');
 
-    // Initialize Select2 on the modal's dropdowns
     $(document).ready(function() {
         $('#formRouteId').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal') });
         $('#formStatus').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal'), minimumResultsForSearch: Infinity });
@@ -118,21 +120,13 @@
         if (!apiDate) return '';
         const [datePart, timePart] = apiDate.split(' ');
         const [day, month, year] = datePart.split('-');
-        const [hour, minute] = timePart.split(':');
-        return `${year}-${month}-${day}T${hour}:${minute}`;
-    }
-    function formatToAPI(inputDate) {
-        if (!inputDate) return '';
-        const [datePart, timePart] = inputDate.split('T');
-        const [year, month, day] = datePart.split('-');
-        return `${day}-${month}-${year} ${timePart}:00`;
+        return `${year}-${month}-${day}T${timePart}`;
     }
 
     document.getElementById('addYatraBtn').addEventListener('click', () => {
         document.getElementById('yatraForm').reset();
         document.getElementById('formYatraId').value = ''; 
         document.getElementById('modalTitle').textContent = 'Add New Yatra';
-        // Use jQuery to reset/set Select2 values
         $('#formRouteId').val('').trigger('change');
         $('#formStatus').val('1').trigger('change');
         yatraModal.show();
@@ -146,9 +140,15 @@
             document.getElementById('formDateTime').value = formatToInput(card.dataset.dateTime);
             document.getElementById('formFees').value = card.dataset.fees; 
             document.getElementById('modalTitle').textContent = 'Edit Yatra';
-            // Use jQuery to set Select2 values
             $('#formRouteId').val(card.dataset.routeId).trigger('change');
-            $('#formStatus').val(card.dataset.status).trigger('change');
+            
+            // This will now correctly set the status to '1' or '2'
+            let statusValue = card.dataset.status;
+            // The API returns the ID as a string, e.g., "1" or "2". We can use this directly.
+            // If the API returns a name like "Active", we'd need to map it.
+            // But since our API now sends the ID (1 or 2), this is correct.
+            $('#formStatus').val(statusValue).trigger('change');
+
             yatraModal.show();
         }
     });
@@ -157,7 +157,6 @@
         const yatraId = document.getElementById('formYatraId').value;
         const dateTime = document.getElementById('formDateTime').value;
         const fees = document.getElementById('formFees').value;
-        // Use jQuery to get Select2 values
         const routeId = $('#formRouteId').val();
         const status = $('#formStatus').val();
 
@@ -168,7 +167,7 @@
 
         let formData = new FormData();
         formData.append('routeId', routeId);
-        formData.append('dateTime', formatToAPI(dateTime));
+        formData.append('dateTime', dateTime); 
         formData.append('fees', fees);
         formData.append('status', status);
         if (yatraId) {

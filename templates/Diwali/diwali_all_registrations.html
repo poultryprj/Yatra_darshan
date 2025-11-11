@@ -62,7 +62,7 @@
     }
 
     #memberModal .modal-content {
-        background-color: #9ff895; 
+        background-color: #d1d3d0; 
     }
 
     .btn-view-photo { background-color: #3498db; color: white; } 
@@ -123,6 +123,10 @@
                         {% endfor %}
                         <div class="actions-container">
                             <p class="me-auto text-muted mb-0">Token: <strong>{{ family.token }}</strong></p>
+
+                            <a href="{% url 'manage_family_members' family.ration_card_no %}" class="btn-action btn-view" style="background-color: #3498db;" title="Manage Family Members">
+                                <i class="fas fa-users"></i>
+                            </a>
 
                              <!-- --- ✅ ADD THIS BLOCK --- -->
                             {% if family.ration_card_photo %}

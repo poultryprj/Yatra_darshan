@@ -1,0 +1,356 @@
+<!-- templates/Diwali/darshan_yatra_management.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darshan Yatra - Family Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; display: flex; align-items: center; }
+        .back-btn { color: white; font-size: 24px; text-decoration: none; margin-right: 15px; }
+        .header h1 { font-size: 22px; margin: 0; }
+        .container-main { padding: 10px; max-width: 800px; margin: 0 auto; }
+        .filter-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
+        .search-bar { position: relative; flex-grow: 1; }
+        .search-bar input, .form-select { padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .search-bar input { width: 100%; padding-left: 40px; }
+        .search-bar .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+        .no-results { text-align: center; padding: 40px; background: white; border-radius: 12px; }
+        .accordion-item { background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
+        .accordion-header { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: #f7fafc; border-bottom: 1px solid #e2e8f0; }
+        .accordion-header h2 { font-size: 18px; margin: 0; color: #2d3748; }
+        .accordion-header .ration-no { font-size: 14px; color: #718096; margin-top: 4px; }
+        .accordion-header .chevron { font-size: 16px; color: #a0aec0; transition: transform 0.3s ease; }
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease; padding: 0 20px; }
+        .accordion-item.active .accordion-body { max-height: 1000px; padding: 20px; border-top: 1px solid #e2e8f0; }
+        .accordion-item.active .accordion-header .chevron { transform: rotate(180deg); }
+        .member { display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+        .member:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .member .icon { font-size: 20px; color: #667eea; margin-right: 15px; width: 25px; text-align: center; }
+        .member .details .name { font-weight: 600; color: #4a5568; }
+        .member .details .meta { font-size: 13px; color: #a0aec0; }
+        .member-actions { margin-left: auto; display: flex; gap: 10px; }
+        .actions-container { padding-top: 15px; margin-top: 15px; border-top: 1px dashed #cbd5e0; display: flex; justify-content: flex-end; }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background-color: #667eea; color: white; } .btn-primary:hover { background-color: #5a67d8; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 50%; border: none; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+        .btn-edit { background-color: #f6ad55; color: white; }
+        .btn-delete { background-color: #f56565; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1>Registration List</h1>
+    </div>
+
+    <div class="container-main">
+        <div class="filter-container">
+            <select id="areaFilter" class="form-select" onchange="applyFilters()">
+                <option value="">All Areas</option>
+                {% for area in areas %}<option value="{{ area.AreaId }}">{{ area.AreaName }}</option>{% endfor %}
+            </select>
+            <div class="search-bar">
+                <i class="fas fa-search icon"></i>
+                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Search by name or ration card...">
+            </div>
+        </div>
+
+        {% if families %}
+            <div id="familyList">
+            {% for family in families %}
+                <div class="accordion-item" data-area-id="{{ family.head.AreaId }}">
+                    <div class="accordion-header">
+                        <div>
+                            <h2 class="head-name">{{ family.head.Firstname|title }} {{ family.head.Middlename|title }} {{ family.head.Lastname|title }}</h2>
+                            <span class="ration-no">Ration: {{ family.ration_card_no }} &bull; Mo: {{ family.head.MobileNo }}</span>
+                        </div>
+                        <i class="fas fa-chevron-down chevron"></i>
+                    </div>
+                    <div class="accordion-body">
+                        {% for member in family.members %}
+                        <div class="member">
+                            <span class="icon"><i class="fas fa-user"></i></span>
+                            <div class="details">
+                                <div class="name">{{ member.Firstname }} {{ member.Middlename }} {{ member.Lastname }}</div>
+                                <div class="meta">Family Member</div>
+                            </div>
+                            <!-- ✅ EDIT/DELETE buttons placed directly next to the member -->
+                            <div class="member-actions">
+                                <button class="btn-icon btn-edit" title="Edit Member"
+                                        data-reg-id="{{ member.RegistrationId }}"
+                                        data-name="{{ member.Firstname }} {{ member.Middlename }} {{ member.Lastname }}"
+                                        data-mobile="{{ member.MobileNo|default:'' }}"
+                                        data-age="{{ member.Age|default:'' }}"
+                                        data-voter="{{ member.VoterIdProof|default:'' }}">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Delete Member" data-reg-id="{{ member.RegistrationId }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div class="actions-container">
+                             <!-- ✅ This button now opens the modal directly -->
+                            <button class="btn-action btn-primary btn-add-member" title="Add New Member"
+                                data-ration-card="{{ family.ration_card_no }}"
+                                data-head-id="{{ family.head.RegistrationId }}"
+                                data-head-firstname="{{ family.head.Firstname }}"
+                                data-head-middlename="{{ family.head.Middlename }}"
+                                data-head-lastname="{{ family.head.Lastname }}"
+                                data-head-mobileno="{{ family.head.MobileNo }}"
+                                data-head-areaid="{{ family.head.AreaId }}"
+                                data-head-address="{{ family.head.Address }}">
+                                <i class="fas fa-user-plus"></i> Add Member
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+            <div id="noResults" class="no-results" style="display: none;">No families found.</div>
+        {% else %}
+            <div class="no-results">No registrations found.</div>
+        {% endif %}
+    </div>
+
+    <!-- ✅ MODAL FOR ADDING/EDITING MEMBER (Moved from the second file) -->
+    <div class="modal fade" id="memberModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="memberModalTitle">Add Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="memberForm" onsubmit="return false;">
+                        <!-- Hidden fields for member and head data -->
+                        <input type="hidden" id="memberRegId" value="0">
+                        <input type="hidden" id="formRationCardNo">
+                        <input type="hidden" id="formHeadRegId">
+                        <input type="hidden" id="formHeadFirstName">
+                        <input type="hidden" id="formHeadMiddleName">
+                        <input type="hidden" id="formHeadLastName">
+                        <input type="hidden" id="formHeadMobileNo">
+                        <input type="hidden" id="formHeadAreaId">
+                        <input type="hidden" id="formHeadAddress">
+                        <input type="hidden" id="existingVoterPhoto" value="">
+
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="memberName" placeholder="Full Name" required>
+                            <label for="memberName">Full Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="tel" class="form-control" id="memberMobile" placeholder="Mobile Number" maxlength="10">
+                            <label for="memberMobile">Mobile Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="number" class="form-control" id="memberAge" placeholder="Age">
+                            <label for="memberAge">Age</label>
+                        </div>
+                         <div class="mb-3">
+                            <label for="memberVoterIdPhoto" class="form-label">Voter ID Photo</label>
+                            <input type="file" class="form-control" id="memberVoterIdPhoto" accept="image/*,.pdf">
+                            <div id="currentVoterPhotoPreview" class="mt-2" style="display: none;"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveMemberBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const familyListContainer = document.getElementById('familyList');
+    const memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
+    const getCookie = (name) => { let c = null; if(document.cookie){for(const s of document.cookie.split(';')){const[k,v]=s.trim().split('=');if(k===name){c=decodeURIComponent(v);break;}}} return c; };
+
+    // ✅ COMBINED EVENT LISTENER for accordion, add, edit, and delete
+    if (familyListContainer) {
+        familyListContainer.addEventListener('click', function(event) {
+            const header = event.target.closest('.accordion-header');
+            const addBtn = event.target.closest('.btn-add-member');
+            const editBtn = event.target.closest('.btn-edit');
+            const deleteBtn = event.target.closest('.btn-delete');
+            const form = document.getElementById('memberForm');
+            const voterPhotoPreview = document.getElementById('currentVoterPhotoPreview');
+
+            // --- Accordion Logic ---
+            if (header) {
+                const item = header.parentElement;
+                item.classList.toggle('active');
+            }
+
+            // --- Add Member Logic ---
+            if (addBtn) {
+                form.reset();
+                document.getElementById('memberModalTitle').textContent = 'Add New Member';
+                document.getElementById('memberRegId').value = '0'; // '0' for new member
+                voterPhotoPreview.style.display = 'none';
+                voterPhotoPreview.innerHTML = '';
+                
+                // Populate hidden form fields with head/family data from the button
+                document.getElementById('formRationCardNo').value = addBtn.dataset.rationCard;
+                document.getElementById('formHeadRegId').value = addBtn.dataset.headId;
+                document.getElementById('formHeadFirstName').value = addBtn.dataset.headFirstname;
+                document.getElementById('formHeadMiddleName').value = addBtn.dataset.headMiddlename;
+                document.getElementById('formHeadLastName').value = addBtn.dataset.headLastname;
+                document.getElementById('formHeadMobileNo').value = addBtn.dataset.headMobileno;
+                document.getElementById('formHeadAreaId').value = addBtn.dataset.headAreaid;
+                document.getElementById('formHeadAddress').value = addBtn.dataset.headAddress;
+                
+                memberModal.show();
+            }
+
+            // --- Edit Member Logic ---
+            if (editBtn) {
+                form.reset();
+                document.getElementById('memberModalTitle').textContent = 'Edit Member';
+                
+                // Populate form with this member's data
+                document.getElementById('memberRegId').value = editBtn.dataset.regId;
+                document.getElementById('memberName').value = editBtn.dataset.name;
+                document.getElementById('memberMobile').value = editBtn.dataset.mobile === 'None' ? '' : editBtn.dataset.mobile;
+                document.getElementById('memberAge').value = editBtn.dataset.age === 'None' ? '' : editBtn.dataset.age;
+                document.getElementById('existingVoterPhoto').value = editBtn.dataset.voter;
+                
+                // Show existing photo link
+                const existingPhotoUrl = editBtn.dataset.voter;
+                if (existingPhotoUrl && existingPhotoUrl !== 'None' && existingPhotoUrl.trim() !== '') {
+                    voterPhotoPreview.innerHTML = `Current Photo: <a href="${existingPhotoUrl}" target="_blank">View Image</a>`;
+                    voterPhotoPreview.style.display = 'block';
+                } else {
+                    voterPhotoPreview.style.display = 'none';
+                    voterPhotoPreview.innerHTML = '';
+                }
+
+                // Find the corresponding 'Add Member' button to get head data
+                const correspondingAddBtn = editBtn.closest('.accordion-body').querySelector('.btn-add-member');
+                document.getElementById('formRationCardNo').value = correspondingAddBtn.dataset.rationCard;
+                document.getElementById('formHeadRegId').value = correspondingAddBtn.dataset.headId;
+                document.getElementById('formHeadFirstName').value = correspondingAddBtn.dataset.headFirstname;
+                document.getElementById('formHeadMiddleName').value = correspondingAddBtn.dataset.headMiddlename;
+                document.getElementById('formHeadLastName').value = correspondingAddBtn.dataset.headLastname;
+                document.getElementById('formHeadMobileNo').value = correspondingAddBtn.dataset.headMobileno;
+                document.getElementById('formHeadAreaId').value = correspondingAddBtn.dataset.headAreaid;
+                document.getElementById('formHeadAddress').value = correspondingAddBtn.dataset.headAddress;
+
+                memberModal.show();
+            }
+
+            // --- Delete Member Logic ---
+            if (deleteBtn) {
+                const regId = deleteBtn.dataset.regId;
+                Swal.fire({
+                    title: 'Are you sure?', text: "You won't be able to revert this!", icon: 'warning',
+                    showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const urlTemplate = "{% url 'delete_diwali_member' 0 %}".replace('0', regId);
+                        fetch(urlTemplate, { method: 'POST', headers: { 'X-CSRFToken': getCookie("csrftoken") } })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                // Remove the element from the page instead of reloading
+                                deleteBtn.closest('.member').remove();
+                                Swal.fire('Deleted!', 'The member has been removed.', 'success');
+                            } else {
+                                Swal.fire('Error!', data.message || 'Could not delete member.', 'error');
+                            }
+                        }).catch(error => Swal.fire('Request Failed!', 'An error occurred.', 'error'));
+                    }
+                });
+            }
+        });
+    }
+
+    // --- SAVE logic for both Add and Edit ---
+    document.getElementById('saveMemberBtn').addEventListener('click', () => {
+        const headRegId = document.getElementById('formHeadRegId').value;
+        const memberRegId = document.getElementById('memberRegId').value;
+
+        const headData = {
+            userFirstname: document.getElementById('formHeadFirstName').value,
+            userMiddlename: document.getElementById('formHeadMiddleName').value,
+            userLastname: document.getElementById('formHeadLastName').value,
+            userMobileNo: document.getElementById('formHeadMobileNo').value,
+            AreaId: document.getElementById('formHeadAreaId').value,
+            address: document.getElementById('formHeadAddress').value,
+        };
+
+        const memberFullName = document.getElementById('memberName').value;
+        const nameParts = memberFullName.trim().split(/\s+/);
+        const firstname = nameParts.shift() || '';
+        const lastname = nameParts.length > 0 ? nameParts.pop() : '';
+        const middlename = nameParts.join(' ');
+        
+        const memberData = {
+            registrationId: memberRegId, userFirstname: firstname, userMiddlename: middlename,
+            userLastname: lastname, Age: document.getElementById('memberAge').value || 0,
+            userMobileNo: document.getElementById('memberMobile').value,
+            existingVoterIdPhoto: document.getElementById('existingVoterPhoto').value
+        };
+
+        const formData = new FormData();
+        formData.append('action', 'submit');
+        formData.append('rationCardNo', document.getElementById('formRationCardNo').value);
+        formData.append('recordId', headRegId);
+        formData.append('head', JSON.stringify(headData));
+        formData.append('family', JSON.stringify([memberData]));
+        const voterPhotoFile = document.getElementById('memberVoterIdPhoto').files[0];
+        if (voterPhotoFile) formData.append('VoterIdPhoto', voterPhotoFile);
+
+        fetch("{% url 'diwali_registration' %}", {
+            method: 'POST', headers: {'X-CSRFToken': getCookie("csrftoken")}, body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                memberModal.hide();
+                Swal.fire('Success!', 'Family member details saved.', 'success')
+                .then(() => window.location.reload()); // Reload to see the changes
+            } else {
+                Swal.fire('Error!', data.message || 'Could not save details.', 'error');
+            }
+        }).catch(err => Swal.fire('Network Error!', 'Could not connect to server.', 'error'));
+    });
+});
+
+// --- Filter Function ---
+function applyFilters() {
+    const searchText = document.getElementById("searchInput").value.toUpperCase();
+    const selectedArea = document.getElementById("areaFilter").value;
+    const items = document.getElementById("familyList").getElementsByClassName("accordion-item");
+    let visibleCount = 0;
+
+    for (let item of items) {
+        const itemAreaId = item.getAttribute('data-area-id');
+        const areaMatch = (selectedArea === "" || itemAreaId === selectedArea);
+        const textContent = (item.querySelector(".head-name").textContent || "") + (item.querySelector(".ration-no").textContent || "");
+        const textMatch = textContent.toUpperCase().indexOf(searchText) > -1;
+        
+        if (areaMatch && textMatch) {
+            item.style.display = "";
+            visibleCount++;
+        } else {
+            item.style.display = "none";
+        }
+    }
+    document.getElementById("noResults").style.display = (visibleCount === 0) ? "block" : "none";
+}
+</script>
+
+</body>
+</html>

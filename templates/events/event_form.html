@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if event.eventId %}Edit Event{% else %}Create New Event{% endif %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS LIBRARIES -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    
+    <style>
+        /* --- ANIMATION & BASE STYLES --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; padding-bottom: 100px; }
+        
+        /* --- LAYOUT & CONTAINERS --- */
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar-brand { font-weight: 600; }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .page-content { padding: 1rem; }
+        .form-section { background: #ffffff; border-radius: 12px; margin-bottom: 1rem; padding: 1.25rem 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e9ecef; opacity: 0; animation: fadeInUp 0.4s ease-out forwards; }
+        .form-section:nth-of-type(1) { animation-delay: 0.1s; }
+        .form-section:nth-of-type(2) { animation-delay: 0.2s; }
+        .form-section h4 { font-weight: 600; color: #ff7b00; margin-bottom: 1.5rem; font-size: 1.1rem; }
+
+        /* --- STANDARD INPUT FIELDS --- */
+        .input-field { position: relative; }
+        .input-field label { font-size: 0.8rem; color: #6c757d; font-weight: 500; }
+        .input-field .form-control { border: none; border-radius: 0; padding-left: 0; box-shadow: none; border-bottom: 2px solid #dee2e6; transition: border-color 0.3s; }
+        .input-field .form-control:focus { border-bottom-color: #ff7b00; }
+        
+        /* --- ACTION FOOTER --- */
+        .action-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 1rem; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); border-top: 1px solid #e9ecef; z-index: 100; animation: fadeInUp 0.4s ease-out 0.3s forwards; opacity: 0; }
+        .btn-save { width: 100%; padding: 0.75rem; font-size: 1.1rem; font-weight: 600; background-color: #ff7b00; border: none; color: white; transition: background-color 0.3s; }
+        .btn-save:hover { background-color: #e66a00; }
+
+        /* --- SELECT2 STYLING FOR FLOATING LABEL EFFECT --- */
+        .form-group { position: relative; margin-bottom: 1.5rem; }
+        .form-group .form-label { position: absolute; top: 1rem; left: 1rem; background: white; padding: 0 0.25rem; color: #6c757d; font-size: 1rem; font-weight: 500; transition: all 0.2s ease-out; pointer-events: none; z-index: 1; }
+        .form-group .form-label i { margin-right: 0.5rem; }
+        
+        /* Style the select2 container to look like our text fields */
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 50px;
+            padding: 0.5rem 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+            border-color: #ff7b00;
+            box-shadow: none;
+        }
+        .select2-container--bootstrap-5 .select2-selection .select2-selection__rendered {
+            padding-top: 0.5rem;
+        }
+        
+        /* Logic for floating the label up */
+        .select2-container--bootstrap-5.select2-container--open + .form-label,
+        .form-group .form-select:not(:placeholder-shown) + .select2-container + .form-label {
+            top: 0;
+            left: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #ff7b00;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar sticky-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'event_list_page' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1">{% if event.eventId %}Edit Event{% else %}New Event{% endif %}</span>
+        <span style="width: 30px;"></span> 
+    </div>
+</nav>
+
+<div class="page-content">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Section 1: Core Details -->
+        <div class="form-section">
+            <h4><i class="bi bi-info-circle-fill me-2"></i>General Information</h4>
+            
+            <div class="input-field mb-4">
+                <label for="title">Event Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required>
+            </div>
+
+            <div class="input-field mb-4">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ event.description|default_if_none:'' }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <!-- UPDATED: HTML structure for Select2 dropdown -->
+                    <div class="form-group">
+                        <select class="form-select" id="eventType" name="eventType" placeholder=" ">
+                            <option value="normal" {% if event.eventType == 'normal' %}selected{% endif %}>Normal Event</option>
+                            <option value="distribution" {% if event.eventType == 'distribution' %}selected{% endif %}>Distribution Event</option>
+                        </select>
+                        <label for="eventType" class="form-label"><i class="bi bi-tag-fill"></i>Event Type</label>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-field mb-4">
+                        <label for="capacity">Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" value="{{ event.capacity|default_if_none:'' }}">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-field mb-4">
+                        <label for="entryFees">Entry Fees</label>
+                        <input type="text" class="form-control" id="entryFees" name="entryFees" value="{{ event.entryFees|default_if_none:'' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Date & Time -->
+        <div class="form-section">
+            <h4><i class="bi bi-calendar-check-fill me-2"></i>Scheduling</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-field">
+                        <label for="startDateTime">Start Date & Time <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="startDateTime" name="startDateTime" value="{{ event.startDateTime }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-field">
+                        <label for="endDateTime">End Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="endDateTime" name="endDateTime" value="{{ event.endDateTime }}">
+                    </div>
+                </div>
+                 <div class="col-md-6 mb-3">
+                    <div class="input-field">
+                        <label for="registrationStart">Registration Start</label>
+                        <input type="datetime-local" class="form-control" id="registrationStart" name="registrationStart" value="{{ event.registrationStart }}">
+                    </div>
+                </div>
+                 <div class="col-md-6 mb-3">
+                    <div class="input-field">
+                        <label for="registrationEnd">Registration End</label>
+                        <input type="datetime-local" class="form-control" id="registrationEnd" name="registrationEnd" value="{{ event.registrationEnd }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- The Fixed Footer for Actions -->
+        <div class="action-footer">
+            <button type="submit" class="btn btn-save">
+                <i class="bi bi-check-circle me-2"></i>Save Event
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JAVASCRIPT LIBRARIES -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- INITIALIZATION SCRIPT -->
+<script>
+    $(document).ready(function() {
+        // Initialize Select2
+        $('#eventType').select2({
+            theme: "bootstrap-5",
+            width: '100%',
+        });
+
+        // Trigger floating label logic on page load and on change
+        // The :placeholder-shown pseudo-class in the CSS handles this automatically
+        // We just need to make sure the value is correctly set.
+        $('#eventType').on('change', function() {
+            $(this).trigger('blur'); // Helps solidify the selection
+        });
+    });
+</script>
+
+</body>
+</html>
