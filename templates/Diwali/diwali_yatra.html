@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Main Conditional Logic ---
         // If a token number is provided, check it first.
         if (tokenNo) {
-            fetch("http://43.205.198.148/LakshyaPratishthan/api/check_diwali_token/", {
+            fetch("https://kukudku.in/LakshyaPratishthan/api/check_diwali_token/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ TokenNo: tokenNo })
