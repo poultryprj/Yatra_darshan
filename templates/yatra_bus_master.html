@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Darshan Yatra - Yatra Bus Master</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
+        .navbar-brand { font-weight: bold; }
+        .container-main { max-width: 800px; margin: 80px auto 40px auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
+        .btn-custom:hover { background: #e66a00; color: #fff; }
+
+        /* Accordion Styles */
+        .accordion-item { border: 1px solid #dee2e6; border-radius: 0.5rem !important; margin-bottom: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .accordion-button { font-size: 1.1rem; font-weight: 500; color: #212529; background-color: #fff; border-radius: 0.5rem !important; }
+        .accordion-button:not(.collapsed) { color: #fff; background-color: #ff7b00; }
+        .accordion-button:focus { box-shadow: none; }
+
+        .yatra-header { font-weight: 600; color: #555; margin-bottom: 0.5rem; }
+        .bus-card .card-body { padding: 12px 14px; }
+        .bus-name { font-size: 1.05rem; font-weight: 600; }
+        .bus-details { font-size: 0.9rem; color: #6c757d; }
+        .bus-grid { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+        .bus-grid .actions { display: flex; gap: 0.5rem; }
+
+        /* NEW UI STYLE FOR MODAL FORMS */
+        .form-fieldset { border: 1px solid #ced4da; border-radius: 8px; padding: 0 0.75rem 0.5rem 0.75rem; margin-bottom: 1.5rem; position: relative; }
+        .form-fieldset legend { float: none; width: auto; padding: 0 5px; margin-left: 5px; font-size: 0.8rem; color: #ff7b00; font-weight: 500; }
+        .form-fieldset input, .form-fieldset select { border: none; outline: none; width: 100%; height: 30px; padding: 0; background-color: transparent; }
+        .form-fieldset:focus-within { border-color: #ff7b00; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="#" onclick="history.back();" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <span class="navbar-brand mb-0 h1" style="color:white">Yatra Bus Master</span>
+        <span style="width: 30px;"></span>
+    </div>
+</nav>
+
+<div class="container-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 fs-4 text-primary">Manage Yatra Buses</h2>
+        <button class="btn btn-custom" id="addBusBtn"><i class="bi bi-plus-circle"></i> Add Bus</button>
+    </div>
+
+    <div class="accordion" id="routesAccordion">
+        {% for route in structured_routes %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ route.YatraRouteId }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</button>
+                </h2>
+                <div id="collapse-{{ route.YatraRouteId }}" class="accordion-collapse collapse" data-bs-parent="#routesAccordion">
+                    <div class="accordion-body">
+                        {% for yatra in route.yatras %}
+                            <div class="yatra-group">
+                                <h6 class="yatra-header">Yatra on: {{ yatra.details.YatraDateTime }}</h6>
+                                {% for bus in yatra.buses %}
+                                <div class="card bus-card mb-2"
+                                     data-yatra-bus-id="{{ bus.YatraBusId }}" data-bus-name="{{ bus.BusName }}"
+                                     data-bus-date-time-start="{{ bus.BusDateTimeStart }}" data-seat-fees="{{ bus.SeatFees }}"
+                                     data-yatra-route-id="{{ bus.YatraRouteId }}" data-yatra-id="{{ bus.YatraId }}"
+                                     data-bus-capacity="{{ bus.BusCapacity|default_if_none:'' }}" data-reserved-seats="1,2">
+                                    <div class="card-body">
+                                        <div class="bus-grid">
+                                            <div><div class="bus-name">{{ bus.BusName }}</div><div class="bus-details">{{ bus.BusDateTimeStart }}</div></div>
+                                            <div class="actions"><button class="btn btn-outline-primary btn-sm edit-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button class="btn btn-outline-danger btn-sm delete-btn" title="Delete"><i class="bi bi-trash-fill"></i></button></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center text-muted p-4">No Yatra Routes with buses found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Yatra Bus Modal -->
+<div class="modal fade" id="yatraBusModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="yatraBusForm" novalidate>
+            <input type="hidden" id="formYatraBusId" name="YatraBusId">
+            <fieldset class="form-fieldset"><legend>1. Select Yatra Route</legend><select id="formYatraRouteId" name="YatraRouteId" required>{% for route in all_routes_for_modal %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}</select></fieldset>
+            <fieldset class="form-fieldset"><legend>2. Select Yatra</legend><select id="formYatraId" name="YatraId" required disabled></select></fieldset>
+            <fieldset class="form-fieldset"><legend>Bus Start Date & Time (Editable)</legend><input type="text" id="formBusDateTimeStart" name="BusDateTimeStart" required></fieldset>
+            <hr class="my-3">
+            <fieldset class="form-fieldset"><legend>Bus Name</legend><input type="text" id="formBusName" name="BusName" required></fieldset>
+            <fieldset class="form-fieldset"><legend>Seat Fees</legend><input type="number" step="any" id="formSeatFees" name="SeatFees" required></fieldset>
+            <fieldset class="form-fieldset"><legend>Bus Capacity (Optional)</legend><input type="number" id="formBusCapacity" name="BusCapacity"></fieldset>
+            <fieldset class="form-fieldset"><legend>Reserved Seats (e.g., 1,2)</legend><input type="text" id="formReservedSeats" name="ReservedSeats"></fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-custom" id="saveBusBtn">Save Bus</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ all_yatras_for_modal|json_script:"all-yatras-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const yatraBusModal = new bootstrap.Modal(document.getElementById('yatraBusModal'));
+    const yatraBusForm = document.getElementById('yatraBusForm');
+    const allYatras = JSON.parse(document.getElementById('all-yatras-data').textContent);
+    
+    const routeSelect = document.getElementById('formYatraRouteId');
+    const yatraSelect = document.getElementById('formYatraId');
+    const dateTimeInput = document.getElementById('formBusDateTimeStart');
+    const seatFeesInput = document.getElementById('formSeatFees');
+
+    function resetForm() {
+        yatraBusForm.reset();
+        document.getElementById('formYatraBusId').value = '';
+        routeSelect.innerHTML = '<option value="" disabled selected>Select a Route</option>' + `{% for route in all_routes_for_modal %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}`;
+        yatraSelect.innerHTML = '<option value="" disabled selected></option>';
+        yatraSelect.disabled = true;
+    }
+
+    routeSelect.addEventListener('change', function() {
+        const selectedRouteId = parseInt(this.value);
+        yatraSelect.innerHTML = '<option value="" disabled selected>Select a Yatra</option>';
+        dateTimeInput.value = '';
+        seatFeesInput.value = '';
+        if (!selectedRouteId) { yatraSelect.disabled = true; return; }
+        
+        const filteredYatras = allYatras.filter(yatra => yatra.YatraRouteId === selectedRouteId);
+        filteredYatras.forEach(yatra => {
+            yatraSelect.innerHTML += `<option value="${yatra.YatraId}">${yatra.YatraRouteName} (${yatra.YatraDateTime})</option>`;
+        });
+        yatraSelect.disabled = false;
+    });
+
+    yatraSelect.addEventListener('change', function() {
+        const selectedYatraId = parseInt(this.value);
+        const selectedYatra = allYatras.find(yatra => yatra.YatraId === selectedYatraId);
+        if (selectedYatra) {
+            dateTimeInput.value = selectedYatra.YatraDateTime;
+            seatFeesInput.value = selectedYatra.YatraFees;
+        }
+    });
+
+    document.getElementById('addBusBtn').addEventListener('click', () => {
+        resetForm();
+        document.getElementById('modalTitle').textContent = 'Add New Yatra Bus';
+        yatraBusModal.show();
+    });
+
+    document.getElementById('routesAccordion').addEventListener('click', (e) => {
+        const card = e.target.closest('.bus-card');
+        if (!card) return;
+
+        if (e.target.closest('.edit-btn')) {
+            resetForm();
+            
+            // Populate non-dropdown fields that are independent
+            document.getElementById('formYatraBusId').value = card.dataset.yatraBusId;
+            document.getElementById('formBusName').value = card.dataset.busName;
+            document.getElementById('formBusCapacity').value = card.dataset.busCapacity;
+            document.getElementById('formReservedSeats').value = card.dataset.reservedSeats;
+            
+            // Set the route and trigger its change event. This populates the yatra list
+            // but also resets the date/fee inputs, which is expected.
+            routeSelect.value = card.dataset.yatraRouteId;
+            routeSelect.dispatchEvent(new Event('change'));
+            
+            // Now that the yatra list is populated, set its value.
+            // Do NOT dispatch this event, as we want to manually set the final values.
+            yatraSelect.value = card.dataset.yatraId;
+
+            // ***** THE FINAL, CRUCIAL FIX IS HERE *****
+            // After all dropdowns are correctly selected, manually set the bus-specific
+            // date and fee from the data-attributes. This ensures they are the final values.
+            dateTimeInput.value = card.dataset.busDateTimeStart;
+            seatFeesInput.value = card.dataset.seatFees;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Yatra Bus';
+            yatraBusModal.show();
+        }
+
+        if (e.target.closest('.delete-btn')) {
+             const yatraBusId = card.dataset.yatraBusId;
+             const busName = card.dataset.busName;
+             swal({
+                 title: "Are you sure?", text: `Delete the bus: ${busName}?`, type: "warning",
+                 showCancelButton: true, confirmButtonColor: "#DD6B55", confirmButtonText: "Yes, delete it!", closeOnConfirm: false
+             }, () => {
+                 let formData = new FormData();
+                 formData.append('action', 'delete_yatra_bus');
+                 formData.append('YatraBusId', yatraBusId);
+                 fetch("{% url 'yatra_bus_master_api' %}", { method: 'POST', body: formData })
+                     .then(res => res.json())
+                     .then(data => {
+                         if (data.message_code === 1000) {
+                             swal({ title: "Deleted!", text: data.message_text, type: "success" }, () => location.reload());
+                         } else { swal("Error", data.message_text || "Failed to delete.", "error"); }
+                     });
+             });
+        }
+    });
+
+    document.getElementById('saveBusBtn').addEventListener('click', () => {
+        if (!yatraBusForm.checkValidity()) {
+            yatraBusForm.reportValidity();
+            return;
+        }
+        
+        const formData = new FormData(yatraBusForm);
+        formData.append('action', formData.get('YatraBusId') ? 'update_yatra_bus' : 'add_yatra_bus');
+
+        fetch("{% url 'yatra_bus_master_api' %}", { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message_code === 1000) {
+                    yatraBusModal.hide();
+                    swal({ title: "Success!", text: data.message_text, type: "success" }, () => location.reload());
+                } else {
+                    swal("Error", data.message_text || "An unknown error occurred.", "error");
+                }
+            });
+    });
+});
+</script>
+
+</body>
+</html>

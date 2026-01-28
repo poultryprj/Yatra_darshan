@@ -3,48 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Delivery</title>
+    <title>Diwali Kit Delivery</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; }
-        .header h1 { font-size: 22px; margin: 0; }
-        .card-body { padding: 25px; }
-        .error-message { text-align: center; color: #e53e3e; background-color: #fed7d7; padding: 15px; border-radius: 8px; }
-        .member { display: flex; align-items: center; margin-bottom: 15px; }
-        .member .icon { font-size: 20px; color: #667eea; margin-right: 15px; width: 25px; text-align: center; }
-        .member .details .name { font-weight: 600; color: #4a5568; }
-        .member .details .meta { font-size: 13px; color: #a0aec0; }
-        .head-of-family .details .name { color: #2d3748; font-size: 1.1em; }
-        .divider { border-top: 1px dashed #cbd5e0; margin: 25px 0; }
-        #actions-form .actions { display: flex; gap: 15px; }
-        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-delivered { background-color: #38a169; color: white; }
-        .btn-cancel { background-color: #c53030; color: white; }
-        .btn-action:disabled { background-color: #a0aec0; cursor: not-allowed; }
-        #status-message { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+        /* --- NEW MODERN DESIGN --- */
+
+        :root {
+            --primary-color: #667eea;
+            --primary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+            --success-color: #38a169;
+            --danger-color: #c53030;
+            --light-bg: #f7fafc;
+            --border-color: #e2e8f0;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            /* Removed flex properties to allow natural page flow with the back button */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            margin: 0 auto; /* Center the main container */
+        }
         
-        /* ✅ New Styles for the "Already Processed" Message */
-        .already-processed-message { text-align: center; padding: 20px; border-radius: 8px; }
-        .already-processed-message i { font-size: 40px; margin-bottom: 15px; }
-        .already-processed-message h3 { font-size: 20px; margin: 0 0 5px; }
-        .already-processed-message p { margin: 0; color: #718096; }
-        .status-success { background-color: #c6f6d5; color: #22543d; }
-        .status-error { background-color: #fed7d7; color: #742a2a; }
-        .success-icon { color: #38a169; } /* Green for delivered */
-        .cancel-icon { color: #c53030; }  /* Red for canceled */
+        /* --- ✅ ADD THESE NEW STYLES FOR THE BACK BUTTON --- */
+        .back-button-wrapper {
+            max-width: 500px;
+            margin: 0 auto 15px; /* Aligns with the container and adds space below */
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 16px;
+            transition: color 0.2s ease;
+        }
+        .back-link:hover {
+            color: var(--text-dark);
+            text-decoration: underline;
+        }
+        /* --- END OF NEW STYLES --- */
+
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid var(--primary-color);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-wrapper h4 { color: var(--text-dark); text-align: center; margin-bottom: 25px; font-weight: 600; }
+        .form-group { position: relative; margin-bottom: 20px; }
+        .form-group .form-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); pointer-events: none; }
+        .form-group input { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: all 0.2s ease; }
+        .form-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2); }
+        .btn-submit { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3); }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4); }
+
+        /* Results Styles */
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
+        .results-header h3 { margin: 0; font-size: 20px; color: var(--text-dark); }
+        .search-again-link { font-size: 14px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
+        .search-again-link:hover { text-decoration: underline; }
+        
+        .member { display: flex; align-items: center; background-color: var(--light-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; }
+        .member .icon { font-size: 20px; color: var(--primary-color); margin-right: 15px; width: 25px; text-align: center; }
+        .member .details .name { font-weight: 600; color: var(--text-dark); }
+        .member .details .meta { font-size: 13px; color: var(--text-light); }
+        .head-of-family { border-left: 4px solid var(--primary-color); }
+        
+        /* Action Buttons */
+        #actions-form .actions { display: flex; gap: 15px; margin-top: 25px; }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-action:hover { transform: scale(1.05); }
+        .btn-delivered { background-color: var(--success-color); color: white; box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3); }
+        .btn-cancel { background-color: var(--danger-color); color: white; box-shadow: 0 4px 15px rgba(197, 48, 48, 0.3); }
+        .btn-action:disabled { background-color: #a0aec0; cursor: not-allowed; transform: none; box-shadow: none;}
+        
+        /* Status & Error Messages */
+        .message-box { text-align: center; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid; }
+        .message-box h4 { margin: 0 0 5px; }
+        .message-box p { margin: 0; }
+        .error-message { background-color: #fed7d7; color: #742a2a; border-color: var(--danger-color); }
+        .status-message { margin-top: 20px; }
+        .already-processed-message { margin-top: 25px; }
+        .status-success { background-color: #c6f6d5; color: #22543d; border-color: var(--success-color); }
+        .status-error { background-color: #fed7d7; color: #742a2a; border-color: var(--danger-color); }
+
+
+
+        
     </style>
 </head>
 <body>
+
+    <!-- ✅ ADD THIS BACK BUTTON BLOCK -->
+    <div class="back-button-wrapper">
+        <a href="{% url 'home' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Home</span>
+        </a>
+    </div>
+    <!-- END OF BACK BUTTON BLOCK -->
 
     <div class="container">
         <div class="header">
             <h1>Diwali Kit Delivery</h1>
         </div>
         <div class="card-body">
+            
             {% if head %}
-                <h3>Family Details</h3>
+                <!-- === STATE 1: SHOW FAMILY DETAILS & ACTIONS === -->
+                <div class="results-header">
+                    <h3>Family Details</h3>
+                    <a href="{% url 'rationcardscan' %}" class="search-again-link">New Search &rarr;</a>
+                </div>
+                
                 <div class="member head-of-family">
                     <span class="icon"><i class="fas fa-user-shield"></i></span>
                     <div class="details">
@@ -65,11 +165,7 @@
                     {% endfor %}
                 {% endif %}
                 
-                <div class="divider"></div>
-
-                <!-- ✅ CONDITIONAL RENDERING BLOCK -->
                 {% if delivery_status == 0 %}
-                    <!-- Status is Pending, so show the action form -->
                     <form id="actions-form">
                         <input type="hidden" name="token" value="{{ token }}">
                         <div class="actions">
@@ -81,39 +177,51 @@
                             </button>
                         </div>
                     </form>
-                    <div id="status-message"></div>
-
+                    <div id="status-message" class="message-box status-message" style="display: none;"></div>
                 {% else %}
-                    <!-- Status is already Delivered or Canceled, show a message instead -->
-                    <div class="already-processed-message">
+                    <div class="message-box already-processed-message">
                         {% if delivery_status == 1 %}
                             <div class="status-success">
-                                <i class="fas fa-check-circle success-icon"></i>
-                                <h3>Already Delivered</h3>
-                                <p>This kit has been marked as delivered. Thank you!</p>
+                                <h4><i class="fas fa-check-circle"></i> Already Delivered</h4>
+                                <p>This kit has been marked as delivered.</p>
                             </div>
                         {% elif delivery_status == 2 %}
                             <div class="status-error">
-                                <i class="fas fa-times-circle cancel-icon"></i>
-                                <h3>Delivery Canceled</h3>
+                                <h4><i class="fas fa-times-circle"></i> Delivery Canceled</h4>
                                 <p>This delivery was previously canceled.</p>
                             </div>
                         {% endif %}
                     </div>
                 {% endif %}
-                <!-- END OF CONDITIONAL BLOCK -->
 
             {% else %}
-                <div class="error-message">
-                    <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
-                    <p>{{ error|default:"An unknown error occurred." }}</p>
+                <!-- === STATE 2: SHOW TOKEN ENTRY FORM === -->
+                <div class="form-wrapper">
+                    {% if error %}
+                        <div class="message-box error-message">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                            <p>{{ error }}</p>
+                        </div>
+                    {% endif %}
+
+                    <h4>Search for a Family by Token</h4>
+                    <form action="{% url 'rationcardscan' %}" method="get">
+                        <div class="form-group">
+                            <i class="fas fa-ticket-alt form-icon"></i>
+                            <input type="number" id="token-input" name="t" class="form-control" placeholder="Token Number" required autofocus>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-search"></i> Find Family
+                        </button>
+                    </form>
                 </div>
             {% endif %}
+
         </div>
     </div>
 
 <script>
-// YOUR JAVASCRIPT IS PERFECT AND NEEDS NO CHANGES.
+// Your JavaScript is perfect and does not need any changes.
 document.addEventListener('DOMContentLoaded', function() {
     const actionsForm = document.getElementById('actions-form');
     if (!actionsForm) return;
@@ -132,20 +240,22 @@ document.addEventListener('DOMContentLoaded', function() {
         clickedButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
         statusMessage.style.display = 'none';
 
-        fetch(window.location.href, {
+        fetch("{% url 'rationcardscan' %}", {
             method: 'POST',
             body: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                statusMessage.textContent = data.message;
-                statusMessage.className = 'status-success';
+                statusMessage.innerHTML = `<h4>Success!</h4><p>${data.message}</p>`;
+                statusMessage.className = 'message-box status-message status-success';
                 statusMessage.style.display = 'block';
                 actionsForm.style.display = 'none';
+                setTimeout(() => window.location.reload(), 2000); 
             } else {
-                statusMessage.textContent = `Error: ${data.message}`;
-                statusMessage.className = 'status-error';
+                statusMessage.innerHTML = `<h4>Error</h4><p>${data.message}</p>`;
+                statusMessage.className = 'message-box status-message status-error';
                 statusMessage.style.display = 'block';
                 buttons.forEach(btn => btn.disabled = false);
                 clickedButton.innerHTML = originalButtonText;
@@ -153,8 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            statusMessage.textContent = 'A network error occurred. Please try again.';
-            statusMessage.className = 'status-error';
+            statusMessage.innerHTML = `<h4>Network Error</h4><p>Could not connect. Please try again.</p>`;
+            statusMessage.className = 'message-box status-message status-error';
             statusMessage.style.display = 'block';
             buttons.forEach(btn => btn.disabled = false);
             clickedButton.innerHTML = originalButtonText;

@@ -101,7 +101,6 @@
              data-first-name="{{ user.UserFirstname }}"
              data-last-name="{{ user.UserLastname }}"
              data-mobile="{{ user.UserMobileNo }}"
-             data-pin="{{ user.UserLoginPin }}"
              data-role="{{ user.UserRole }}"
              data-status="{{ user.UserStatus }}">
             <div class="card-body">
@@ -245,10 +244,17 @@
         document.getElementById('userForm').reset();
         document.getElementById('formUserId').value = ''; 
         document.getElementById('modalTitle').textContent = 'Add New User';
-        document.getElementById('formUserRole').value = '2'; // Default to Operator
-        document.getElementById('statusContainer').style.display = 'none'; // Hide status for new users
+        
+        // Make PIN required for new users
+        const pinInput = document.getElementById('formUserPin');
+        pinInput.placeholder = " ";
+        pinInput.required = true;
+        
+        document.getElementById('formUserRole').value = '2'; 
+        document.getElementById('statusContainer').style.display = 'none';
         userModal.show();
     });
+
 
     // Handle clicks for EDIT and DELETE
     userListBody.addEventListener('click', (e) => {
@@ -261,11 +267,19 @@
             document.getElementById('formUserFirstName').value = row.dataset.firstName;
             document.getElementById('formUserLastName').value = row.dataset.lastName;
             document.getElementById('formUserMobile').value = row.dataset.mobile;
-            document.getElementById('formUserPin').value = row.dataset.pin;
+            
+            // --- PIN FIELD FIX ---
+            // Clear the PIN field and make it optional for edits
+            const pinInput = document.getElementById('formUserPin');
+            pinInput.value = ''; // Clear it
+            pinInput.placeholder = 'Leave blank to keep unchanged';
+            pinInput.required = false; // Not required on update
+            
             document.getElementById('formUserRole').value = row.dataset.role;
             document.getElementById('formUserStatus').value = row.dataset.status;
+            
             document.getElementById('modalTitle').textContent = 'Edit User';
-            document.getElementById('statusContainer').style.display = 'block'; // Show status for existing users
+            document.getElementById('statusContainer').style.display = 'block';
             userModal.show();
         }
 
@@ -276,11 +290,11 @@
 
             swal({
                 title: "Are you sure?",
-                text: `You are about to delete the user: ${userName}`,
+                text: `You are about to deactivate the user: ${userName}`,
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, delete it!",
+                confirmButtonText: "Yes, deactivate it!",
                 closeOnConfirm: false
             }, function(){
                 let formData = new FormData();
@@ -291,9 +305,9 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.message_code === 1000) {
-                            swal({ title: "Deleted!", text: data.message_text, type: "success" }, () => location.reload());
+                            swal({ title: "Deactivated!", text: data.message_text, type: "success" }, () => location.reload());
                         } else {
-                            swal("Error", data.message_text || "Failed to delete user.", "error");
+                            swal("Error", data.message_text || "Failed to deactivate user.", "error");
                         }
                     });
             });
