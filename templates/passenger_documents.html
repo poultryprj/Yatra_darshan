@@ -165,7 +165,7 @@
                 data: { 'registration_id': regId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
                 success: function(data) {
                     if (data.message_code === 999 && data.message_data) {
-                        const CARD_IMAGE_BASE_URL = "https://kukudku.in/api/cards/";
+                        const CARD_IMAGE_BASE_URL = "http://127.0.0.1:8000/api/cards/";
                         printImage(CARD_IMAGE_BASE_URL + data.message_data);
                     } else { alert("Error printing ticket: " + data.message_text); }
                 },

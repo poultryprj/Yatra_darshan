@@ -637,17 +637,18 @@
     }
 
     function filterFamilies() {
-        const input = document.getElementById("searchInput");
-        const filter = input.value.toUpperCase();
-        const list = document.getElementById("familyList");
-        const items = list.getElementsByClassName("accordion-item");
-        for (let i = 0; i < items.length; i++) {
-            const headName = items[i].querySelector(".head-name");
-            const rationNo = items[i].querySelector(".ration-no");
-            const txtValue = (headName.textContent || "") + (rationNo.textContent || "");
-            items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-        }
+    const list = document.getElementById("familyList");
+    if (!list) return;   // ✅ add this
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toUpperCase();
+    const items = list.getElementsByClassName("accordion-item");
+    for (let i = 0; i < items.length; i++) {
+        const headName = items[i].querySelector(".head-name");
+        const rationNo = items[i].querySelector(".ration-no");
+        const txtValue = (headName.textContent || "") + (rationNo.textContent || "");
+        items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
     }
+}
 </script>
 
 </body>

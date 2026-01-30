@@ -104,11 +104,16 @@
         formData.append('user_id', selectedUserId);
         formData.append('booking_date', selectedDate);
         fetch("{% url 'daily_report_api' %}", { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(result => {
-                if (result.status === 'success') { renderReport(result.data); } 
-                else { resultsContainer.innerHTML = `<div class="alert alert-danger">${result.message}</div>`; }
-            });
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === 'success') { renderReport(result.data); } 
+            else { resultsContainer.innerHTML = `<div class="alert alert-danger">${result.message}</div>`; }
+        })
+        .catch(err => {
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${err}</div>`;
+            console.log("Fetch Error:", err);
+        });
+
     }
 
     function renderReport(bookings) {
@@ -116,33 +121,53 @@
             resultsContainer.innerHTML = '<div class="alert alert-secondary text-center">No bookings found for the selected criteria.</div>';
             return;
         }
+
         let totalCash = 0, totalUpi = 0;
         let reportHtml = '';
+
         bookings.reverse(); // Show latest first
+
         bookings.forEach(booking => {
             const fees = parseFloat(booking.YatraFees) || 0;
-            const fullName = `${booking.Firstname} ${booking.Lastname}`.trim();
-            const paymentModeCode = booking.PaymentMode;
-            
-            let badgeClass = 'bg-success';
+            const fullName = `${booking.Firstname || ''} ${booking.Lastname || ''}`.trim() || 'N/A';
 
-            if (paymentModeCode === '1' || paymentModeCode.toLowerCase() === 'cash') {
-                // Cash
+            const paymentModeCode = booking.PaymentMode;
+            const pm = String(paymentModeCode || '').toLowerCase();
+
+            let badgeClass = 'bg-success';  // ✅ FIXED
+
+            if (paymentModeCode === 1 || pm === '1' || pm === 'cash') {
                 totalCash += fees;
                 badgeClass = 'bg-success';
-            } else if (paymentModeCode === '2' || paymentModeCode.toLowerCase() === 'upi') {
-                // UPI
+            } else if (paymentModeCode === 2 || pm === '2' || pm === 'upi') {
                 totalUpi += fees;
                 badgeClass = 'bg-primary';
             } else {
-                // Unknown payment mode → treat as Cash (fallback)
                 totalCash += fees;
+                badgeClass = 'bg-success';
             }
 
-            reportHtml += `<div class="booking-card"><div class="d-flex justify-content-between align-items-center"><div><div class="fw-bold">${fullName}</div><div class="text-muted small">${booking.MobileNo || 'N/A'}</div></div><span class="badge ${badgeClass} fs-6">₹${fees.toFixed(2)}</span></div><div class="text-muted small mt-1"><span>${booking.YatraRouteName}</span> | <span>Bus: ${booking.BusName}</span></div></div>`;
+            reportHtml += `
+                <div class="booking-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">${fullName}</div>
+                            <div class="text-muted small">${booking.MobileNo || 'N/A'}</div>
+                        </div>
+                        <span class="badge ${badgeClass} fs-6">₹${fees.toFixed(2)}</span>
+                    </div>
+                    <div class="text-muted small mt-1">
+                        <span>${booking.YatraRouteName || ''}</span> | <span>Bus: ${booking.BusName || ''}</span>
+                    </div>
+                </div>
+            `;
         });
-        let headerHtml = `
-            <div class="text-center mb-4"><h3>Total Collection: <span class="text-success">₹${(totalCash + totalUpi).toFixed(2)}</span></h3><h5 class="text-muted">Total Bookings: ${bookings.length}</h5></div>
+
+        const headerHtml = `
+            <div class="text-center mb-4">
+                <h3>Total Collection: <span class="text-success">₹${(totalCash + totalUpi).toFixed(2)}</span></h3>
+                <h5 class="text-muted">Total Bookings: ${bookings.length}</h5>
+            </div>
             <div class="total-collection-grid mb-4">
                 <div class="collection-box bg-light-green">
                     <div class="fw-bold fs-5 text-success">₹${totalCash.toFixed(2)}</div>
@@ -152,9 +177,12 @@
                     <div class="fw-bold fs-5 text-primary">₹${totalUpi.toFixed(2)}</div>
                     <div class="text-muted small">UPI Collection</div>
                 </div>
-            </div>`;
+            </div>
+        `;
+
         resultsContainer.innerHTML = headerHtml + reportHtml;
     }
+
 
     dateSelect.addEventListener('change', fetchReport);
     if (currentUserRole === '1') {
