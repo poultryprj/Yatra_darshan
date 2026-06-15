@@ -10,6 +10,8 @@ urlpatterns = [
 
     path('', views.login, name='login'),
 
+    path('change_pin/', views.change_pin, name='change_pin'),
+
     # path('TicketBooking', views.TicketBooking, name='TicketBooking'),
     # path('TicketBookingApi', views.TicketBookingApi, name='TicketBookingApi'),
     

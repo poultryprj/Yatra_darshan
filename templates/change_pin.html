@@ -1,0 +1,259 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#fdfdfd">
+    <title>पिन अपडेट करा | Darshan Yatra</title>
+    <link rel="icon" type="image/png" href="{% static 'assets/img/lakshya_pratishthan.png' %}" sizes="32x32">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    
+    <style>
+        /* Premium Modern UI variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ff7b00 0%, #e65c00 100%);
+            --bg-color: #fcfdfe;
+            --card-bg: #ffffff;
+            --text-main: #2b2b2b;
+            --text-sub: #7a7a7a;
+            --input-border: #e2e8f0;
+            --input-focus: #ff7b00;
+        }
+
+        html, body {
+            background: var(--bg-color) !important;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #appCapsule {
+            background: var(--bg-color) !important;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Branding Section */
+        .brand-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: block;
+            margin: 0 auto 15px auto;
+        }
+
+        .brand-section h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-section p {
+            font-size: 14px;
+            color: var(--text-sub);
+            margin: 0;
+        }
+
+        /* Premium Form Card */
+        .premium-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            margin-bottom: 24px;
+        }
+
+        /* Modern Floating Input Style */
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group-custom:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-field {
+            width: 100%;
+            height: 52px;
+            border-radius: 12px;
+            border: 1.5px solid var(--input-border);
+            padding: 10px 45px 10px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            background: #fafbfe;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            letter-spacing: 4px; /* Pins look clean with spacing */
+        }
+
+        /* Normal letter spacing for placeholder */
+        .input-field::placeholder {
+            letter-spacing: normal;
+            font-size: 14px;
+            font-weight: 400;
+            color: #a0aec0;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #a0aec0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Premium Button Style */
+        .btn-gradient {
+            background: var(--primary-gradient);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 14px;
+            height: 52px;
+            font-size: 16px;
+            font-weight: 700;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 123, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-gradient:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(255, 123, 0, 0.2);
+        }
+
+        /* Back to Login link */
+        .back-link {
+            text-align: center;
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-sub);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--input-focus);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main App Wrapper -->
+    <div id="appCapsule">
+        <div class="login-wrapper">
+            
+            <!-- Logo, Security lock, and Title -->
+            <div class="brand-section">
+                <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" alt="Logo" class="logo-circle">
+                <h2>पिन सुरक्षित करा</h2>
+                <p>सुरक्षा अपडेट: तुमचा ६ अंकी नवीन पिन सेट करा.</p>
+            </div>
+
+            <!-- Premium Registration / Update Card -->
+            <form method="post" action="{% url 'change_pin' %}">
+                {% csrf_token %}
+                <div class="premium-card">
+                    <!-- New Pin Input -->
+                    <div class="input-group-custom">
+                        <input type="password" name="new_pin" class="input-field" id="new_pin"
+                            placeholder="नवीन ६ अंकी पिन सेट करा" autocomplete="off" maxlength="6"
+                            pattern="\d{6}" inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                        <span class="input-icon">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                        </span>
+                    </div>
+
+                    <!-- Confirm Pin Input -->
+                    <div class="input-group-custom">
+                        <input type="password" name="confirm_pin" class="input-field" id="confirm_pin"
+                            placeholder="पिनची पुन्हा खात्री करा" autocomplete="off" maxlength="6"
+                            pattern="\d{6}" inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                        <span class="input-icon">
+                            <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button type="submit" class="btn-gradient">
+                    सुरक्षितपणे बदल पूर्ण करा
+                </button>
+                
+                <!-- Cancel Link -->
+                <a href="{% url 'login' %}" class="back-link">
+                    लॉगिनवर परत जा
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ionicons for Modern look -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@latest/dist/ionicons/ionicons.esm.js"></script>
+
+    <!-- SweetAlert for Premium Alerts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+    {% if messages %}
+        <script>
+            {% for message in messages %}
+                var msg = "{{ message|escapejs }}";
+                var tag = "{{ message.tags }}";
+                var alertType = tag.includes("success") ? "success" : (tag.includes("warning") ? "warning" : "error");
+                swal({
+                    title: alertType === "success" ? "यशस्वी!" : (alertType === "warning" ? "सूचना" : "त्रुटी!"),
+                    text: msg,
+                    type: alertType,
+                    showConfirmButton: true
+                });
+            {% endfor %}
+        </script>
+    {% endif %}
+</body>
+
+</html>

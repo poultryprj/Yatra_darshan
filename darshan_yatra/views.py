@@ -51,43 +51,111 @@ def login(request):
         return render(request, 'login.html')    
     
     if request.method == 'POST':
-        print("24")
         mobile = request.POST.get('mobile')
         pin = request.POST.get('pin_number')
-        # api_url = 'http://127.0.0.1:8000/api/agentlogin'
-        api_url = f"{API_BASE_URL}agentlogin/"
+        
+        # 👈 दुरुस्ती १: पोस्टमनमध्ये यशस्वी झालेली अचूक युआरएल येथे ठेवा
+        api_url = 'http://127.0.0.1:8000/LakshyaPratishthan/api/agentlogin/'
+        
         payload = {
             "userMobileNo": mobile,
             "userPassword": pin,
         }
-        print(payload,"197")
         
         try:
-            response = requests.post(api_url, json=payload, headers=headers, verify= False, timeout=10)
-            print(response.text)
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             if response.status_code == 200:
                 data = response.json()
-                print(data)
 
                 if data.get("message_code") == 1000:
+                    # 👈 दुरुस्ती २: "message_text" ऐवजी "message_data" मधून युझर डेटा वाचा
                     user_info = data["message_data"][0]
-                    request.session["user_id"] = user_info["UserId"]
-                    request.session["first_name"] = user_info["UserFirstname"]
-                    request.session["last_name"] = user_info["UserLastname"]
-                    request.session["user_role"] = user_info["UserRole"]
+                    
+                    request.session["user_id"] = user_info.get("UserId")
+                    request.session["first_name"] = user_info.get("UserFirstname", "")
+                    
+                    # 👈 दुरुस्ती ३: .get() वापरल्यामुळे एरर येणार नाही
+                    request.session["last_name"] = user_info.get("UserLastname", "") 
+                    request.session["user_role"] = user_info.get("UserRole")
                     return redirect('home')
-                    # messages.success(request, data.get("message_text", "Login successful."))
+                
+                # 🔴 नवीन बदल केलेला भाग खालीलप्रमाणे आहे:
+                elif data.get("message_code") == 1001:
+                    # संदेशातून युझर डेटा मिळवून तात्पुरता सेशन्समध्ये साठवा
+                    user_info = data["message_data"][0]
+                    request.session["temp_user_id"] = user_info.get("UserId")
+                    
+                    messages.warning(request, "तुमच्या पिनची मुदत संपली आहे. कृपया नवीन पिन सेट करा.")
+                    return redirect('change_pin') # नवीन पासवर्ड बदलण्याच्या पेजवर पाठवा
+                
                 else:
                     messages.error(request, data.get("message_text", "Invalid mobile number or PIN."))
             else:
                 messages.error(request, f"HTTP Error {response.status_code}")
 
         except Exception as e:
-            print("Login Exception:", e)
-            print(response.text)
-            messages.error(request, "Unable to login. Please try again later.")
+            import traceback
+            traceback.print_exc() # एरर टर्मिनलवर पाहण्यासाठी
+            messages.error(request, f"Unable to login. Error: {str(e)}")
 
         return redirect('login')
+    
+
+
+
+
+@csrf_exempt
+def change_pin(request):
+    # सेशन्समधून तात्पुरता आयडी मिळवा
+    temp_user_id = request.session.get("temp_user_id")
+    if not temp_user_id:
+        messages.error(request, "अनधिकृत प्रवेश. कृपया लॉगिन करण्याचा प्रयत्न करा.")
+        return redirect('login')
+
+    if request.method == 'GET':
+        return render(request, 'change_pin.html')
+
+    if request.method == 'POST':
+        new_pin = request.POST.get('new_pin', '').strip()
+        confirm_pin = request.POST.get('confirm_pin', '').strip()
+
+        # साधे व्हॅलिडेशन्स
+        if not new_pin or not confirm_pin:
+            messages.error(request, "कृपया दोन्ही रकाने भरा.")
+            return render(request, 'change_pin.html')
+
+        if new_pin != confirm_pin:
+            messages.error(request, "दोन्ही पिन जुळत नाहीत. कृपया पुन्हा तपासा.")
+            return render(request, 'change_pin.html')
+
+        if len(new_pin) != 6 or not new_pin.isdigit():
+            messages.error(request, "नवीन पिन फक्त ६ अंकी संख्या असावा.")
+            return render(request, 'change_pin.html')
+
+        # बॅकएंड API कॉल करा
+        api_url = f"{API_BASE_URL}update-pin/"
+        payload = {
+            "user_id": int(temp_user_id),
+            "new_pin": int(new_pin)
+        }
+
+        try:
+            response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+            if response.status_code == 200:
+                api_data = response.json()
+                if api_data.get("message_code") == 1000:
+                    # यशस्वी अपडेट नंतर तात्पुरता सेशन्स डेटा डिलीट करा
+                    del request.session["temp_user_id"]
+                    messages.success(request, "पिन यशस्वीरित्या बदलला आहे. कृपया नवीन पिन वापरून लॉगिन करा.")
+                    return redirect('login')
+                else:
+                    messages.error(request, api_data.get("message_text", "पिन बदलता आला नाही."))
+            else:
+                messages.error(request, f"API एरर: {response.status_code}")
+        except Exception as e:
+            messages.error(request, f"नेटवर्क त्रुटी: {str(e)}")
+
+        return render(request, 'change_pin.html')    
     
 # --- Helper to fetch dropdown data ---
 def get_dropdown_data():
@@ -1625,7 +1693,10 @@ def detailed_report_api(request):
 
         if summary_response.status_code == 200:
             all_buses = summary_response.json().get("message_data", [])
-            buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
+            buses_for_this_yatra = [
+                bus for bus in all_buses 
+                if str(bus.get("YatraId")) == str(yatra_id_str)
+            ]
             
             passenger_api_url = f"{API_BASE_URL}routeyatrabustickets/"
             for bus in buses_for_this_yatra:
