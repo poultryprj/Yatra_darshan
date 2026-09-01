@@ -111,5 +111,12 @@ urlpatterns = [
     path('verify/<int:event_id>/<int:registration_id>/', views.registration_details_page, name='registration_details_page'),
 
     path('scan-qr/', views.qr_scanner_page, name='qr_scanner_page'),
+
+
+    path('search_registration/', views.search_registration, name='search_registration'),
+    path('search_passenger_tickets_api/', views.search_passenger_tickets_api, name='search_passenger_tickets_api'),
+
+
+    
         
 ]

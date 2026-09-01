@@ -5,194 +5,220 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Yatra Darshan Booking</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Journey Booking Panel</title>
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root {
-            --brand-orange: #ff7b00;
-            --brand-orange-dark: #e67000;
-            --brand-blue: #003399;
-            --brand-green: #006633;
+            --primary-brand: #FF7B00; /* Vibrant Brand Orange (Saffron) */
+            --primary-dark: #E06B00; /* Deep Orange for hovers */
+            --brand-orange-light: #FFF7ED; /* Premium soft light orange tint */
+            --brand-orange-border: #FED7AA; /* Soft orange border */
+            --slate-base: #0F172A; /* Deep Slate Charcoal for Headers */
+            --accent-green: #10B981; /* Success Emerald */
+            --accent-green-dark: #059669;
+            --danger-red: #EF4444; /* Rose Red for Delete */
+            --danger-red-dark: #DC2626;
+            --bg-gray: #F8FAFC; /* Clean Slate Light Background */
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
         }
 
         body {
-            background: #f0f2f5;
-            font-family: Arial, sans-serif;
+            background-color: var(--bg-gray);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-dark);
             margin: 0;
             padding: 0;
         }
 
-        .navbar {
-            background: var(--brand-orange);
-            height: 55px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* Top Navigation Header */
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--slate-base) 0%, #1E293B 100%);
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030;
         }
 
         .navbar-brand {
-            color: #fff;
-            font-weight: 600;
-            font-size: 20px;
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+        }
+
+        .back-btn i {
+            color: white;
+            font-size: 24px;
+            transition: opacity 0.2s;
         }
 
         .container-main {
-            max-width: 980px;
-            margin: 75px auto 40px;
-            padding: 0 12px;
+            max-width: 550px;
+            margin: 80px auto 40px;
+            padding: 0 14px;
         }
 
-        .card-main {
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
-            overflow: hidden;
-            background-color: #fff;
-        }
-
-        .search-bar-top {
-            padding: 18px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+        /* Premium Top Wizard Progress Bar */
+        .wizard-progress-bar {
             display: flex;
-            gap: 10px;
             align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
         }
 
-        .search-grow {
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
             flex: 1;
-            position: relative;
+            opacity: 0.4;
+            transition: all 0.3s ease;
         }
 
-        .search-grow input {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            padding: 0 45px 0 10px;
-            font-size: 1rem;
+        .progress-step.active {
+            opacity: 1;
         }
 
-        .search-icon-btn {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-radius: 6px;
-            border: none;
-            background: var(--brand-orange);
-            color: #fff;
-            width: 40px;
-            height: 40px;
+        .step-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #E2E8F0;
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
         }
 
-        .search-icon-btn:hover {
-            background: var(--brand-orange-dark);
+        .progress-step.active .step-icon {
+            background-color: var(--primary-brand);
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(255, 123, 0, 0.25);
         }
 
-        .nav-tabs .nav-link {
-            color: #495057;
-            border: none;
-            border-bottom: 3px solid transparent;
-            border-radius: 0;
-            padding: 12px 20px;
-            font-weight: 600;
-            font-size: 16px;
+        .step-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
         }
 
-        .nav-tabs .nav-link.active {
-            color: var(--brand-orange);
-            border-color: var(--brand-orange);
-            background-color: #fff;
+        .progress-line {
+            height: 2px;
+            background-color: var(--border-color);
+            flex: 0.5;
         }
 
-        .tab-content {
-            padding: 20px;
-            background-color: #fff;
+        /* Wizard Step Card with Strict Step Visibility */
+        .wizard-step-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            display: none; /* Initially hidden */
         }
 
-        .registration-list-header {
+        .wizard-step-card.active-step {
+            display: block; /* Only active step is shown */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modern Inline Unified Search Bar */
+        .search-input-wrapper {
+            position: relative;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            width: 100%;
         }
 
-        .registration-list-header h5 {
-            font-size: 16px;
+        .search-input-field {
+            width: 100%;
+            height: 52px;
+            padding: 10px 55px 10px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            background: #F8FAFC;
+            font-size: 15px;
             font-weight: 600;
-            margin: 0;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s ease;
         }
 
-        .listview .list-group-item {
-            border: 0;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
+        .search-input-field:focus {
+            border-color: var(--primary-brand);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
         }
 
-        .listview .list-group-item:hover {
-            background: #fbfbff;
-        }
-
-        .item-line {
-            font-size: 14px;
-        }
-
-        .btn-add-reg {
-            background: var(--brand-green);
-            color: #fff;
-            border: none;
+        .search-action-btn {
+            position: absolute;
+            right: 8px;
+            width: 38px;
+            height: 38px;
             border-radius: 8px;
-            padding: 8px 15px;
+            border: none;
+            background-color: var(--primary-brand);
+            color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        .btn-add-reg:hover {
-            background: #005a2e;
-        }
-
-        .section-header {
-            font-weight: 600;
-            color: #333;
-            margin-top: 20px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
+            justify-content: center;
             font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
+        .search-action-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Modern Outline Input Fields */
         .floating {
             position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .floating input,
         .floating select,
         .floating textarea,
-        .floating .form-control { /* Target our new div */
+        .floating .form-control {
             width: 100%;
-            padding: 12px 10px 10px 10px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            background: #fff;
+            height: 52px;
+            padding: 16px 12px 6px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            background: #F8FAFC;
             outline: none;
             font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
             transition: all 0.2s ease;
         }
 
@@ -200,21 +226,20 @@
         .floating select:focus,
         .floating textarea:focus,
         .floating .form-control:focus {
-            border-color: var(--brand-orange);
-            box-shadow: 0 0 0 0.25rem rgba(255, 123, 0, 0.25);
+            border-color: var(--primary-brand);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
         }
 
         .floating label {
             position: absolute;
-            left: 10px;
-            top: 12px;
+            left: 12px;
+            top: 15px;
             font-size: 14px;
-            color: #6c757d;
+            color: var(--text-muted);
             pointer-events: none;
             transition: all 0.2s ease;
-            background: #fff;
             padding: 0 4px;
-            margin-left: -4px;
         }
 
         .floating input:focus + label,
@@ -224,724 +249,404 @@
         .floating textarea:focus + label,
         .floating textarea:not(:placeholder-shown) + label,
         .floating .form-control:not(:empty) + label {
-            top: -8px;
-            font-size: 11px;
-            color: var(--brand-orange);
-        }
-        
-        .compact-booking-layout .floating, .compact-booking-layout .floating select {
-            height: 100%;
-        }
-        .compact-booking-layout .form-text {
-            position: absolute;
-            bottom: -15px;
-            left: 0;
-            font-size: 0.75rem;
-        }
-
-
-        .btn-submit {
-            background: var(--brand-orange);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px;
-            width: 100%;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        .btn-submit:hover {
-            background: var(--brand-orange-dark);
-        }
-
-        .offcanvas-end {
-            width: 400px !important;
-            max-width: 90vw;
-        }
-
-        .offcanvas-header {
-            background: var(--brand-orange);
-            color: #fff;
-            padding: 15px 20px;
-        }
-
-        .offcanvas-title {
-            color: #fff;
-            font-size: 18px;
-        }
-
-        .offcanvas-body {
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .btn-close-white {
-            filter: brightness(0) invert(1);
-        }
-
-        .yatra-summary {
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .yatra-summary strong {
-            color: #333;
-        }
-
-        .form-control-file {
-            padding-top: 10px;
-            padding-bottom: 10px;
-            font-size: 14px;
-        }
-        .next-tab-button {
-          margin-top: 20px;
-          text-align: right;
-        }
-        .next-tab-button .btn {
-          background-color: var(--brand-blue);
-          border-color: var(--brand-blue);
-        }
-        .next-tab-button .btn:hover {
-          background-color: #002b80;
-          border-color: #002b80;
-        }
-
-        .history-filters {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .form-file-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 5px;
-        }
-
-        .compact-form .row {
-            margin-bottom: 0;
-        }
-
-        .compact-form .floating {
-            margin-bottom: 12px;
-        }
-
-        .compact-form textarea {
-            min-height: 60px;
-        }
-        
-        .compact-booking-layout {
-            margin-bottom: 16px;
-        }
-
-        .compact-booking-layout .floating {
-            margin-bottom: 12px;
-            height: auto;
-        }
-
-        .passenger-checkbox-list-container {
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            padding: 8px 10px;
-            min-height: 160px;
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: #fff;
-            position: relative;
-        }
-
-        .passenger-list-label {
-            font-size: 11px;
-            color: var(--brand-orange);
-            padding-left: 10px;
-            margin-bottom: 2px;
-        }
-        /* .passenger-checkbox-list-container label {
-            font-size: 14px;
-            color: #6c757d;
-            position: absolute;
+            top: 4px;
             left: 10px;
-            top: 4px; 
-            background: #fff;
-            padding: 0 4px;
-            margin-left: -4px;
-            font-size: 11px;
-            color: var(--brand-orange);
-            z-index: 1;
-        } */
+            font-size: 10px;
+            color: var(--primary-brand);
+            font-weight: 700;
+        }
 
-        .passenger-checkbox-item {
+        /* Passenger list container */
+        .passenger-pill-box {
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+            background: #F8FAFC;
+        }
+
+        .passenger-pill-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2px 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
         }
 
-        .passenger-checkbox-item input[type="checkbox"] {
-            min-width: 16px;
-            min-height: 16px;
-        }
-
-        .passenger-checkbox-item label {
-            margin-bottom: 0;
-            font-size: 0.9rem;
-            color: #333;
-            position: unset;
-            background: unset;
-            padding: unset;
-            margin-left: unset;
-            z-index: unset;
-        }
-
-        .selected-passenger-ids {
-            margin-top: 8px;
-            font-size: 0.85rem;
-            color: var(--brand-blue);
-            min-height: 20px;
-        }
-
-        .compact-booking-layout .right-stacked-fields {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            padding-top: 15px; /* This pushes the dropdowns down to align them */
-        }
-
-        .compact-booking-layout .right-stacked-fields .floating {
-            margin-bottom: 10px;
-            flex: 1;
-        }
-
-        .compact-booking-layout .right-stacked-fields .floating:last-child {
-            margin-bottom: 12px;
-        }
-
-        .compact-booking-layout .right-stacked-fields select {
-            height: 48px;
-        }
-
-        .compact-booking-layout .form-text {
-            font-size: 0.75rem;
-            margin-top: 4px;
-            color: #6c757d;
-        }
-
-        /* ----- FINAL CSS (BORDER FIX) ----- */
-        .bus-layout-final {
-            padding: 10px;
-            background-color: #fff;
-            /* REMOVED: border: 1px solid #e9ecef; */ /* This line is now removed */
+        /* Premium Buttons Styling */
+        .btn-premium {
+            background-color: var(--primary-brand);
+            color: #ffffff !important;
+            border: none;
             border-radius: 12px;
-            max-width: 320px;
-            margin: 0 auto;
+            height: 52px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(255, 123, 0, 0.2);
+            transition: all 0.2s;
         }
-        .seat-map-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 0.5fr 1fr 1fr;
-            gap: 8px;
+        .btn-premium:hover {
+            background-color: var(--primary-dark);
         }
-        .seat, .seat-placeholder {
-            aspect-ratio: 1 / 1;
-            width: 100%;
-            height: auto;
-            border-radius: 6px;
+        .btn-premium:active {
+            transform: scale(0.98);
+        }
+
+        .btn-add-reg {
+            background: var(--brand-orange-light);
+            color: var(--primary-brand);
+            border: 1px solid var(--brand-orange-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-add-reg:hover {
+            background: var(--primary-brand);
+            color: #ffffff;
+            border-color: var(--primary-brand);
+        }
+
+        /* Seat Selector Display */
+        #selectSeatsDisplay {
+            height: 52px;
+            border: 1.5px dashed var(--primary-brand);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--primary-brand);
             cursor: pointer;
-            border: 1px solid #ced4da;
-            user-select: none;
-            transition: all 0.2s ease-in-out;
+            background-color: var(--brand-orange-light);
+            transition: all 0.2s;
         }
+
+        /* Seat Grid Final look */
+        .bus-layout-final {
+            padding: 12px;
+            background: #fff;
+            border-radius: 16px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .seat-map-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 0.4fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .seat {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid #CBD5E1;
+            transition: all 0.2s;
+        }
+
+        .seat.available {
+            border-color: #A7F3D0;
+            color: #065F46;
+            background-color: #ECFDF5;
+        }
+
+        .seat.booked {
+            background-color: #F1F5F9;
+            border-color: #E2E8F0;
+            color: #94A3B8;
+            cursor: not-allowed;
+        }
+
+        .seat.reserved {
+            background-color: #64748B;
+            border-color: #475569;
+            color: #ffffff;
+            cursor: not-allowed;
+        }
+
+        .seat.selected {
+            background-color: var(--accent-green);
+            border-color: #059669;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
         .seat-placeholder {
             border: none;
             background: transparent;
-            cursor: default;
         }
+
         .front-icon-area {
-            grid-column: 5 / span 1;
+            grid-column: 5;
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            font-size: 22px;
-            color: #adb5bd;
+            font-size: 20px;
+            color: #94A3B8;
         }
 
-        /* --- Seat Statuses (no changes) --- */
-        .seat.available {
-            background-color: #fff;
-            border-color: #28a745;
-            color: #28a745;
-        }
-        .seat.available:hover {
-            background-color: #e9f7ef;
-            transform: scale(1.05);
-        }
-        .seat.reserved {
-            background-color: #6c757d;
-            border-color: #5a6268;
-            color: white;
-            cursor: not-allowed;
-        }
-        .seat.booked {
-            background-color: #e9ecef;
-            border-color: #ced4da;
-            color: #adb5bd;
-            cursor: not-allowed;
-        }
-        .seat.selected {
-            background-color: #28a745;
-            border-color: #218838;
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+        /* Side Panel Style */
+        .offcanvas-header {
+            background: var(--slate-base);
+            color: #ffffff;
         }
 
-        /* --- Legend Styling (no changes) --- */
-        #seatLegend {
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center !important;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .legend-box {
-            width: 12px;
-            height: 12px;
-            margin-right: 5px;
-            border-radius: 3px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .legend-box.available { background: #fff; border: 1px solid #28a745; }
-        .legend-box.booked { background: #e9ecef; border: 1px solid #ced4da; }
-        .legend-box.reserved { background: #6c757d; border: 1px solid #5a6268; }
-        .legend-box.selected { background: #28a745; border: 1px solid #218838; }
-
-        /* --- Modal Body Adjustments (no changes) --- */
-        #seatSelectionModal .modal-body {
-            padding: 1rem 1rem 0.75rem;
-        }
-        #seatSelectionModal .mb-3 {
-            margin-bottom: 0.75rem !important;
-        }
-        /* ----- END OF FINAL CSS ----- */
-
-        .compact-ticket-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px !important;
-        }
-        .compact-ticket-details {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        .compact-ticket-details strong {
-            display: block; /* Puts name on its own line */
-            font-size: 15px;
-            color: #333;
-        }
-        .compact-ticket-details .details-line {
-            font-size: 12px;
-            color: #555;
-        }
-        .btn-remove-compact {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        /* ----- END OF NEW CSS ----- */
-
-
-        /* ----- NEW CSS FOR GROUPED TICKETS ----- */
-        .ticket-group-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .ticket-group-header {
-            padding: 10px 15px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .ticket-group-header-info strong {
-            display: block;
-            font-size: 14px;
-        }
-        .ticket-group-header-info span {
-            font-size: 12px;
-            color: #6c757d;
-        }
-        .ticket-group-passengers li {
-            font-size: 14px;
-            padding: 8px 0; /* A bit more vertical padding */
-            border-bottom: 1px solid #f0f2f5;
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* Vertically align items */
+        .offcanvas-title {
+            color: #ffffff;
+            font-weight: 700;
         }
 
-        /* NEW: Styles for the small, individual remove button */
-        .btn-remove-passenger {
-            padding: 2px 7px;
-            line-height: 1.2;
-            font-size: 14px;
-        }
-        
-        /* NEW: Container for passenger name and seat info */
-        .passenger-details {
-            display: flex;
-            flex-direction: column;
-        }
-        .passenger-details .seat-info {
-             font-size: 12px;
-             color: #6c757d;
-        }
-        /* ----- END OF NEW CSS ----- */
-
-        /* ----- NEW CSS FOR COMPACT TICKET SUMMARY ----- */
-        .ticket-summary-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 14px !important; /* !important to override default list-group padding */
-        }
-        .ticket-summary-info {
-            flex-grow: 1;
-        }
-        .ticket-summary-info strong {
-            font-size: 15px;
-            color: #333;
-        }
-        .ticket-summary-info .details-line {
-            font-size: 12px;
-            color: #6c757d;
-        }
-        .ticket-summary-actions .btn {
-            margin-left: 5px;
-        }
-        /* ----- END OF NEW CSS ----- */
-
-        /* ----- NEW CSS FOR COMPACT LAYOUT ----- */
-        .container-main {
-            margin: 65px auto 30px; /* Reduced top margin */
-        }
-        .search-bar-top {
-            padding: 12px 15px; /* Reduced padding */
-        }
-        .tab-content {
-            padding: 15px; /* Reduced padding inside tabs */
-        }
-        .registration-list-header {
-            margin-bottom: 10px; /* Tighter spacing */
-        }
-        .section-header {
-            margin-top: 15px;  /* Tighter spacing above headers */
-            margin-bottom: 10px; /* Tighter spacing below headers */
-            padding-bottom: 5px;
-        }
-        .list-group-item {
-            padding-top: 8px !important;    /* Reduced vertical padding on all list items */
-            padding-bottom: 8px !important;
-        }
-        .next-tab-button {
-            margin-top: 15px; /* Reduced space above "Next" button */
-        }
-        /* ----- END OF NEW CSS ----- */
-
-        .back-btn i {
-        color: white;
-        font-size: 28px;
-        }
-        .back-btn i:hover {
-        color: #ddd; /* Optional hover effect */
-        }
-
-        /* ----- START: NEW CSS FOR UPLOAD HEADINGS ----- */
         .upload-heading {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 700;
             margin-top: 12px;
             margin-bottom: 4px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #eee;
-        }
-        .upload-heading.aadhar {
-            color: #003399; /* --brand-blue */
-        }
-        .upload-heading.profile {
-            color: #006633; /* --brand-green */
-        }
-        .upload-heading.voter {
-            color: #5a6268; /* A neutral dark gray */
-        }
-        /* ----- END: NEW CSS FOR UPLOAD HEADINGS ----- */
-
-        /* ----- START: REVISED CSS FOR HEADER OPTIONAL FIELDS TOGGLE ----- */
-        .btn-toggle-optional {
-            font-size: 24px; /* Makes the icon easy to tap */
-            color: white;
-            background: none;
-            border: none;
-            padding: 0 5px;
-            line-height: 1; /* Aligns the icon nicely */
-            cursor: pointer;
-        }
-        .btn-toggle-optional:hover {
-            color: #ddd; /* A subtle hover effect */
-        }
-        #optionalFieldsWrapper.collapsing {
-            transition: height 0.2s ease; /* Make animation faster */
-        }
-        /* ----- END: REVISED CSS FOR HEADER OPTIONAL FIELDS TOGGLE ----- */
-
-        /* ----- START: FINAL CSS FOR ULTRA-COMPACT FORM ----- */
-        /* 1. Reduce overall body padding */
-        .offcanvas-body {
-            padding: 15px 15px;
-        }
-        
-        /* 2. Tighten spacing for all input rows */
-        .compact-form .row.g-2 {
-            --bs-gutter-y: 0.75rem; /* Bootstrap's default is 1rem, we reduce it */
+            color: var(--text-dark);
         }
 
-        /* 3. Reduce the bottom margin for the LAST row of inputs before optional/uploads */
-        .compact-form .row.g-2 > .col-12:last-of-type .floating {
-             margin-bottom: 10px; /* Tighter space after Address */
-        }
-        
-        /* 4. Tweak the optional fields wrapper itself */
-        #optionalFieldsWrapper {
-            padding-top: 0;
-            margin-top: 0; /* Remove top margin */
-            padding-bottom: 10px; /* Add space when open */
-        }
-        
-        /* 5. Reduce space above upload headings */
-        .compact-form .upload-heading {
-            margin-top: 8px; /* Tighter space above headings */
-            margin-bottom: 4px;
+        .list-group-item-custom {
+            border: 1px solid var(--border-color);
+            border-radius: 12px !important;
+            margin-bottom: 8px;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            transition: border-color 0.2s;
         }
 
-        /* 6. Reduce space between upload input and the next heading */
-        .compact-form .form-control-file {
-            margin-bottom: 0;
+        .list-group-item-custom:hover {
+            border-color: var(--primary-brand);
         }
-        
-        /* 7. Reduce space above the final submit button */
-        .compact-form .d-grid {
-            margin-top: 15px !important;
-        }
-        /* ----- END: FINAL CSS FOR ULTRA-COMPACT FORM ----- */
     </style>
 </head>
 <body>
-    <!-- Topbar -->
-    <!-- <nav class="navbar fixed-top">
-        <span class="navbar-brand">Yatra Darshan Booking</span>
-    </nav> -->
-    <nav class="navbar fixed-top">
+
+    <!-- Header bar -->
+    <nav class="navbar navbar-custom">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a href="{% url 'dashboard' %}" class="back-btn">
-            <i class="bi bi-arrow-left-circle"></i>
-        </a>
-        <span class="navbar-brand mb-0 h1" style="color:white">Yatra Darshan Booking</span>
-        <span style="width: 30px;"></span>
+            <a href="{% url 'dashboard' %}" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <span class="navbar-brand">Journey Booking Panel</span>
+            <div style="width: 24px;"></div>
         </div>
     </nav>
 
-    <!-- Main Content Container -->
+    <!-- Main Container -->
     <div class="container-main">
-        <div class="card-main">
-            <!-- Search Bar at the very top -->
-            <div class="search-bar-top">
-                <div class="search-grow">
-                    <input id="searchMobile" type="tel"  placeholder="Mobile Number" autocomplete="off" />
-                    <button id="btnSearch" class="search-icon-btn" title="Search">
+
+        <!-- Top Progress Bar -->
+        <div class="wizard-progress-bar">
+            <div class="progress-step active" id="badge_step_1">
+                <span class="step-icon">1</span>
+                <span class="step-label">Lookup</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" id="badge_step_2">
+                <span class="step-icon">2</span>
+                <span class="step-label">Journey</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" id="badge_step_3">
+                <span class="step-icon">3</span>
+                <span class="step-label">Review</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" id="badge_step_4">
+                <span class="step-icon">4</span>
+                <span class="step-label">Payment</span>
+            </div>
+        </div>
+        
+        <!-- STEP 1: Search & Register Passengers -->
+        <div class="wizard-step-card active-step" id="stepCard_1">
+            <div class="mb-3">
+                <div class="search-input-wrapper">
+                    <!-- 🔴 प्रिमियम इनलाईन सर्च बार (Magnifying Glass input च्या उजवीकडे सेट केला आहे) -->
+                    <input id="searchMobile" type="tel" class="search-input-field" placeholder="Type 10 Digit Mobile Number..." autocomplete="off" />
+                    <button id="btnSearch" class="search-action-btn" title="Search Mobile" type="button">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="registration-tab" data-bs-toggle="tab" data-bs-target="#registration" type="button" role="tab" aria-controls="registration" aria-selected="true">Registration</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="booking-tab" data-bs-toggle="tab" data-bs-target="#booking" type="button" role="tab" aria-controls="booking" aria-selected="false">Booking</button>
-                </li>
-            </ul>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span style="font-size: 14px; font-weight: 700; color: var(--text-dark);">Registrations (<span id="labelMobile">-</span>)</span>
+                <button id="btnAddNew" class="btn-add-reg">
+                    <i class="bi bi-person-plus me-1"></i> Add New
+                </button>
+            </div>
 
-            <!-- Tab Content -->
-            <div class="tab-content" id="myTabContent">
-                <!-- Registration Tab -->
-                <div class="tab-pane fade show active" id="registration" role="tabpanel" aria-labelledby="registration-tab">
-                    <div id="statusMsg" class="alert d-none"></div>
+            <div id="regList" class="listview mb-3">
+                <ul id="regItems" class="list-group list-group-flush" style="border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border-color);">
+                    <li class="list-group-item text-center text-muted py-4" style="font-size: 13px;">Enter a mobile number to load passengers.</li>
+                </ul>
+            </div>
 
-                    <div class="registration-list-header">
-                        <h5>Registrations for <strong id="labelMobile"></strong></h5>
-                        <button id="btnAddNew" class="btn-add-reg" title="Add new registration">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                    </div>
-                    <div id="regList" class="listview">
-                        <ul id="regItems" class="list-group list-group-flush">
-                            <li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>
-                        </ul>
-                    </div>
-                    <div class="next-tab-button">
-                        <button id="btnRegNext" class="btn btn-primary">Next <i class="bi bi-arrow-right"></i></button>
-                    </div>
+            <button type="button" class="btn btn-premium w-100" onclick="BookingFlow.nextStep(2)">
+                Continue to Journey <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+        </div>
 
-                    <div class="section-header">Booking History</div>
-                    
-                    <div id="bookingHistoryList" class="list-group">
-                         <li class="list-group-item text-center text-muted py-4">Booking history will appear here after a search.</li>
+        <!-- STEP 2: Select Journey Details & Seats -->
+        <div class="wizard-step-card" id="stepCard_2">
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700; color: var(--primary-brand);">Confirm Passengers*</label>
+                    <div class="passenger-pill-box">
+                        <div id="passengerCheckboxes">
+                            <div class="text-muted py-2 text-center" style="font-size: 12px;">Please search a mobile number in Step 1.</div>
+                        </div>
+                        <input type="hidden" id="selectedPassengerIdsInput" name="selectedPassengerIds">
+                    </div>
+                    <div id="selectedPassengerIds" class="selected-passenger-ids" style="font-size: 12px; font-weight: 700; margin-top: 8px;"></div>
+                </div>
+            </div>
+
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="floating">
+                        <select id="selectRoute" required><option value="">Select Route*</option></select>
+                        <label>रूट (Route)</label>
                     </div>
                 </div>
-
-                <!-- Booking Tab -->
-                <div class="tab-pane fade" id="booking" role="tabpanel" aria-labelledby="booking-tab">
-                    <div class="section-header">Select Passengers & Yatra Details</div>
-
-                        <div class="row g-2 compact-booking-layout">
-                            <div class="col-6">
-                                <!-- The label is now outside and styled with a new class -->
-                                <label class="passenger-list-label">Select Passengers*</label>
-                                <div class="passenger-checkbox-list-container">
-                                    <!-- The label has been removed from inside this div -->
-                                    <div id="passengerCheckboxes">
-                                    </div>
-                                    <input type="hidden" id="selectedPassengerIdsInput" name="selectedPassengerIds">
-                                </div>
-                                <div id="selectedPassengerIds" class="selected-passenger-ids">
-                                </div>
-                            </div>
-                            
-                            <div class="col-6 right-stacked-fields">
-                                <div class="floating">
-                                    <select id="selectRoute" placeholder=" " required>
-                                        <option value="">Select Route*</option>
-                                    </select>
-                                    <label>Route</label>
-                                </div>
-                                <div class="floating">
-                                    <select id="selectYatra" placeholder=" " required>
-                                        <option value="">Select Yatra*</option>
-                                    </select>
-                                    <label>Yatra</label>
-                                </div>
-                                <div class="floating">
-                                    <select id="selectBus" placeholder=" " required>
-                                        <option value="">Select Bus*</option>
-                                    </select>
-                                    <label>Bus</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- ***** NEW COMPACT SEAT SELECTION & ADD TICKET AREA ***** -->
-                        <div class="row g-2 mb-3">
-                            <!-- Changed from col-6 to col-8 to make it wider -->
-                            <div class="col-8">
-                                <div class="floating mb-0">
-                                    <div id="selectSeatsDisplay" class="form-control" style="cursor: pointer; height: 50px; padding-top: 16px; padding-left: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: flex; align-items: center;">
-                                        <span class="text-muted">Click to select seats</span>
-                                    </div>
-                                    <label>Select Seats*</label>
-                                    <input type="hidden" id="selectedSeatsInput" name="selectedSeats">
-                                </div>
-                            </div>
-                            <!-- Changed from col-6 to col-4 to make it narrower -->
-                            <div class="col-4">
-                                 <button id="btnAddTicket" class="btn btn-success w-100" style="height: 50px;">
-                                     <i class="bi bi-plus-circle me-1"></i> Ticket
-                                 </button>
-                            </div>
-                        </div>
-                        <!-- ***** END OF NEW AREA ***** -->
-
-                    <div class="section-header mt-2">Added Tickets</div>
-                    <div id="addedTicketsList" class="list-group mb-3">
-                         <li class="list-group-item text-center text-muted py-4">No tickets added yet.</li>
-                    </div>
-
-                    <div class="section-header mt-2">Payment Details</div>
+                <div class="col-6">
                     <div class="floating">
-                        <input id="totalFees" type="number" placeholder=" " min="0" readonly>
-                        <label>Total Fees (₹)</label>
+                        <select id="selectYatra" required><option value="">Select Yatra*</option></select>
+                        <label>यात्रा (Yatra)</label>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="floating">
-                                <input id="discount" type="number" placeholder=" " min="0" value="0">
-                                <label>Discount (₹)</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="floating">
-                                <input id="discountReason" type="text" placeholder=" ">
-                                <label>Discount Reason</label>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+                <div class="col-6">
                     <div class="floating">
-                        <select id="paymentMode" placeholder=" " required>
-                            <option value="">Select Payment Mode*</option>
-                            <option value="cash">Cash</option>
-                            <option value="upi">UPI</option>
-                        </select>
-                        <label>Payment Mode</label>
+                        <select id="selectBus" required><option value="">Select Bus*</option></select>
+                        <label>बस (Bus)</label>
                     </div>
+                </div>
+            </div>
 
-                    <div id="upiFields" class="d-none">
-                        <!-- Add align-items-end to vertically align the content to the bottom -->
-                        <div class="row g-3 align-items-end">
-                            <div class="col-6">
-                                <!-- Add mb-0 to remove the default margin and align perfectly -->
-                                <div class="floating mb-0">
-                                    <input id="transactionId" type="text" placeholder=" ">
-                                    <label>UPI Transaction ID</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <label for="upiScreenshot" class="form-label"></label>
-                                <input id="upiScreenshot" type="file" class="form-control form-control-file" accept="image/*,.pdf">
-                            </div>
+            <!-- Seat selector box -->
+            <div class="row g-2 mt-2">
+                <div class="col-8">
+                    <div id="selectSeatsDisplay">
+                        <i class="bi bi-grid-3x3-gap me-2"></i> Select Seats*
+                    </div>
+                    <input type="hidden" id="selectedSeatsInput" name="selectedSeats">
+                </div>
+                <div class="col-4">
+                    <button id="btnAddTicket" class="btn w-100" style="background-color: var(--accent-green); color: white; height: 52px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                        <i class="bi bi-plus-circle me-1"></i> Add
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-2 mt-4">
+                <div class="col-6">
+                    <button type="button" class="btn btn-outline-secondary w-100" style="height: 52px; border-radius: 12px; font-weight: 700;" onclick="BookingFlow.prevStep(1)">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-premium w-100" onclick="BookingFlow.nextStep(3)">
+                        Review Tickets <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Added Tickets Cart -->
+        <div class="wizard-step-card" id="stepCard_3">
+            <div id="addedTicketsList" class="list-group mb-3">
+                <li class="list-group-item text-center text-muted py-4" style="border: none;">No tickets added to review.</li>
+            </div>
+
+            <div class="row g-2 mt-4">
+                <div class="col-6">
+                    <button type="button" class="btn btn-outline-secondary w-100" style="height: 52px; border-radius: 12px; font-weight: 700;" onclick="BookingFlow.prevStep(2)">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-premium w-100" onclick="BookingFlow.nextStep(4)">
+                        Proceed to Pay <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Payment Details & Submit -->
+        <div class="wizard-step-card" id="stepCard_4">
+            <div class="floating">
+                <input id="totalFees" type="number" placeholder=" " min="0" readonly style="background-color: #f1f5f9;">
+                <label>Total Fees - ₹</label>
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="floating">
+                        <input id="discount" type="number" placeholder=" " min="0" value="0">
+                        <label>Discount - ₹</label>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="floating">
+                        <input id="discountReason" type="text" placeholder=" ">
+                        <label>Reason</label>
+                    </div>
+                </div>
+            </div>
+            <div class="floating">
+                <select id="paymentMode" required>
+                    <option value="">Select Payment Mode*</option>
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI / QR Scan</option>
+                </select>
+                <label>Payment Type</label>
+            </div>
+
+            <div id="upiFields" class="d-none mt-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12">
+                        <div class="floating mb-2">
+                            <input id="transactionId" type="text" placeholder=" ">
+                            <label>UPI Transaction ID</label>
                         </div>
                     </div>
-
-                    <div class="mt-4 d-grid">
-                        <button id="submitBooking" type="button" class="btn-submit">
-                            <i class="bi bi-check2-circle me-1"></i> Submit Booking
-                        </button>
+                    <div class="col-12">
+                        <label class="form-label" style="font-size: 11px; font-weight: 700; color: var(--text-dark);">Upload Screenshot</label>
+                        <input id="upiScreenshot" type="file" class="form-control" accept="image/*,.pdf" style="border-radius: 10px; height: 42px;">
                     </div>
+                </div>
+            </div>
+
+            <div class="row g-2 mt-4">
+                <div class="col-6">
+                    <button type="button" class="btn btn-outline-secondary w-100" style="height: 52px; border-radius: 12px; font-weight: 700;" onclick="BookingFlow.prevStep(3)">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button id="submitBooking" type="button" class="btn w-100" style="background-color: var(--accent-green); color: white; height: 52px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                        <i class="bi bi-check-circle me-2"></i> Confirm
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Registration/Update Side Panel (Offcanvas) -->
+    <!-- Registration/Update Offcanvas Panel -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="regActionBar" aria-labelledby="regActionBarLabel">
         <div class="offcanvas-header">
-            <h5 id="regActionBarLabel" class="offcanvas-title">Pilgrim Registration</h5>
-            <!-- The toggle button has been removed from here -->
+            <h5 id="regActionBarLabel" class="offcanvas-title">Register Passenger</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
@@ -953,12 +658,12 @@
                     <div class="col-6">
                         <div class="floating">
                             <input id="MobileNo" type="tel" placeholder=" " required>
-                            <label>Mobile No. *</label>
+                            <label>Mobile Number *</label>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="floating">
-                            <input id="AlternateMobileNo" type="tel" placeholder=" " required >
+                            <input id="AlternateMobileNo" type="tel" placeholder=" ">
                             <label>Alternate Mobile</label>
                         </div>
                     </div>
@@ -982,7 +687,7 @@
                     </div>
                     <div class="col-6">
                         <div class="floating">
-                            <select id="AreaId" placeholder=" " required><option value="">Select Area*</option></select>
+                            <select id="AreaId" required><option value="">Select Area *</option></select>
                             <label>Area *</label>
                         </div>
                     </div>
@@ -993,27 +698,27 @@
                         </div>
                     </div>
 
-                    <!-- START: ADD THIS NEW CHECKBOX -->
-                    <div class="col-12">
+                    <!-- Optional details toggle -->
+                    <div class="col-12 my-2">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="toggleOptionalCheckbox">
-                            <label class="form-check-label" for="toggleOptionalCheckbox">
-                                Add Optional Details (Gender/DOB/etc.)
+                            <input class="form-check-input" type="checkbox" id="toggleOptionalCheckbox">
+                            <label class="form-check-label" for="toggleOptionalCheckbox" style="font-size: 13px; font-weight: 700; color: var(--primary-brand);">
+                                Add Optional Details (Gender/DOB/Aadhar)
                             </label>
                         </div>
                     </div>
-                    <!-- This single container holds all optional fields -->
+
                     <div class="collapse" id="optionalFieldsWrapper">
                         <div class="row g-2">
                             <div class="col-6">
                                 <div class="floating">
-                                    <select id="Gender" placeholder=" "><option value="">Select Gender</option></select>
+                                    <select id="Gender"><option value="">Select Gender</option></select>
                                     <label>Gender</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="floating">
-                                    <select id="BloodGroup" placeholder=" "><option value="">Select Blood Group</option></select>
+                                    <select id="BloodGroup"><option value="">Select Blood Group</option></select>
                                     <label>Blood Group</label>
                                 </div>
                             </div>
@@ -1025,107 +730,208 @@
                             </div>
                             <div class="col-6">
                                 <div class="floating">
-                                    <input id="AadharNumber" type="text" placeholder=" " >
-                                    <label>Aadhar No.</label>
+                                    <input id="AadharNumber" type="text" placeholder=" ">
+                                    <label>Aadhar Number</label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- END: New Single-Toggle Optional Fields Section -->
 
+                    <!-- Document Uploads -->
                     <div class="col-12">
-                        <label for="AadharUpload" class="upload-heading aadhar">Aadhar Upload</label>
-                        <input id="AadharUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <label for="AadharUpload" class="upload-heading">Aadhar Upload</label>
+                        <input id="AadharUpload" type="file" class="form-control" accept="image/*,.pdf" style="border-radius: 8px;">
                         <input type="hidden" id="IdProofFileName" value="">
                     </div>
                     <div class="col-12">
-                        <label for="ProfilePicUpload" class="upload-heading profile">Profile Picture</label>
-                        <input id="ProfilePicUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <label for="ProfilePicUpload" class="upload-heading">Profile Picture</label>
+                        <input id="ProfilePicUpload" type="file" class="form-control" accept="image/*,.pdf" style="border-radius: 8px;">
                         <input type="hidden" id="PhotoFileName" value="">
                     </div>
                     <div class="col-12">
-                        <label for="VoterIdUpload" class="upload-heading voter">Voter ID Upload</label>
-                        <input id="VoterIdUpload" type="file" class="form-control form-control-file" accept="image/*,.pdf">
+                        <label for="VoterIdUpload" class="upload-heading">Voter ID Card</label>
+                        <input id="VoterIdUpload" type="file" class="form-control" accept="image/*,.pdf" style="border-radius: 8px;">
                         <input type="hidden" id="VoterId" value="">
                     </div>
                 </div>
 
-                <div class="mt-3 d-grid">
-                    <button id="btnSubmit" type="submit" class="btn-submit"><i class="bi bi-check2-circle me-1"></i> Submit</button>
+                <div class="mt-4">
+                    <button id="btnSubmit" type="submit" class="btn btn-premium w-100"><i class="bi bi-check2-circle"></i> Save Registration</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ***** NEW SEAT SELECTION MODAL ***** -->
+    <!-- Seat Selection Modal -->
     <div class="modal fade" id="seatSelectionModal" tabindex="-1" aria-labelledby="seatModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="seatModalLabel">Select Your Seats</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Legend for seat statuses -->
-            <div id="seatLegend" class="d-flex justify-content-around mb-3"></div>
-            <!-- Seat grid will be dynamically generated here -->
-            <div id="seatMapContainer" class="d-flex justify-content-center">
-                <div class="text-muted">Please select a bus first.</div>
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header" style="background-color: var(--slate-base); color: white;">
+                    <h5 class="modal-title" id="seatModalLabel" style="color: white; font-weight: 700;">Select Seats</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="seatLegend" class="d-flex justify-content-around mb-3"></div>
+                    <div id="seatMapContainer" class="d-flex justify-content-center">
+                        <div class="text-muted">Loading...</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 700;">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmSeatSelection" style="background-color: var(--primary-brand); border: none; border-radius: 10px; font-weight: 700;">Confirm Selection</button>
+                </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" id="confirmSeatSelection">Confirm Selection</button>
-          </div>
         </div>
-      </div>
     </div>
-    <!-- ***** END OF NEW MODAL ***** -->
 
-    <!-- ***** TICKET DETAILS MODAL ***** -->
-    <div class="modal fade" id="ticketDetailsModal" tabindex="-1" aria-labelledby="ticketDetailsModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="ticketDetailsModalLabel">Ticket Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="ticketDetailsModalBody">
-            <!-- Passenger details will be dynamically injected here -->
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
+    <!-- Ticket Details Modal -->
+    <div class="modal fade" id="ticketDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ticketDetailsModalLabel" style="font-weight: 700;">Booking Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="ticketDetailsModalBody"></div>
+            </div>
         </div>
-      </div>
     </div>
-    <!-- ***** END OF MODAL ***** -->
 
-    <!-- ***** QR Code Modal ***** -->
-    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="qrCodeModalLabel">Scan to Pay with UPI</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body text-center">
-            <!-- IMPORTANT: Replace this with the actual path to your QR code image -->
-            <img src="{% static 'assets/img/Payment QR.png' %}" class="img-fluid" alt="UPI QR Code" style="max-width: 250px;">
-            <p class="mt-3">After paying, please enter the Transaction ID and upload a screenshot below.</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
+    <!-- QR Code Payment Modal -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header" style="background-color: var(--slate-base); color: white;">
+                    <h5 class="modal-title" style="color: white; font-weight: 700;">Scan & Pay</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{% static 'assets/img/Payment_QR.jpeg' %}" class="img-fluid" alt="UPI QR" style="max-width: 220px; border-radius: 10px;">
+                    <p class="mt-3" style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Please scan QR, make payment and fill details below.</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    <!-- ***** END OF QR MODAL ***** -->
+
+    <!-- Premium Ticket Print View Modal -->
+    <div class="modal fade" id="ticketPrintViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content" style="border-radius: 20px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background-color: var(--primary-brand); color: white; border-bottom: none;">
+                    <h5 class="modal-title" style="color: white; font-weight: 700;">Your Journey Pass</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center bg-light p-3">
+                    <img id="ticketPrintImage" class="img-fluid shadow-sm rounded-3 mb-3" alt="Pilgrim Pass" style="border: 1px solid var(--border-color); max-width: 100%;">
+                    <p style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Pass is generated successfully. You can save or print it.</p>
+                </div>
+                <div class="modal-footer bg-light" style="border-top: none;">
+                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 700; height: 45px;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    // No changes needed in this section
+    // 🔴 MODULE FOR STEP-BY-STEP PROGRESS FLOW CONTROL
+    const BookingFlow = (() => {
+        let currentStep = 1;
+
+        function updateProgressBadges(activeStepNum) {
+            document.querySelectorAll('.progress-step').forEach((step, idx) => {
+                const stepNum = idx + 1;
+                step.classList.toggle('active', stepNum <= activeStepNum);
+            });
+        }
+
+        function showStepCard(stepNum) {
+            document.querySelectorAll('.wizard-step-card').forEach((card, idx) => {
+                const cardStepNum = idx + 1;
+                card.classList.toggle('active-step', cardStepNum === stepNum);
+            });
+            updateProgressBadges(stepNum);
+            
+            const activeCard = document.getElementById(`stepCard_${stepNum}`);
+            if (activeCard) {
+                setTimeout(() => {
+                    activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+
+        function nextStep(stepNum) {
+            if (stepNum === 2) {
+                const mob = searchMobileInput.value.replace(/\D/g, '');
+                if (!validMobile(mob)) {
+                    showMsg('error', 'Please enter a valid 10-digit mobile number first.');
+                    return;
+                }
+                if (currentRegistrations.length === 0) {
+                    showMsg('error', 'No registered passengers found. Please add a passenger first.');
+                    return;
+                }
+            }
+            
+            if (stepNum === 3) {
+                const selectedPassengerIds = selectedPassengerIdsInput.value.split(',').filter(Boolean);
+                if (selectedPassengerIds.length === 0) {
+                    showMsg('error', 'Please select at least one passenger for booking.');
+                    return;
+                }
+                if (!selectRoute.value || !selectYatra.value || !selectBus.value) {
+                    showMsg('error', 'Please select Route, Yatra, and Bus.');
+                    return;
+                }
+                const selectedSeatNumbers = selectedSeatsInput.value.split(',').filter(Boolean);
+                if (selectedSeatNumbers.length === 0) {
+                    showMsg('error', 'Please pick seats for selected passengers.');
+                    return;
+                }
+            }
+
+            if (stepNum === 4) {
+                if (addedTickets.length === 0) {
+                    showMsg('error', 'Please add tickets to the cart before proceeding to checkout.');
+                    return;
+                }
+            }
+
+            currentStep = stepNum;
+            showStepCard(stepNum);
+        }
+
+        function prevStep(stepNum) {
+            Swal.fire({
+                title: 'Go Back?',
+                text: "Any unsaved selections on this step will be lost.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0D9488', // Royal Teal matching brand
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Yes, Go Back',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    currentStep = stepNum;
+                    showStepCard(stepNum);
+                }
+            });
+        }
+
+        return {
+            getCurrentStep: () => currentStep,
+            nextStep,
+            prevStep,
+            showStepCard
+        };
+    })();
+
+    function toggleWizardStep(stepNum) {
+        BookingFlow.showStepCard(stepNum);
+    }
+
     const API_BASE_URL = "{% url 'registration_api1' %}";
 
     async function postForm(action, data = {}, isFormData = false) {
@@ -1144,8 +950,7 @@
                 }
             }
         }
-        const url = API_BASE_URL;
-        const response = await fetch(url, { method: 'POST', body: fd });
+        const response = await fetch(url = API_BASE_URL, { method: 'POST', body: fd });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -1157,7 +962,7 @@
             icon: type,
             title: title || (type === 'success' ? 'Success!' : 'Error!'),
             html: text,
-            confirmButtonColor: '#ff7b00',
+            confirmButtonColor: '#0D9488',
         });
     }
 
@@ -1170,25 +975,18 @@
         if (!inputElement) return;
 
         inputElement.addEventListener('input', (e) => {
-            // Get only digits and limit length
             let digits = e.target.value.replace(/\D/g, '').substring(0, maxLength);
-            
             if (digits.length === 0) {
                 e.target.value = '';
                 return;
             }
-
             const parts = [];
             let currentIndex = 0;
-
-            // Create groups based on the provided pattern
             for (const groupLength of grouping) {
                 if (currentIndex >= digits.length) break;
                 parts.push(digits.substring(currentIndex, currentIndex + groupLength));
                 currentIndex += groupLength;
             }
-
-            // Join the parts with a space and update the input value
             e.target.value = parts.join(' ');
         });
     }
@@ -1202,18 +1000,40 @@
             registrations.forEach(reg => {
                 const fullName = [reg.Firstname, reg.Middlename, reg.Lastname].filter(Boolean).join(" ");
                 const div = document.createElement('div');
-                div.className = 'passenger-checkbox-item form-check';
+                div.className = 'passenger-pill-item';
+                
+                // 🔴 ADDED REGISTRATION DELETE BUTTON
                 div.innerHTML = `
-                    <label class="form-check-label" for="passenger_${reg.RegistrationId}">
+                    <label class="form-check-label" style="font-weight:600; font-size:13px;" for="passenger_${reg.RegistrationId}">
                         ${fullName}
                     </label>
-                    <input class="form-check-input" type="checkbox" value="${reg.RegistrationId}" id="passenger_${reg.RegistrationId}">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-primary btn-edit-passenger-inline" style="padding: 2px 6px;" title="Edit Details" data-reg-id="${reg.RegistrationId}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-passenger-inline" style="padding: 2px 6px;" title="Delete Registration" data-reg-id="${reg.RegistrationId}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <input class="form-check-input" type="checkbox" value="${reg.RegistrationId}" id="passenger_${reg.RegistrationId}" style="width:18px; height:18px; border-color:#CBD5E1; margin: 0;">
+                    </div>
                 `;
                 passengerCheckboxesContainer.appendChild(div);
+                
+                // Action Handlers
+                div.querySelector('.btn-edit-passenger-inline').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    RegistrationForm.openForm('update', reg, searchMobileInput.value.replace(/\D/g, ''));
+                });
+                
+                div.querySelector('.btn-delete-passenger-inline').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    RegistrationDisplay.deleteRegistration(reg.RegistrationId, fullName);
+                });
+
                 div.querySelector('input[type="checkbox"]').addEventListener('change', updateSelectedPassengerDisplay);
             });
         } else {
-            passengerCheckboxesContainer.innerHTML = '<div class="text-muted py-2">No passengers found for this number.</div>';
+            passengerCheckboxesContainer.innerHTML = '<div class="text-muted py-2 text-center" style="font-size:12px;">No passengers found. Please lookup in Step 1.</div>';
         }
         updateSelectedPassengerDisplay();
     }
@@ -1225,19 +1045,19 @@
         
         const selectedIds = Array.from(checkboxes).map(cb => cb.value);
         const selectedNames = Array.from(checkboxes).map(cb => {
-            const fullName = cb.previousElementSibling.textContent.trim();
-            return fullName.split(' ')[0];
+            // Find label text inside same pill-item
+            return cb.closest('.passenger-pill-item').querySelector('.form-check-label').textContent.trim().split(' ')[0];
         });
 
         if (selectedIds.length > 0) {
-            selectedIdsDisplay.innerHTML = `Selected: <strong>${selectedNames.join(', ')}</strong><br>IDs: ${selectedIds.join(', ')}`;
+            selectedIdsDisplay.innerHTML = `<span style="color:var(--primary-brand);">Confirmed:</span> <strong>${selectedNames.join(', ')}</strong>`;
         } else {
             selectedIdsDisplay.textContent = '';
         }
         selectedIdsInput.value = selectedIds.join(',');
     }
 
-    // --- GLOBAL VARIABLES & ELEMENT REFERENCES ---
+    // --- DOM Elements Reference ---
     const searchMobileInput = document.getElementById('searchMobile');
     const btnSearch = document.getElementById('btnSearch');
     const btnAddNew = document.getElementById('btnAddNew');
@@ -1245,7 +1065,6 @@
     const regItemsList = document.getElementById('regItems');
     const regActionBar = new bootstrap.Offcanvas(document.getElementById('regActionBar'));
     const regForm = document.getElementById('regForm');
-    const btnRegNext = document.getElementById('btnRegNext');
     const bookingHistoryList = document.getElementById('bookingHistoryList');
     const selectRoute = document.getElementById('selectRoute');
     const selectYatra = document.getElementById('selectYatra');
@@ -1258,10 +1077,8 @@
     const paymentModeSelect = document.getElementById('paymentMode');
     const upiFieldsDiv = document.getElementById('upiFields');
     const submitBookingBtn = document.getElementById('submitBooking');
-    const bookingTabButton = document.getElementById('booking-tab');
     const selectedPassengerIdsInput = document.getElementById('selectedPassengerIdsInput');
 
-    // --- STATE MANAGEMENT VARIABLES ---
     let allRoutes = [];
     let allYatras = [];
     let allBuses = [];
@@ -1271,143 +1088,167 @@
     let ticketDetailsModal; 
     let qrCodeModal;
     
-    // --- MODULE FOR REGISTRATION TAB LOGIC ---
+    // --- MODULE FOR STEP 1 SEARCH & HISTORY ---
     const RegistrationDisplay = (() => {
-        let isExplicitSearch = false;
-
-        async function doSearch(explicitSearchTriggered = true) {
+        async function doSearch() {
             const mob = searchMobileInput.value.replace(/\D/g, '');
             if (!validMobile(mob)) {
                 showMsg('error', 'Please enter a valid 10-digit mobile number.');
-                labelMobile.textContent = '';
-                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search a mobile number to see registrations.</li>';
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Select filters to view history.</li>';
+                labelMobile.textContent = '-';
+                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4" style="font-size:13px;">Lookup a mobile number to see registrations.</li>';
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">History will appear here after a lookup.</li>';
                 populatePassengerBookingDropdown([]);
                 return;
             }
             sessionStorage.setItem('lastSearchMobile', mob);
-            isExplicitSearch = explicitSearchTriggered;
             labelMobile.textContent = mob;
-            regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading registrations...</li>';
+            regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Searching...</li>';
 
-             try {
+            try {
                 const resp = await postForm('search_list', { search: mob });
                 if (resp.message_code === 1000 && Array.isArray(resp.message_data)) {
                     currentRegistrations = resp.message_data;
                     renderRegistrationList(currentRegistrations, mob);
-                    // REMOVE populatePassengerDropdown(currentRegistrations);
                     populatePassengerBookingDropdown(currentRegistrations);
-                    if (isExplicitSearch) {
-                        showMsg('success', `${currentRegistrations.length} registrations found.`);
-                    }
+                    Booking.loadBookingData(); 
                 } else {
                     currentRegistrations = [];
                     renderRegistrationList([], mob);
-                    // REMOVE populatePassengerDropdown([]);
                     populatePassengerBookingDropdown([]);
-                    showMsg('info', resp.message_text || 'No records found for this number.');
+                    showMsg('info', resp.message_text || 'No registrations found.');
                 }
             } catch (err) {
-                console.error("Search failed:", err);
-                showMsg('error', 'Search failed. Please try again.');
+                console.error(err);
+                showMsg('error', 'Search operation failed.');
             }
-            // MODIFICATION: Always call fetchBookingHistory after a search attempt.
             await fetchBookingHistory();
         }
-
-        // function populatePassengerDropdown(registrations) {
-        //     historyPassengerSelect.innerHTML = '<option value="">All Passengers</option>';
-        //     registrations.forEach(r => {
-        //         const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
-        //         const option = new Option(fullName, r.RegistrationId);
-        //         historyPassengerSelect.appendChild(option);
-        //     });
-        // }
 
         function renderRegistrationList(registrations, mob) {
             regItemsList.innerHTML = '';
             if (!registrations.length) {
-                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No registrations found for this number.</li>';
+                regItemsList.innerHTML = '<li class="list-group-item text-center text-muted py-4" style="font-size:13px;">No registrations found.</li>';
                 return;
             }
             registrations.forEach(r => {
                 const li = document.createElement('li');
-                li.className = 'list-group-item';
+                li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3';
                 const fullName = [r.Firstname, r.Middlename, r.Lastname].filter(Boolean).join(" ");
-                const area = r.AreaName || '-';
-                li.innerHTML = `<div class="item-line"><strong>${fullName}</strong>, ${area}</div>`;
-                li.addEventListener('click', () => RegistrationForm.openForm('update', r, mob));
+                
+                // 🔴 ADDED REGISTRATION DELETE BUTTON
+                li.innerHTML = `
+                    <div>
+                        <strong style="font-size:14px; color:var(--text-dark);">${fullName}</strong>
+                        <div style="font-size:12px; color:var(--text-muted);"><i class="bi bi-geo-alt"></i> ${r.AreaName || '-'}</div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary btn-edit-reg" title="Edit Details" data-reg-id="${r.RegistrationId}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-registration" title="Delete Registration" data-reg-id="${r.RegistrationId}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Click handlers
+                li.querySelector('.btn-edit-reg').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    RegistrationForm.openForm('update', r, mob);
+                });
+                
+                li.querySelector('.btn-delete-registration').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteRegistration(r.RegistrationId, fullName);
+                });
+
                 regItemsList.appendChild(li);
             });
         }
 
+        // 🔴 NEW: Permanent Delete Passenger registration handler
+        async function deleteRegistration(regId, name) {
+            Swal.fire({
+                title: 'Delete Registration?',
+                text: `Are you sure you want to permanently delete registration for "${name}"? This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const resp = await postForm('delete_registration', { RegistrationId: regId });
+                        if (resp.status === "success" || String(resp.message_code) === "1000") {
+                            showMsg('success', 'Registration removed successfully.');
+                            doSearch();
+                        } else {
+                            showMsg('error', resp.message || 'Operation failed.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showMsg('error', 'Error occurred during deletion.');
+                    }
+                }
+            });
+        }
 
         async function fetchBookingHistory() {
-            if (!currentRegistrations || currentRegistrations.length === 0) {
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Search for a mobile number to see booking history.</li>';
+            if (!currentRegistrations.length) {
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">History will appear here after a lookup.</li>';
                 return;
             }
-
             const allRegIds = currentRegistrations.map(reg => reg.RegistrationId);
-            bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading booking history...</li>';
+            bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-2">Loading history...</li>';
 
             try {
-                // We must stringify the array for it to be sent correctly via FormData
-                const payload = { regids: JSON.stringify(allRegIds) };
-                const resp = await postForm('check_booked_tickets', payload);
-
+                const resp = await postForm('check_booked_tickets', { regids: JSON.stringify(allRegIds) });
                 if (resp.message_code === 1000 && resp.message_data && resp.message_data.regIdsWithBookedTicket) {
                     renderBookingHistory(resp.message_data.regIdsWithBookedTicket);
                 } else {
-                    bookingHistoryList.innerHTML = `<li class="list-group-item text-center text-muted py-4">${resp.message_text || 'No booking history found.'}</li>`;
+                    bookingHistoryList.innerHTML = `<li class="list-group-item text-center text-muted py-4">No active bookings found.</li>`;
                 }
             } catch (err) {
-                console.error("Failed to fetch booking history:", err);
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Error fetching booking history.</li>';
+                console.error(err);
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">Error loading booking history.</li>';
             }
         }
 
         function renderBookingHistory(bookedRegIds) {
             bookingHistoryList.innerHTML = '';
-
             if (bookedRegIds.length === 0) {
-                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No active bookings found for these registrations.</li>';
+                bookingHistoryList.innerHTML = '<li class="list-group-item text-center text-muted py-4">No booking history.</li>';
                 return;
             }
-
-            // Sort the IDs numerically as requested before displaying
             const sortedIds = bookedRegIds.map(id => parseInt(id, 10)).sort((a, b) => a - b);
-
             sortedIds.forEach(id => {
                 const registration = currentRegistrations.find(reg => parseInt(reg.RegistrationId, 10) === id);
-
                 if (registration) {
                     const fullName = `${registration.Firstname || ''} ${registration.Lastname || ''}`.trim();
                     const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-
-                    // START: MODIFY THIS HTML BLOCK
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
                     li.innerHTML = `
-                        <span>${fullName}</span>
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-booking" title="Delete Booking" data-reg-id="${registration.RegistrationId}">
-                                <i class="bi bi-trash-fill"></i>
+                        <span style="font-weight:600; font-size:13px;">${fullName}</span>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-booking" data-reg-id="${registration.RegistrationId}">
+                                <i class="bi bi-trash"></i>
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary btn-print-card" title="Print Ticket" data-reg-id="${registration.RegistrationId}">
-                                <i class="bi bi-printer-fill"></i>
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-print-card" data-reg-id="${registration.RegistrationId}">
+                                <i class="bi bi-printer"></i>
                             </button>
                         </div>
                     `;
-                    // END: MODIFY THIS HTML BLOCK
                     bookingHistoryList.appendChild(li);
                 }
             });
         }
 
-        return { doSearch, fetchBookingHistory };
+        return { doSearch, fetchBookingHistory, deleteRegistration };
     })();
 
-    // --- MODULE FOR REGISTRATION FORM (OFFCANVAS) ---
+    // --- MODULE FOR REGISTRATION FORM MODAL ---
     const RegistrationForm = (() => {
         async function loadDropdowns() {
             const [areas, genders, bloodgroups] = await Promise.all([
@@ -1428,24 +1269,18 @@
 
         async function openForm(mode, row = null, mobile = '') {
             regForm.reset();
-
-            // Get references to optional elements
             const optionalWrapper = document.getElementById('optionalFieldsWrapper');
             const optionalCollapse = bootstrap.Collapse.getOrCreateInstance(optionalWrapper);
             const optionalCheckbox = document.getElementById('toggleOptionalCheckbox');
 
-            // Always hide section and uncheck box when form opens
             optionalCollapse.hide();
-            if (optionalCheckbox) {
-                optionalCheckbox.checked = false;
-            }
+            if (optionalCheckbox) optionalCheckbox.checked = false;
 
-            // Reset standard form fields and title
             document.getElementById('RegistrationId').value = '0';
             document.getElementById('PhotoFileName').value = '';
             document.getElementById('IdProofFileName').value = '';
             document.getElementById('VoterId').value = '';
-            document.getElementById('regActionBarLabel').textContent = mode === 'insert' ? 'Add New Registration' : 'Update Registration';
+            document.getElementById('regActionBarLabel').textContent = mode === 'insert' ? 'Add New Registration' : 'Edit Registration Details';
             
             if (mode === 'insert' && mobile) { 
                 document.getElementById('MobileNo').value = mobile;
@@ -1455,7 +1290,6 @@
             await loadDropdowns();
 
             if (mode === 'update' && row) {
-                // 1. Populate all fields first (required and optional)
                 document.getElementById('RegistrationId').value = row.RegistrationId || '0';
                 document.getElementById('MobileNo').value = row.MobileNo || mobile || '';
                 document.getElementById('AlternateMobileNo').value = row.AlternateMobileNo || '';
@@ -1480,41 +1314,24 @@
                 const genderValue = row.GenderId || row.Gender;
                 const bloodGroupValue = row.BloodGroupId;
 
-                // 2. Check if ANY optional field has data.
-                if ((genderValue && genderValue !== '1' && genderValue !== 'Select') ||
-                    (bloodGroupValue && bloodGroupValue !== '1' && bloodGroupValue !== 'Select') ||
-                    document.getElementById('DateOfBirth').value ||
-                    row.AadharNumber) 
-                {
-                    // If yes, show the section and check the box
+                if ((genderValue && genderValue !== '1') || (bloodGroupValue && bloodGroupValue !== '1') || document.getElementById('DateOfBirth').value || row.AadharNumber) {
                     optionalCollapse.show();
-                    if (optionalCheckbox) {
-                        optionalCheckbox.checked = true;
-                    }
+                    if (optionalCheckbox) optionalCheckbox.checked = true;
                 }
                 
-                // 3. Use setTimeout to ensure dropdowns are populated correctly
                 setTimeout(() => { 
                     document.getElementById('AreaId').value = row.AreaId || '';
                     document.getElementById('Gender').value = genderValue || '';
                     document.getElementById('BloodGroup').value = bloodGroupValue || '';
                 }, 150);
             }
-            
             regActionBar.show();
         }
 
         async function handleSubmit(e) {
             e.preventDefault();
-            if (!validMobile(document.getElementById('MobileNo').value.replace(/\D/g, ''))) {
-                showMsg('error', 'Mobile Number must be 10 digits.');
-                return;
-            }
-
             const formData = new FormData();
             formData.append("action", "submit");
-            
-            // Manually append all data to ensure correctness
             formData.append("RegistrationId", document.getElementById('RegistrationId').value);
             formData.append("userMobileNo", document.getElementById('MobileNo').value.replace(/\D/g, ''));
             formData.append("userAlternateMobileNo", document.getElementById('AlternateMobileNo').value.replace(/\D/g, ''));
@@ -1524,24 +1341,16 @@
             formData.append("AreaId", document.getElementById('AreaId').value);
             formData.append("Address", document.getElementById('Address').value.trim());
             formData.append("Gender", document.getElementById('Gender').value);
+            
             const bloodGroupSelect = document.getElementById('BloodGroup');
-            // Check if an option is actually selected.
-            if (bloodGroupSelect.selectedIndex > -1) {
-                formData.append("BloodGroup", bloodGroupSelect.options[bloodGroupSelect.selectedIndex].textContent);
-            } else {
-                // If no option is selected (due to an invalid initial value),
-                // send a default or empty value to the backend. "Select" is a safe default.
-                formData.append("BloodGroup", "Select");
-            }
+            formData.append("BloodGroup", bloodGroupSelect.selectedIndex > -1 ? bloodGroupSelect.options[bloodGroupSelect.selectedIndex].textContent : "Select");
             formData.append("DateOfBirth", document.getElementById('DateOfBirth').value);
             formData.append("AadharNumber", document.getElementById('AadharNumber').value.replace(/\D/g, ''));
             
             const aadharFile = document.getElementById('AadharUpload').files[0];
             if (aadharFile) formData.append("AadharUpload", aadharFile);
-            
             const profileFile = document.getElementById('ProfilePicUpload').files[0];
             if (profileFile) formData.append("ProfilePicUpload", profileFile);
-            
             const voterFile = document.getElementById('VoterIdUpload').files[0];
             if (voterFile) formData.append("VoterIdUpload", voterFile);
             
@@ -1553,25 +1362,22 @@
                 const resp = await fetch(API_BASE_URL, { method: "POST", body: formData });
                 const res = await resp.json();
                 if (String(res.message_code) === "1000") {
-                    showMsg('success', res.message_text || 'Operation successful!');
+                    showMsg('success', 'Registration details saved successfully.');
                     regActionBar.hide();
-                    RegistrationDisplay.doSearch(false);
+                    RegistrationDisplay.doSearch();
                 } else {
-                    showMsg('error', res.message_text || 'Failed to save registration.');
+                    showMsg('error', res.message_text || 'Registration failed.');
                 }
             } catch (err) {
-                console.error("Submission failed:", err);
-                showMsg('error', `An error occurred: ${err.message}`);
+                console.error(err);
+                showMsg('error', 'Something went wrong.');
             }
         }
         
-        return {
-            openForm,
-            handleSubmit
-        };
+        return { openForm, handleSubmit };
     })();
 
-    // --- MODULE FOR BOOKING TAB ---
+    // --- MODULE FOR STEP 2 & 3 BOOKING FLOW ---
     const Booking = (() => {
         let currentlySelectedSeats = [];
         const seatModal = new bootstrap.Modal(document.getElementById('seatSelectionModal'));
@@ -1591,13 +1397,12 @@
                 handleRouteChange();
                 hasBookingDataLoaded = true;
             } catch (err) {
-                console.error("Error fetching booking data:", err);
-                showMsg('error', 'Could not fetch booking data.');
+                console.error(err);
             }
         }
 
         function populateRoutes() {
-            selectRoute.innerHTML = '<option value="">All Routes</option>';
+            selectRoute.innerHTML = '<option value="">Select Route</option>';
             allRoutes.forEach(route => {
                 selectRoute.appendChild(new Option(route.YatraRouteName, route.YatraRouteId));
             });
@@ -1618,13 +1423,9 @@
             selectBus.innerHTML = '<option value="">Select Bus*</option>';
             if (selectedYatraId) {
                 const filteredBuses = allBuses.filter(b => String(b.YatraId) === selectedYatraId);
-                if (filteredBuses.length > 0) {
-                    filteredBuses.forEach(bus => {
-                        selectBus.appendChild(new Option(`${bus.BusName} (Capacity: ${bus.BusCapacity})`, bus.YatraBusId));
-                    });
-                } else {
-                     selectBus.innerHTML = '<option value="">No buses found</option>';
-                }
+                filteredBuses.forEach(bus => {
+                    selectBus.appendChild(new Option(`${bus.BusName} (Capacity: ${bus.BusCapacity || 45})`, bus.YatraBusId));
+                });
             }
         }
 
@@ -1632,8 +1433,8 @@
             currentlySelectedSeats = [];
             updateSelectedSeatsDisplay();
             if (!selectBus.value || !selectYatra.value) {
-                document.getElementById('seatMapContainer').innerHTML = '<div class="text-muted">Please select a yatra and bus.</div>';
-                selectSeatsDisplay.innerHTML = `<span class="text-muted">Select a bus to see seats</span>`;
+                document.getElementById('seatMapContainer').innerHTML = '<div class="text-muted">Select a bus...</div>';
+                selectSeatsDisplay.innerHTML = `<i class="bi bi-grid-3x3-gap me-2"></i> Select Seats*`;
                 return;
             }
             await fetchAndDisplaySeats(selectRoute.value, selectYatra.value, selectBus.value);
@@ -1643,33 +1444,40 @@
             const seatMapContainer = document.getElementById('seatMapContainer');
             seatMapContainer.innerHTML = '<div class="text-muted">Loading seats...</div>';
             try {
-                const data = await postForm('fetch_seats', { route_id: routeId, yatra_id: yatraId, bus_id: busId });
+                // 🔴 दुरुस्ती: body: { bus_id: busId } मधील कर्ली ब्रेसेस पूर्णपणे काढून थेट डेटा पाठवला आहे
+                const data = await postForm('fetch_seats', { 
+                    route_id: parseInt(routeId), 
+                    yatra_id: parseInt(yatraId), 
+                    bus_id: parseInt(busId) 
+                });
                 if (data.message_code === 1000) {
                     renderSeatMap(data.message_data);
                 } else {
-                    seatMapContainer.innerHTML = `<div class="text-danger">Error: ${data.message_text}</div>`;
+                    seatMapContainer.innerHTML = `<div class="text-danger">${data.message_text}</div>`;
                 }
             } catch (err) {
-                console.error("Failed to fetch seats:", err);
-                seatMapContainer.innerHTML = `<div class="text-danger">Failed to load seat information.</div>`;
+                console.error(err);
+                seatMapContainer.innerHTML = `<div class="text-danger">Failed to fetch seats.</div>`;
             }
         }
 
-        // Helper function to generate a single seat's HTML (no changes needed here, but included for completeness)
         function generateSeatHtml(seatNum, data) {
-            // A seat number of null, undefined, or greater than capacity will be a placeholder
             if (!seatNum || seatNum > data.Capacity) {
                 return '<div class="seat-placeholder"></div>';
             }
-
             let classList = 'seat';
-            if (data.reserved_for_swayamsevak.includes(seatNum)) {
+            
+            // 🔴 कंपल्सरी पहिली दोन सीट्स नेहमी राखीव असाव्यात (Compulsory Seat 1 & 2 Blocked)
+            if (seatNum === 1 || seatNum === 2) {
+                classList += ' reserved';
+            } else if (data.reserved_for_swayamsevak.includes(seatNum)) {
                 classList += ' reserved';
             } else if (data.booked_seats.includes(seatNum)) {
                 classList += ' booked';
             } else {
                 classList += ' available';
             }
+            
             if (currentlySelectedSeats.includes(seatNum)) {
                 classList += ' selected';
             }
@@ -1677,12 +1485,11 @@
         }
 
         function renderSeatMap(data) {
-            // 1. Update the legend
             document.getElementById('seatLegend').innerHTML = `
-                <div class="legend-item"><span class="legend-box available"></span> Available</div>
-                <div class="legend-item"><span class="legend-box booked"></span> Booked</div>
-                <div class="legend-item"><span class="legend-box reserved"></span> Reserved</div>
-                <div class="legend-item"><span class="legend-box selected"></span> Selected</div>`;
+                <div class="legend-item"><span class="legend-box available" style="border-radius:4px; border:1px solid #A7F3D0; background:#ECFDF5; width:10px; height:10px; display:inline-block; margin-right:4px;"></span> Free</div>
+                <div class="legend-item"><span class="legend-box booked" style="border-radius:4px; background:#F1F5F9; width:10px; height:10px; display:inline-block; margin-right:4px;"></span> Booked</div>
+                <div class="legend-item"><span class="legend-box reserved" style="border-radius:4px; background:#64748B; width:10px; height:10px; display:inline-block; margin-right:4px;"></span> Reserved</div>
+                <div class="legend-item"><span class="legend-box selected" style="border-radius:4px; background:var(--accent-green); width:10px; height:10px; display:inline-block; margin-right:4px;"></span> Picked</div>`;
 
             const seatMapContainer = document.getElementById('seatMapContainer');
             const totalCapacity = parseInt(data.Capacity, 10);
@@ -1690,78 +1497,88 @@
             let mapHtml = `
                 <div class="bus-layout-final">
                     <div class="seat-map-grid">
-                        <!-- First Visual Row: 4 placeholders and the icon -->
                         <div class="seat-placeholder"></div>
                         <div class="seat-placeholder"></div>
                         <div class="seat-placeholder"></div>
                         <div class="seat-placeholder"></div>
-                        <div class="front-icon-area"><i class="bi bi-dash-circle"></i></div>
+                        <div class="front-icon-area"><i class="bi bi-dash-circle-fill"></i></div>
             `;
-
             let currentSeat = 1;
 
-            // 2. Second Visual Row (Seats 1 and 2)
-            // This is a special case that only fills the right side.
             if (currentSeat <= totalCapacity) {
                 mapHtml += `<div class="seat-placeholder"></div>`;
                 mapHtml += `<div class="seat-placeholder"></div>`;
-                mapHtml += `<div class="seat-placeholder"></div>`; // Aisle
+                mapHtml += `<div class="seat-placeholder"></div>`; 
                 mapHtml += generateSeatHtml(currentSeat++, data);
                 mapHtml += generateSeatHtml(currentSeat++, data);
             }
 
-            // 3. Dynamically generate all subsequent full and partial 2x2 rows
             while (currentSeat <= totalCapacity) {
-                // Left pair of seats
                 mapHtml += generateSeatHtml(currentSeat++, data);
                 mapHtml += generateSeatHtml(currentSeat++, data);
-                
-                // Aisle placeholder
                 mapHtml += `<div class="seat-placeholder"></div>`;
-                
-                // Right pair of seats
                 mapHtml += generateSeatHtml(currentSeat++, data);
                 mapHtml += generateSeatHtml(currentSeat++, data);
             }
-
-            // 4. Close the container divs
             mapHtml += `</div></div>`;
-
-            // 5. Inject the final HTML
             seatMapContainer.innerHTML = mapHtml;
         }
 
         document.getElementById('seatMapContainer').addEventListener('click', (e) => {
+            // फक्त रिकाम्या (available) जागांवर क्लिक करण्याची परवानगी द्या
             if (!e.target.matches('.seat.available')) return;
-            const clickedSeatNumber = parseInt(e.target.dataset.seatNumber);
-            const isSelected = e.target.classList.contains('selected');
-            const maxSeats = document.querySelectorAll('#passengerCheckboxes input:checked').length;
-            if (maxSeats === 0) { showMsg('warning', 'Please select passengers first.'); return; }
             
+            const clickedSeatNumber = parseInt(e.target.dataset.seatNumber, 10);
+            const isSelected = e.target.classList.contains('selected');
+            
+            // सध्या किती प्रवासी निवडले आहेत ते तपासा
+            const maxSeats = document.querySelectorAll('#passengerCheckboxes input:checked').length;
+            if (maxSeats === 0) { 
+                showMsg('warning', 'Please select passengers first in Step 2.'); 
+                return; 
+            }
+            
+            // आधीची निवड काढून टाका
             document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
             currentlySelectedSeats = [];
+            
+            // जर आधीच सिलेक्ट केलेली सीट पुन्हा क्लिक केली असेल तर अनसिलेक्ट करा
             if (isSelected) return;
 
             let newSelection = [];
+            // निवडलेल्या प्रवाशांच्या संख्येनुसार सलग जागा तपासा
             for (let i = 0; i < maxSeats; i++) {
                 const seatNum = clickedSeatNumber + i;
                 const seatEl = document.querySelector(`.seat[data-seat-number='${seatNum}']`);
+                
+                // जर सीट अस्तित्वात नसेल किंवा आधीच बुक/राखीव असेल तर
                 if (!seatEl || !seatEl.matches('.available')) {
-                    showMsg('warning', `Could not find ${maxSeats} consecutive available seats from this point.`);
+                    showMsg(
+                        'warning', 
+                        `Sufficient consecutive seats are not available. Seat <strong>${seatNum}</strong> is already blocked or out of range.`,
+                        'Selection Blocked'
+                    );
                     return;
                 }
                 newSelection.push(seatNum);
             }
+            
+            // सलग जागा उपलब्ध असल्यास सिलेक्ट करा
             currentlySelectedSeats = newSelection;
-            currentlySelectedSeats.forEach(sn => document.querySelector(`.seat[data-seat-number='${sn}']`)?.classList.add('selected'));
+            currentlySelectedSeats.forEach(sn => {
+                const targetSeat = document.querySelector(`.seat[data-seat-number='${sn}']`);
+                if (targetSeat) {
+                    targetSeat.classList.add('selected');
+                }
+            });
         });
 
         function updateSelectedSeatsDisplay() {
             currentlySelectedSeats.sort((a, b) => a - b);
             if (currentlySelectedSeats.length > 0) {
-                selectSeatsDisplay.innerHTML = `<strong>Seats: ${currentlySelectedSeats.join(', ')}</strong>`;
+                selectSeatsDisplay.innerHTML = `<i class="bi bi-check-circle-fill me-2" style="color:var(--accent-green-dark);"></i> Seats Picked: <strong>${currentlySelectedSeats.join(', ')}</strong>`;
             } else {
-                selectSeatsDisplay.innerHTML = `<span class="text-muted">Click to select seats</span>`;
+                selectSeatsDisplay.innerHTML = `<i class="bi bi-grid-3x3-gap me-2"></i> Select Seats*`;
             }
             selectedSeatsInput.value = currentlySelectedSeats.join(',');
         }
@@ -1777,13 +1594,13 @@
         function addTicket() {
             const selectedPassengerIds = selectedPassengerIdsInput.value.split(',').filter(Boolean);
             const selectedSeatNumbers = selectedSeatsInput.value.split(',').filter(Boolean);
-            if (selectedPassengerIds.length === 0 || selectedSeatNumbers.length === 0) { showMsg('error', 'Please select passengers and their seats first.'); return; }
+            if (!selectedPassengerIds.length || !selectedSeatNumbers.length) { showMsg('error', 'Select passengers and their seats first.'); return; }
             const yatraId = selectYatra.value;
             const busId = selectBus.value;
-            if (!yatraId || !busId) { showMsg('error', 'Please select a yatra and bus.'); return; }
+            if (!yatraId || !busId) { showMsg('error', 'Select journey details.'); return; }
 
             const selectedYatra = allYatras.find(y => String(y.YatraId) === yatraId);
-            if (!selectedYatra) { showMsg('error', 'Could not find yatra details.'); return; }
+            if (!selectedYatra) { showMsg('error', 'Yatra details not found.'); return; }
             const selectedYatraDate = selectedYatra.YatraDateTime.split(' ')[0];
 
             for (const passengerId of selectedPassengerIds) {
@@ -1794,7 +1611,7 @@
                     const isPassengerInGroup = group.passengers.some(p => p.registrationId === passengerId);
                     if (isPassengerInGroup && (String(group.yatraId) === yatraId || existingYatraDate === selectedYatraDate)) {
                         const p = currentRegistrations.find(r => String(r.RegistrationId) === passengerId);
-                        showMsg('error', `'${p ? p.Firstname : 'A passenger'}' is already booked for this yatra or on this date.`);
+                        showMsg('error', `'${p ? p.Firstname : 'Passenger'}' is already booked for this yatra or on this date.`);
                         return;
                     }
                 }
@@ -1813,24 +1630,27 @@
             updateSelectedSeatsDisplay();
             document.querySelectorAll('#passengerCheckboxes input:checked').forEach(cb => cb.checked = false);
             updateSelectedPassengerDisplay();
+            showMsg('success', 'Ticket added, please review and pay below.');
+            
+            setTimeout(() => toggleWizardStep(3), 600);
         }
 
         function renderAddedTickets() {
-            addedTicketsList.innerHTML = addedTickets.length === 0 ? '<li class="list-group-item text-center text-muted py-4">No tickets added yet.</li>' : '';
+            addedTicketsList.innerHTML = addedTickets.length === 0 ? '<li class="list-group-item text-center text-muted py-4" style="border:none;">No tickets added to review.</li>' : '';
             addedTickets.forEach((group, groupIndex) => {
                 const li = document.createElement('li');
-                li.className = 'list-group-item ticket-summary-item';
+                li.className = 'list-group-item list-group-item-custom d-flex justify-content-between align-items-center';
                 const totalGroupFee = (group.passengers.length * group.feePerPerson).toFixed(2);
                 const yatraDate = allYatras.find(y => y.YatraId == group.yatraId)?.YatraDateTime.split(' ')[0] || '';
                 li.innerHTML = `
-                    <div class="ticket-summary-info">
-                        <strong>${group.yatraName} (${yatraDate})</strong>
-                        <div class="details-line">
-                            Pass: ${group.passengers.length} &nbsp;&bull;&nbsp; Bus: ${group.busName} &nbsp;&bull;&nbsp; Total: <strong>₹${totalGroupFee}</strong>
+                    <div>
+                        <strong style="color:var(--text-dark); font-size:14px;">${group.yatraName} (${yatraDate})</strong>
+                        <div style="font-size:12px; color:var(--text-muted);" class="mt-1">
+                            Tickets: ${group.passengers.length} &nbsp;&bull;&nbsp; Bus: ${group.busName} &nbsp;&bull;&nbsp; Total Fee: <strong>₹${totalGroupFee}</strong>
                         </div>
                     </div>
-                    <div class="ticket-summary-actions">
-                        <button class="btn btn-sm btn-primary view-details-btn" data-group-index="${groupIndex}" data-bs-toggle="modal" data-bs-target="#ticketDetailsModal">View</button>
+                    <div>
+                        <button class="btn btn-sm btn-primary view-details-btn me-1" data-group-index="${groupIndex}" data-bs-toggle="modal" data-bs-target="#ticketDetailsModal">View</button>
                         <button class="btn btn-sm btn-outline-danger remove-ticket-group-btn" data-group-index="${groupIndex}"><i class="bi bi-trash"></i></button>
                     </div>`;
                 addedTicketsList.appendChild(li);
@@ -1844,7 +1664,7 @@
             document.getElementById('ticketDetailsModalLabel').textContent = `${group.yatraName} (${yatraDate})`;
             const passengersHtml = group.passengers.map(p => `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div><span>${p.registrationName}</span><br><small class="text-muted">Seat: ${p.seat}</small></div>
+                    <div><strong>${p.registrationName}</strong><br><small class="text-muted">Seat Number: ${p.seat}</small></div>
                     <button class="btn btn-danger btn-sm btn-remove-passenger" data-group-index="${groupIndex}" data-passenger-id="${p.registrationId}"><i class="bi bi-trash"></i></button>
                 </li>`).join('');
             document.getElementById('ticketDetailsModalBody').innerHTML = `<ul class="list-group list-group-flush">${passengersHtml}</ul>`;
@@ -1864,26 +1684,17 @@
 
         function handlePaymentModeChange() {
             const isUpiSelected = paymentModeSelect.value === 'upi';
-
             upiFieldsDiv.classList.toggle('d-none', !isUpiSelected);
             document.getElementById('upiScreenshot').required = isUpiSelected;
             document.getElementById('transactionId').required = isUpiSelected;
-
-            if (isUpiSelected) {
-                qrCodeModal.show(); // Corrected this line
-            }
+            if (isUpiSelected) qrCodeModal.show();
         }
 
-        // =========================================================================
-        // ===== START: REPLACED AND CORRECTED submitBooking FUNCTION =====
-        // =========================================================================
         async function submitBooking() {
             if (addedTickets.length === 0) {
-                showMsg('error', 'There are no tickets added to the booking list.');
+                showMsg('error', 'Add at least one ticket before confirming booking.');
                 return;
             }
-
-            // --- STEP 1: GATHER PAYMENT AND USER DATA ---
             const userId = '{{ request.session.user_id|default:"0" }}';
             const amountPaid = (parseFloat(totalFeesInput.value) - parseFloat(discountInput.value)).toFixed(2);
             const discount = discountInput.value || '0';
@@ -1891,17 +1702,9 @@
             const paymentMode = paymentModeSelect.value;
             const upiFile = document.getElementById('upiScreenshot').files[0];
 
-            // --- Validation ---
-            if (paymentMode === '') {
-                showMsg('error', 'Please select a payment mode.');
-                return;
-            }
-            if (paymentMode === 'upi' && !upiFile) {
-                showMsg('error', 'Please upload a UPI screenshot for UPI payments.');
-                return;
-            }
+            if (paymentMode === '') { showMsg('error', 'Please select a payment mode.'); return; }
+            if (paymentMode === 'upi' && !upiFile) { showMsg('error', 'Please upload your UPI payment screenshot.'); return; }
 
-            // --- STEP 2: BUILD THE NESTED "Bookings" OBJECT FROM addedTickets ---
             const bookingsObject = addedTickets.map(group => {
                 return {
                     YatraId: group.yatraId,
@@ -1913,7 +1716,6 @@
                 };
             });
 
-            // --- STEP 3: PREPARE FORMDATA FOR THE AJAX REQUEST ---
             const formData = new FormData();
             formData.append('action', 'book_ticket');
             formData.append('UserId', userId);
@@ -1921,57 +1723,36 @@
             formData.append('Discount', discount);
             formData.append('DiscountReason', discountReason);
             formData.append('PaymentMode', paymentMode);
-            
-            if (upiFile) {
-                formData.append('UPIScreenshot', upiFile);
-            }
-            
+            if (upiFile) formData.append('UPIScreenshot', upiFile);
             formData.append('Bookings', JSON.stringify(bookingsObject));
 
-            // --- STEP 4: SEND THE DATA TO YOUR BACKEND PROXY ---
             try {
-                // ★★★ START: ADDED ROBUST CSRF TOKEN CHECK ★★★
                 const csrfTokenElement = document.querySelector('input[name="csrfmiddlewaretoken"]');
-
                 if (!csrfTokenElement) {
-                    // This provides a much clearer error than the crash
-                    showMsg('error', 'Security token (CSRF) not found. Please reload the page.');
-                    console.error('CRITICAL: CSRF token input field not found on the page. Ensure {% csrf_token %} is in the template.');
-                    return; // Stop execution
+                    showMsg('error', 'Security token (CSRF) not found. Please reload.');
+                    return;
                 }
-                // ★★★ END: ADDED ROBUST CSRF TOKEN CHECK ★★★
-
+                
+                showMsg('info', 'Securing your seats...', 'Please wait');
+                
                 const response = await fetch(API_BASE_URL, {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'X-CSRFToken': csrfTokenElement.value // Use the validated token
-                    }
+                    headers: { 'X-CSRFToken': csrfTokenElement.value }
                 });
-
                 const result = await response.json();
-
                 if (result.message_code === 1000) {
-                    showMsg('success', result.message_text || 'Booking successful!');
+                    showMsg('success', 'Congratulations! Your booking is successfully confirmed.');
                     setTimeout(() => window.location.reload(), 2000);
                 } else {
-                    showMsg('error', result.message_text || 'An unknown error occurred during booking.');
+                    showMsg('error', result.message_text || 'Booking failed.');
                 }
             } catch (error) {
-                // The error will now be caught and displayed gracefully
-                console.error('Submission failed:', error);
-                showMsg('error', 'A critical error occurred. Please check the developer console.');
+                console.error(error);
+                showMsg('error', 'Server error occurred during checkout.');
             }
         }
         
-        // =========================================================================
-        // ===== END: REPLACED AND CORRECTED submitBooking FUNCTION =====
-        // =========================================================================
-
-        // =========================================================================
-        // ===== START: ADDED MISSING RETURN BLOCK TO FIX UNCLICKABLE BUTTONS ======
-        // =========================================================================
-        // Expose public functions so they can be called from outside the module
         return {
             loadBookingData,
             handleRouteChange,
@@ -1985,220 +1766,181 @@
             handlePaymentModeChange,
             submitBooking
         };
-        // =========================================================================
-        // ===== END: ADDED MISSING RETURN BLOCK ======
-        // =========================================================================
     })();
 
-    // --- PAGE INITIALIZATION & MAIN EVENT LISTENERS ---
+    // --- EVENTS INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Initialize the Bootstrap modal
         ticketDetailsModal = new bootstrap.Modal(document.getElementById('ticketDetailsModal'));
         qrCodeModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-        
-        // 2. Set up initial page state for Registration tab
-        //RegistrationDisplay.populateHistoryYears();
         sessionStorage.removeItem('lastSearchMobile');
-        searchMobileInput.value = '';
-        labelMobile.textContent = '';
         
-        // 3. Set up initial state for Booking tab
-        Booking.renderAddedTickets();
-        Booking.calculateTotalFees();
-
-        // START: NEW LOGIC FOR OPTIONAL DETAILS CHECKBOX
         const toggleOptionalCheckbox = document.getElementById('toggleOptionalCheckbox');
         const optionalFieldsWrapper = document.getElementById('optionalFieldsWrapper');
         const optionalCollapseInstance = new bootstrap.Collapse(optionalFieldsWrapper, { toggle: false });
 
         if (toggleOptionalCheckbox && optionalFieldsWrapper) {
             toggleOptionalCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    optionalCollapseInstance.show();
-                } else {
+                if (this.checked) optionalCollapseInstance.show();
+                else {
                     optionalCollapseInstance.hide();
-                    
-                    // When hiding, clear all values inside the optional section
-                    const inputs = optionalFieldsWrapper.querySelectorAll('input, select');
-                    inputs.forEach(input => {
-                        if (input.tagName.toLowerCase() === 'select') {
-                            input.value = ''; // Reset dropdown
-                        } else {
-                            input.value = ''; // Clear text/date inputs
-                        }
-                        // Trigger input event to reset floating labels
+                    optionalFieldsWrapper.querySelectorAll('input, select').forEach(input => {
+                        input.value = '';
                         input.dispatchEvent(new Event('input'));
                     });
                 }
             });
         }
-        // END: NEW LOGIC FOR OPTIONAL DETAILS CHECKBOX
 
-        // --- ALL EVENT LISTENERS ARE HERE ---
+        // 🔴 मॅन्युअल सर्च बटन काढून 'Auto-search as you type' केले आहे
+        searchMobileInput.addEventListener('input', (e) => {
+            const mob = e.target.value.replace(/\D/g, '');
+            if (mob.length === 10) {
+                RegistrationDisplay.doSearch();
+            }
+        });
 
-        // 4. Main page event listeners
-        btnSearch.addEventListener('click', () => RegistrationDisplay.doSearch(true));
-        searchMobileInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') RegistrationDisplay.doSearch(true); });
+        // 🔴 दुरुस्ती: btnSearch अस्तित्वात असेल तरच इव्हेंट लिसनर जोडा जेणेकरून कोड क्रॅश होणार नाही
+        const btnSearch = document.getElementById('btnSearch');
+        if (btnSearch) {
+            btnSearch.addEventListener('click', () => RegistrationDisplay.doSearch());
+        }
+
         btnAddNew.addEventListener('click', () => {
             const mob = searchMobileInput.value.replace(/\D/g, '');
             if (!validMobile(mob)) {
-                showMsg('error', "Please enter a valid 10-digit mobile number in the search box first.");
+                showMsg('error', "Enter a valid 10-digit mobile number in lookup to register.");
                 searchMobileInput.focus();
                 return;
             }
             RegistrationForm.openForm('insert', null, mob);
         });
         regForm.addEventListener('submit', RegistrationForm.handleSubmit);
-        // historyYearSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
-        // historyPassengerSelect.addEventListener('change', RegistrationDisplay.fetchBookingHistory);
-        btnRegNext.addEventListener('click', () => { new bootstrap.Tab(document.getElementById('booking-tab')).show(); });
-        bookingTabButton.addEventListener('shown.bs.tab', () => {
-            Booking.loadBookingData();
-            populatePassengerBookingDropdown(currentRegistrations);
-        });
+        
         selectRoute.addEventListener('change', Booking.handleRouteChange);
         selectYatra.addEventListener('change', Booking.handleYatraChange);
-        selectBus.addEventListener('change', Booking.handleBusChange);
+        
+        // 🔴 बस निवडताच ऑटोमॅटिकली सीट सिलेक्शन मॅप (Modal popup) उघडेल
+        selectBus.addEventListener('change', () => {
+            Booking.handleBusChange();
+            if (selectBus.value) {
+                setTimeout(() => {
+                    const seatSelectionModal = new bootstrap.Modal(document.getElementById('seatSelectionModal'));
+                    seatSelectionModal.show();
+                }, 300);
+            }
+        });
+
         btnAddTicket.addEventListener('click', Booking.addTicket);
         discountInput.addEventListener('input', Booking.updateFinalAmount);
         paymentModeSelect.addEventListener('change', Booking.handlePaymentModeChange);
         submitBookingBtn.addEventListener('click', Booking.submitBooking);
 
-        // 5. Event delegation for dynamically created buttons in "Added Tickets" list
         addedTicketsList.addEventListener('click', (e) => {
             const viewBtn = e.target.closest('.view-details-btn');
             const removeGroupBtn = e.target.closest('.remove-ticket-group-btn');
-            
             if (viewBtn) {
-                const groupIndex = parseInt(viewBtn.dataset.groupIndex);
-                Booking.populateTicketModal(groupIndex);
+                Booking.populateTicketModal(parseInt(viewBtn.dataset.groupIndex));
             }
-            
             if (removeGroupBtn) {
-                const groupIndex = parseInt(removeGroupBtn.dataset.groupIndex);
-                addedTickets.splice(groupIndex, 1);
+                addedTickets.splice(parseInt(removeGroupBtn.dataset.groupIndex), 1);
                 Booking.renderAddedTickets();
                 Booking.calculateTotalFees();
             }
         });
 
-        // 6. Event delegation for buttons inside the ticket details modal
         document.getElementById('ticketDetailsModalBody').addEventListener('click', (e) => {
              const removePassengerBtn = e.target.closest('.btn-remove-passenger');
              if(removePassengerBtn) {
                 const groupIndex = parseInt(removePassengerBtn.dataset.groupIndex);
                 const passengerId = removePassengerBtn.dataset.passengerId;
-                
                 const group = addedTickets[groupIndex];
                 if (!group) return;
 
                 group.passengers = group.passengers.filter(p => p.registrationId !== passengerId);
-
                 if (group.passengers.length === 0) {
                     addedTickets.splice(groupIndex, 1);
                     ticketDetailsModal.hide();
                 } else {
                     Booking.populateTicketModal(groupIndex); 
                 }
-                
                 Booking.renderAddedTickets();
                 Booking.calculateTotalFees();
              }
         });
 
-        // START: ADD THIS NEW EVENT LISTENER
         bookingHistoryList.addEventListener('click', async (e) => {
-
-            const deleteBtn = e.target.closest('.btn-delete-booking'); // Use closest to handle clicks on the icon inside the button
+            const deleteBtn = e.target.closest('.btn-delete-booking');
             if (deleteBtn) {
                 const regIdToCancel = deleteBtn.dataset.regId;
-
-                if (!regIdToCancel) {
-                    showMsg('error', 'Could not find Registration ID for cancellation.');
-                    return;
-                }
-
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You are about to cancel all tickets associated with this registration. This action cannot be undone!",
+                    title: 'Cancel Booking?',
+                    text: "You are about to cancel this booking. This action cannot be reversed!",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, cancel it!'
+                    confirmButtonColor: '#0D9488',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Yes, cancel it!',
+                    cancelButtonText: 'No'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
-                        showMsg('info', 'Cancelling tickets...', 'Please Wait');
                         try {
-                            const payload = {
-                                action: 'cancel_ticket', // This action will be handled by registration_api1 proxy
-                                RegistrationId: regIdToCancel
-                            };
-                            const resp = await postForm('cancel_ticket', payload); // Call the proxy endpoint with the new action
-
+                            const resp = await postForm('cancel_ticket', { RegistrationId: regIdToCancel });
                             if (resp.message_code === 1000) {
-                                showMsg('success', resp.message_text || 'Tickets cancelled successfully.');
-                                // Refresh the booking history to reflect changes
+                                showMsg('success', 'Booking canceled successfully.');
                                 RegistrationDisplay.fetchBookingHistory(); 
                             } else {
-                                showMsg('error', resp.message_text || 'Failed to cancel tickets.');
+                                showMsg('error', resp.message_text || 'Cancellation failed.');
                             }
                         } catch (err) {
-                            console.error("Cancellation failed:", err);
-                            showMsg('error', 'An error occurred during cancellation. Please try again.');
+                            console.error(err);
+                            showMsg('error', 'Error while canceling.');
                         }
                     }
                 });
             }
-            const printBtn = e.target.closest('.btn-print-card');
 
+            const printBtn = e.target.closest('.btn-print-card');
             if (printBtn) {
                 const regId = printBtn.dataset.regId;
-                if (!regId) {
-                    showMsg('error', 'Could not find Registration ID.');
-                    return;
-                }
-
-                showMsg('info', 'Generating pilgrim card...', 'Please Wait');
+                
+                // स्वयंचलित लोडिंग दाखवा
+                Swal.fire({
+                    title: 'Generating ticket...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
                 try {
                     const resp = await postForm('get_pilgrim_card', { RegistrationId: regId });
-                    console.log('Final URL from backend:', resp.message_data);
-
+                    
                     if (resp.message_code === 1000 && resp.message_data) {
-                        // The backend now sends the complete URL. No more cleaning needed.
-                        const fullImageUrl = resp.message_data;
+                        Swal.close(); // तिकीट जनरेट झाल्यावर लोडर बंद करा
                         
-                        // Open the URL directly
-                        window.open(fullImageUrl, '_blank');
-                        Swal.close();
+                        // मूळ न्यू टॅब ओपनिंग लॉजिक
+                        window.open(resp.message_data, '_blank');
                     } else {
-                        showMsg('error', resp.message_text || 'Failed to generate card.');
+                        showMsg('error', resp.message_text || 'Generation failed.');
                     }
                 } catch (err) {
-                    console.error("Print card failed:", err);
-                    showMsg('error', 'An error occurred while contacting the server.');
+                    console.error(err);
+                    showMsg('error', 'Network error occurred.');
                 }
             }
         });
 
-        // START: ADD THIS NEW EVENT LISTENER FOR AREA -> ADDRESS AUTOFILL
         document.getElementById('AreaId').addEventListener('change', (e) => {
             const areaSelect = e.target;
             const selectedOption = areaSelect.options[areaSelect.selectedIndex];
             const addressTextarea = document.getElementById('Address');
-
-            // Check if a valid area is selected (not the placeholder)
             if (selectedOption.value && addressTextarea) {
-                // Set the address to the selected area's text
                 addressTextarea.value = selectedOption.text;
-                // Optional: trigger an input event to make the floating label react if needed
                 addressTextarea.dispatchEvent(new Event('input'));
             }
         });
-        // END: ADD THIS NEW EVENT LISTENER
 
-        // Apply auto-grouping format to input fields
         formatInputWithGrouping('searchMobile', [2, 4, 4], 10);
         formatInputWithGrouping('MobileNo', [2, 4, 4], 10);
         formatInputWithGrouping('AlternateMobileNo', [2, 4, 4], 10);

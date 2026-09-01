@@ -3,46 +3,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Darshan Yatra - Yatra Bus Master</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darshan Yatra - Yatra Bus Master (Premium Orange)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
     <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; }
-        .navbar { background-color: #ff7b00; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
-        .navbar-brand { font-weight: bold; }
-        .container-main { max-width: 800px; margin: 80px auto 40px auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-        .btn-custom { background: #ff7b00; color: #fff; border: none; font-weight: bold; }
-        .btn-custom:hover { background: #e66a00; color: #fff; }
+        :root {
+            --brand-primary: #0F172A; /* Slate Charcoal */
+            --brand-orange: #FF7B00; /* Vibrant Brand Orange */
+            --brand-orange-dark: #E06B00; /* Deep Orange for hovers */
+            --brand-orange-light: #FFF7ED; /* Soft light orange tint */
+            --accent-green: #10B981; /* Success Green */
+            --danger-red: #EF4444; /* Soft Red */
+            --bg-slate: #f8fafc;
+            --border-slate: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background-color: var(--bg-slate); 
+            color: var(--text-dark);
+            padding-top: 60px;
+        }
+
+        /* Fixed Navigation Header */
+        .navbar { 
+            background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.2); 
+            border: none;
+        }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; transition: opacity 0.2s; }
+        .back-btn:hover { opacity: 0.8; }
+        .navbar-brand { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
+
+        /* Main Card Container */
+        .container-main { 
+            max-width: 550px; 
+            margin: 20px auto 40px auto; 
+            background: #ffffff; 
+            padding: 24px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); 
+            border: 1px solid var(--border-slate);
+        }
+
+        /* Premium Buttons */
+        .btn-custom { 
+            background: var(--brand-orange); 
+            color: #fff !important; 
+            border: none; 
+            font-weight: 700; 
+            border-radius: 12px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 14px rgba(255, 123, 0, 0.25);
+            transition: all 0.2s;
+        }
+        .btn-custom:active { transform: scale(0.98); }
+        .btn-custom:hover { background: var(--brand-orange-dark); }
 
         /* Accordion Styles */
-        .accordion-item { border: 1px solid #dee2e6; border-radius: 0.5rem !important; margin-bottom: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .accordion-button { font-size: 1.1rem; font-weight: 500; color: #212529; background-color: #fff; border-radius: 0.5rem !important; }
-        .accordion-button:not(.collapsed) { color: #fff; background-color: #ff7b00; }
+        .accordion-item { 
+            border: 1px solid var(--border-slate); 
+            border-radius: 16px !important; 
+            margin-bottom: 12px; 
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01); 
+            overflow: hidden;
+        }
+        .accordion-button { 
+            font-size: 14px; 
+            font-weight: 700; 
+            color: var(--brand-primary); 
+            background-color: #fff; 
+            border-radius: 16px !important; 
+            padding: 16px;
+        }
+        .accordion-button:not(.collapsed) { 
+            color: #fff; 
+            background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
+            box-shadow: 0 4px 15px rgba(255, 123, 0, 0.2);
+        }
         .accordion-button:focus { box-shadow: none; }
 
-        .yatra-header { font-weight: 600; color: #555; margin-bottom: 0.5rem; }
-        .bus-card .card-body { padding: 12px 14px; }
-        .bus-name { font-size: 1.05rem; font-weight: 600; }
-        .bus-details { font-size: 0.9rem; color: #6c757d; }
+        /* Bus Card inside Accordion */
+        .yatra-group { margin-bottom: 12px; }
+        .yatra-header { font-size: 13px; font-weight: 700; color: var(--brand-orange); margin-bottom: 8px; text-transform: uppercase; }
+        
+        .bus-card { 
+            border: 1px solid var(--border-slate); 
+            border-radius: 12px; 
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .bus-card:hover {
+            border-color: var(--brand-orange);
+            box-shadow: 0 6px 18px rgba(255, 123, 0, 0.06);
+        }
+        .bus-card .card-body { padding: 12px 16px; }
+        .bus-name { font-size: 15px; font-weight: 700; color: var(--brand-primary); }
+        .bus-details { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
         .bus-grid { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
         .bus-grid .actions { display: flex; gap: 0.5rem; }
 
-        /* NEW UI STYLE FOR MODAL FORMS */
-        .form-fieldset { border: 1px solid #ced4da; border-radius: 8px; padding: 0 0.75rem 0.5rem 0.75rem; margin-bottom: 1.5rem; position: relative; }
-        .form-fieldset legend { float: none; width: auto; padding: 0 5px; margin-left: 5px; font-size: 0.8rem; color: #ff7b00; font-weight: 500; }
-        .form-fieldset input, .form-fieldset select { border: none; outline: none; width: 100%; height: 30px; padding: 0; background-color: transparent; }
-        .form-fieldset:focus-within { border-color: #ff7b00; }
+        /* Edit & Delete Action Buttons */
+        .action-btn-edit {
+            border-color: var(--border-slate);
+            color: var(--brand-orange);
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: all 0.2s;
+        }
+        .action-btn-edit:hover {
+            background-color: var(--brand-orange);
+            color: #ffffff;
+            border-color: var(--brand-orange);
+        }
+
+        .action-btn-delete {
+            border-color: var(--border-slate);
+            color: var(--danger-red);
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: all 0.2s;
+        }
+        .action-btn-delete:hover {
+            background-color: var(--danger-red);
+            color: #ffffff;
+            border-color: var(--danger-red);
+        }
+
+        /* Premium Form Fieldset Styling (Floating alternative) */
+        .form-fieldset { 
+            border: 1.5px solid var(--border-slate); 
+            border-radius: 12px; 
+            padding: 4px 12px 8px 12px; 
+            margin-bottom: 14px; 
+            position: relative; 
+            background: #F8FAFC;
+            transition: all 0.2s ease;
+        }
+        .form-fieldset legend { 
+            float: none; 
+            width: auto; 
+            padding: 0 6px; 
+            margin-left: 0; 
+            font-size: 10px; 
+            color: var(--brand-orange); 
+            font-weight: 700; 
+            text-transform: uppercase;
+        }
+        .form-fieldset input, 
+        .form-fieldset select { 
+            border: none; 
+            outline: none; 
+            width: 100%; 
+            height: 32px; 
+            padding: 0; 
+            background-color: transparent; 
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .form-fieldset:focus-within { 
+            border-color: var(--brand-orange); 
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
+        }
+
+        @media (max-width: 480px) {
+            .container-main { margin: 20px 0; border-radius: 0; padding: 16px 12px; }
+        }
+
+        /* Modal Style */
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15);
+        }
+        .modal-header {
+            background-color: var(--brand-primary);
+            color: #ffffff;
+            border-bottom: none;
+        }
+        .modal-title { color: #ffffff; font-weight: 700; font-size: 16px; }
+        .btn-close-white { filter: invert(1) grayscale(1) brightness(2); }
     </style>
 </head>
 <body>
 
 <nav class="navbar fixed-top">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a href="#" onclick="history.back();" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <a href="#" onclick="history.back();" class="back-btn"><i class="bi bi-arrow-left-circle-fill"></i></a>
         <span class="navbar-brand mb-0 h1" style="color:white">Yatra Bus Master</span>
         <span style="width: 30px;"></span>
     </div>
@@ -50,8 +210,8 @@
 
 <div class="container-main">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0 fs-4 text-primary">Manage Yatra Buses</h2>
-        <button class="btn btn-custom" id="addBusBtn"><i class="bi bi-plus-circle"></i> Add Bus</button>
+        <h2 class="mb-0 fs-5 text-dark fw-bold">Manage Yatra Buses</h2>
+        <button class="btn btn-custom" id="addBusBtn"><i class="bi bi-plus-circle-fill me-1"></i> Add Bus</button>
     </div>
 
     <div class="accordion" id="routesAccordion">
@@ -61,10 +221,10 @@
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</button>
                 </h2>
                 <div id="collapse-{{ route.YatraRouteId }}" class="accordion-collapse collapse" data-bs-parent="#routesAccordion">
-                    <div class="accordion-body">
+                    <div class="accordion-body bg-light p-3">
                         {% for yatra in route.yatras %}
                             <div class="yatra-group">
-                                <h6 class="yatra-header">Yatra on: {{ yatra.details.YatraDateTime }}</h6>
+                                <h6 class="yatra-header"><i class="bi bi-calendar3 me-2"></i>Yatra on: {{ yatra.details.YatraDateTime }}</h6>
                                 {% for bus in yatra.buses %}
                                 <div class="card bus-card mb-2"
                                      data-yatra-bus-id="{{ bus.YatraBusId }}" data-bus-name="{{ bus.BusName }}"
@@ -73,44 +233,78 @@
                                      data-bus-capacity="{{ bus.BusCapacity|default_if_none:'' }}" data-reserved-seats="1,2">
                                     <div class="card-body">
                                         <div class="bus-grid">
-                                            <div><div class="bus-name">{{ bus.BusName }}</div><div class="bus-details">{{ bus.BusDateTimeStart }}</div></div>
-                                            <div class="actions"><button class="btn btn-outline-primary btn-sm edit-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button class="btn btn-outline-danger btn-sm delete-btn" title="Delete"><i class="bi bi-trash-fill"></i></button></div>
+                                            <div>
+                                                <div class="bus-name"><i class="bi bi-bus-front-fill me-2" style="color: var(--brand-orange);"></i>{{ bus.BusName }}</div>
+                                                <div class="bus-details"><i class="bi bi-clock me-1"></i>{{ bus.BusDateTimeStart }}</div>
+                                            </div>
+                                            <div class="actions">
+                                                <button class="btn btn-sm btn-outline-primary edit-btn action-btn-edit" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger delete-btn action-btn-delete" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
-                            {% if not forloop.last %}<hr>{% endif %}
+                            {% if not forloop.last %}<hr class="my-3 text-muted">{% endif %}
                         {% endfor %}
                     </div>
                 </div>
             </div>
         {% empty %}
-            <div class="text-center text-muted p-4">No Yatra Routes with buses found.</div>
+            <div class="text-center text-muted py-4">No Yatra Routes with buses found.</div>
         {% endfor %}
     </div>
 </div>
 
 <!-- Yatra Bus Modal -->
 <div class="modal fade" id="yatraBusModal" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
         <form id="yatraBusForm" novalidate>
             <input type="hidden" id="formYatraBusId" name="YatraBusId">
-            <fieldset class="form-fieldset"><legend>1. Select Yatra Route</legend><select id="formYatraRouteId" name="YatraRouteId" required>{% for route in all_routes_for_modal %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}</select></fieldset>
-            <fieldset class="form-fieldset"><legend>2. Select Yatra</legend><select id="formYatraId" name="YatraId" required disabled></select></fieldset>
-            <fieldset class="form-fieldset"><legend>Bus Start Date & Time (Editable)</legend><input type="text" id="formBusDateTimeStart" name="BusDateTimeStart" required></fieldset>
-            <hr class="my-3">
-            <fieldset class="form-fieldset"><legend>Bus Name</legend><input type="text" id="formBusName" name="BusName" required></fieldset>
-            <fieldset class="form-fieldset"><legend>Seat Fees</legend><input type="number" step="any" id="formSeatFees" name="SeatFees" required></fieldset>
-            <fieldset class="form-fieldset"><legend>Bus Capacity (Optional)</legend><input type="number" id="formBusCapacity" name="BusCapacity"></fieldset>
-            <fieldset class="form-fieldset"><legend>Reserved Seats (e.g., 1,2)</legend><input type="text" id="formReservedSeats" name="ReservedSeats"></fieldset>
+            <fieldset class="form-fieldset">
+                <legend>1. Select Yatra Route</legend>
+                <select id="formYatraRouteId" name="YatraRouteId" required>
+                    {% for route in all_routes_for_modal %}
+                        <option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>
+                    {% endfor %}
+                </select>
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend>2. Select Yatra</legend>
+                <select id="formYatraId" name="YatraId" required disabled></select>
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend>Bus Start Date & Time (Editable)</legend>
+                <input type="text" id="formBusDateTimeStart" name="BusDateTimeStart" required>
+            </fieldset>
+            <hr class="my-3 text-muted">
+            <fieldset class="form-fieldset">
+                <legend>Bus Name</legend>
+                <input type="text" id="formBusName" name="BusName" required>
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend>Seat Fees</legend>
+                <input type="number" step="any" id="formSeatFees" name="SeatFees" required>
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend>Bus Capacity (Optional)</legend>
+                <input type="number" id="formBusCapacity" name="BusCapacity">
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend>Reserved Seats (e.g., 1,2)</legend>
+                <input type="text" id="formReservedSeats" name="ReservedSeats">
+            </fieldset>
         </form>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer" style="border-top: none;">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px; font-weight:700;">Close</button>
         <button type="button" class="btn btn-custom" id="saveBusBtn">Save Bus</button>
       </div>
     </div>
@@ -176,24 +370,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.edit-btn')) {
             resetForm();
             
-            // Populate non-dropdown fields that are independent
             document.getElementById('formYatraBusId').value = card.dataset.yatraBusId;
             document.getElementById('formBusName').value = card.dataset.busName;
             document.getElementById('formBusCapacity').value = card.dataset.busCapacity;
             document.getElementById('formReservedSeats').value = card.dataset.reservedSeats;
             
-            // Set the route and trigger its change event. This populates the yatra list
-            // but also resets the date/fee inputs, which is expected.
             routeSelect.value = card.dataset.yatraRouteId;
             routeSelect.dispatchEvent(new Event('change'));
             
-            // Now that the yatra list is populated, set its value.
-            // Do NOT dispatch this event, as we want to manually set the final values.
             yatraSelect.value = card.dataset.yatraId;
 
-            // ***** THE FINAL, CRUCIAL FIX IS HERE *****
-            // After all dropdowns are correctly selected, manually set the bus-specific
-            // date and fee from the data-attributes. This ensures they are the final values.
+            // Manual assignment
             dateTimeInput.value = card.dataset.busDateTimeStart;
             seatFeesInput.value = card.dataset.seatFees;
             

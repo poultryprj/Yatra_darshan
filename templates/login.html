@@ -6,12 +6,11 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="white">
-    <title>Darshan Yatra</title>
+    <meta name="theme-color" content="#F8FAFC">
+    <title>Darshan Yatra - Login</title>
     <meta name="description" content="Darshan Yatra">
     <meta name="keywords" content="Travel, Pilgrimage, Yatra" />
     <link rel="icon" type="image/png" href="{% static 'assets/img/lakshya_pratishthan.png' %}" sizes="32x32">
@@ -22,216 +21,324 @@
 
 <body>
 <style>
-    /* White background everywhere */
+    /* Premium Slate Theme Variables */
+    :root {
+        --primary-teal: #0D9488; /* Premium Accent Teal */
+        --primary-dark: #0F766E;
+        --slate-dark: #0F172A; /* Deep Slate for Titles */
+        --bg-slate: #F8FAFC; /* Soft Light Gray */
+        --border-slate: #E2E8F0;
+        --text-muted: #64748B;
+    }
+
+    /* Soft premium background */
     html, body, #appCapsule {
-        background: white !important;
+        background: var(--bg-slate) !important;
         height: 100%;
         margin: 0;
         padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Logo bigger */
+    #appCapsule {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .login-wrapper {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    /* Center Logo Presentation */
+    .brand-section {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
     .logo-circle {
-        width: 120px;   /* Increased size */
-        height: 120px;  /* Increased size */
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
         object-fit: contain;
         background: white;
-        border: 2px solid #ddd;
+        border: 3px solid #fff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
         display: block;
-        margin: 20px auto;
+        margin: 0 auto 15px auto;
     }
 
-    /* Middle block (card) grey background */
-    .card {
-        background-color: #f0f0f0 !important; /* Light grey */
-        border: none;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    .brand-section h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--slate-dark);
+        margin: 0;
+        letter-spacing: -0.5px;
     }
 
-    /* Orange login button */
-    .btn-success-custom {
-        background-color: #ff7b00 !important;
-        color: #fff !important;
-        border: none;
-        border-radius: 25px;
-        padding: 14px;
-        width: 100%;
-        transition: background 0.3s;
-    }
-    .btn-success-custom:hover {
-        background-color: #e66a00 !important;
-        color: #fff !important;
+    .brand-section p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 4px;
+        font-weight: 500;
     }
 
-    .input-wrapper {
+    /* Luxurious Input Card Container */
+    .premium-card {
+        background: #ffffff !important;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-bottom: 20px;
+    }
+
+    /* Modern Floating Icon Inputs */
+    .input-group-custom {
         position: relative;
+        margin-bottom: 18px;
+    }
+
+    .input-group-custom:last-child {
+        margin-bottom: 0;
+    }
+
+    .input-field {
+        width: 100%;
+        height: 52px;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-slate);
+        padding: 10px 45px 10px 42px; /* Extra padding for left and right icons */
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--slate-dark);
+        background: #FAFBFC;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .input-field::placeholder {
+        font-size: 14px;
+        font-weight: 500;
+        color: #A0AEC0;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: var(--primary-teal);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
+    }
+
+    /* Input Icon Alignment */
+    .input-left-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        color: #A0AEC0;
+        pointer-events: none;
         display: flex;
         align-items: center;
-    }
-
-    .input-wrapper input.form-control {
-        flex: 1;
-        background: white !important;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px 40px 10px 10px; /* Right padding for icons */
     }
 
     .clear-input {
         position: absolute;
-        right: 35px; /* leave space for eye icon */
+        right: 40px; /* offset to not block password toggle icon */
+        top: 50%;
+        transform: translateY(-50%);
         cursor: pointer;
         display: flex;
         align-items: center;
-        height: 100%;
+        opacity: 0;
+        transition: opacity 0.2s;
     }
 
     .toggle-password {
         position: absolute;
-        right: 10px;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
         cursor: pointer;
         display: flex;
         align-items: center;
-        height: 100%;
     }
 
     .clear-input ion-icon,
     .toggle-password ion-icon {
         font-size: 20px;
-        color: #888;
+        color: #A0AEC0;
     }
 
+    /* Premium Action Button */
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-teal) 0%, var(--primary-dark) 100%);
+        color: #ffffff !important;
+        border: none;
+        border-radius: 14px;
+        height: 52px;
+        font-size: 16px;
+        font-weight: 700;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.25);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-gradient:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
+    }
+
+    /* Premium PWA Modal Prompt */
+    .pwa-modal-box {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 320px;
+        width: 90%;
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15);
+        border: 1px solid var(--border-slate);
+    }
+
+    .pwa-modal-box h3 {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--slate-dark);
+        margin-bottom: 8px;
+    }
+
+    .pwa-modal-box p {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.4;
+        margin-bottom: 20px;
+    }
+
+    .pwa-btn-install {
+        padding: 10px 24px;
+        background: var(--primary-teal);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 14px;
+        border: none;
+        border-radius: 10px;
+        margin-right: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .pwa-btn-cancel {
+        padding: 10px 24px;
+        background: #F1F5F9;
+        color: var(--slate-dark);
+        font-weight: 700;
+        font-size: 14px;
+        border: none;
+        border-radius: 10px;
+    }
 </style>
 
-    <!-- loader -->
-<div id="loader">
-    <img src="{% static 'assets/img/loading-icon.png' %}" alt="icon" class="loading-icon">
-</div>
+    <!-- Loader Screen -->
+    <div id="loader">
+        <img src="{% static 'assets/img/loading-icon.png' %}" alt="loading" class="loading-icon">
+    </div>
 
-<div id="appCapsule">
+    <div id="appCapsule">
+        <div class="login-wrapper">
 
-    <!-- ✅ Wrapper for logo, heading, form, and buttons -->
-    <div class="login-wrapper">
+            <!-- Title & Branding -->
+            <div class="brand-section">
+                {% if ShopPhotoURL %}
+                    <img src="{{ ShopPhotoURL }}" alt="Logo" class="logo-circle">
+                {% else %}
+                    <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" alt="Logo" class="logo-circle">
+                {% endif %}
+                <h1>{{ BusinessName|default:"Darshan Yatra" }}</h1>
+                <p>Sign in to access your dashboard</p>
+            </div>
 
-        <!-- Logo + Title -->
-        <div class="section mt-2 text-center">
-            {% if ShopPhotoURL %}
-                <img src="{{ ShopPhotoURL }}" alt="Shop Logo" class="logo-circle">
-            {% else %}
-                <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" alt="Default Logo" class="logo-circle">
-            {% endif %}
-
-            <h1 style="color:black;">{{ BusinessName|default:"Darshan Yatra" }}</h1>
-        </div>
-
-        <!-- Login Form -->
-        <div class="section mb-5 p-2">
-            <form method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-                <div class="card">
-                    <div class="card-body pb-1">
-
-                        <!-- Mobile Number -->
-                        <div class="form-group basic animated">
-                            <div class="input-wrapper">
-                                <input type="text" name="mobile" class="form-control" id="mobile"
-                                    placeholder="Your Mobile No." minlength="10" maxlength="10"
-                                    pattern="\d{10}" inputmode="numeric"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                <i class="clear-input">
-                                    <ion-icon name="close-circle"></ion-icon>
-                                </i>
-                                <label class="label" for="mobile">Mobile Number</label>
-                            </div>
+            <!-- Login Input Form -->
+            <div class="section p-0">
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="premium-card">
+                        
+                        <!-- Mobile Number Input -->
+                        <div class="input-group-custom">
+                            <span class="input-left-icon">
+                                <ion-icon name="phone-portrait-outline"></ion-icon>
+                            </span>
+                            <input type="text" name="mobile" class="input-field" id="mobile"
+                                placeholder="Enter Mobile Number" minlength="10" maxlength="10"
+                                pattern="\d{10}" inputmode="numeric"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                            <span class="clear-input">
+                                <ion-icon name="close-circle"></ion-icon>
+                            </span>
                         </div>
 
-                        <!-- Pin Number -->
-                        <div class="form-group basic animated">
-                            <div class="input-wrapper" style="position: relative;">
-                                <input type="password" name="pin_number" class="form-control" id="pin_number"
-                                    placeholder="Your Pin Number" autocomplete="off" maxlength="6"
-                                    pattern="\d{6}" inputmode="numeric"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                <i class="clear-input">
-                                    <ion-icon name="close-circle"></ion-icon>
-                                </i>
-                                <label class="label" for="pin_number">Login Pin Number</label>
-
-                                <!-- Eye Icon -->
-                                <i class="toggle-password" onclick="togglePassword()">
-                                    <ion-icon id="eyeIcon" name="eye-off-outline"></ion-icon>
-                                </i>
-                            </div>
+                        <!-- Login PIN Input -->
+                        <div class="input-group-custom">
+                            <span class="input-left-icon">
+                                <ion-icon name="lock-closed-outline"></ion-icon>
+                            </span>
+                            <input type="password" name="pin_number" class="input-field" id="pin_number"
+                                placeholder="Enter Login PIN" autocomplete="off" maxlength="6"
+                                pattern="\d{6}" inputmode="numeric"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                            <span class="clear-input" style="right: 42px;">
+                                <ion-icon name="close-circle"></ion-icon>
+                            </span>
+                            
+                            <!-- Password Toggle Eye Icon -->
+                            <span class="toggle-password" onclick="togglePassword()">
+                                <ion-icon id="eyeIcon" name="eye-off-outline"></ion-icon>
+                            </span>
                         </div>
+
+                    </div>
+
+                    <!-- Submit Login Button -->
+                    <div class="row mt-3">
+                        <div class="col-12 px-4">
+                            <button type="submit" class="btn-gradient btn-block btn-lg w-100"
+                                    onclick="document.getElementById('loader').style.display='flex'; setTimeout(()=>{document.getElementById('loader').style.display='none';},10000);">
+                                Sign In
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- PWA Installation Dialog modal -->
+                <div id="pwaInstallModal" class="modal"
+                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                            background:rgba(15,23,42,0.6); justify-content:center; align-items:center; z-index:9999; backdrop-filter: blur(4px);">
+                    <div class="pwa-modal-box">
+                        <h3>Install App</h3>
+                        <p>Get quick and secure access to Darshan Yatra by installing the app on your home screen.</p>
+                        <button id="pwaInstallBtn" class="pwa-btn-install">Install</button>
+                        <button id="pwaCancelBtn" class="pwa-btn-cancel">Cancel</button>
                     </div>
                 </div>
 
-                <!-- Login Button -->
-                <div class="row mt-3">
-                    <div class="col-12 mb-2 px-4">
-                        <button type="submit" 
-                                class="btn btn-success-custom btn-block btn-lg w-100"
-                                style="color: white !important;"
-                                onclick="document.getElementById('loader').style.display='flex'; setTimeout(()=>{document.getElementById('loader').style.display='none';},10000);">
-                            Log in
-                        </button>
-                        {% comment %} <button type="submit" class="btn btn-success-custom btn-block btn-lg w-100"
-                                style="color: white !important;">
-                            Log in
-                        </button> {% endcomment %}
-                    </div>
-                </div>
-            </form> <!-- ✅ form closed here -->
-
-            <!-- Extra buttons (outside form) -->
-            {% comment %} <div class="row mt-1">
-                <div class="col-12 mb-2 px-4">
-                    <button id="installApp" type="button"
-                            class="btn btn-success-custom btn-block btn-lg w-100"
-                            style="color: white !important;">
-                        Install App
-                    </button>
-                </div>
-            </div> {% endcomment %}
-
-            <!-- Install App Modal -->
-            <div id="pwaInstallModal" class="modal"
-                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                        background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
-                <div style="background:#fff; padding:20px; border-radius:10px; text-align:center;
-                            max-width:300px; width:90%;">
-                    <h3>Install {{ BusinessName|default:"Darshan Yatra" }} </h3>
-                    <p>Get quick access to Darshan Yatra by installing it on your device.</p>
-                    <button id="pwaInstallBtn"
-                            style="margin:5px; padding:10px 20px; background:#ff7b00; color:#fff;
-                                border:none; border-radius:5px;">
-                        Install
-                    </button>
-                    <button id="pwaCancelBtn"
-                            style="margin:5px; padding:10px 20px; background:#ccc; color:#000;
-                                border:none; border-radius:5px;">
-                        Cancel
-                    </button>
-                </div>
             </div>
         </div>
-    </div> <!-- ✅ login-wrapper ends -->
-</div>
+    </div>
 
-
-
-    <!-- Bootstrap -->
+    <!-- Bootstrap & Ionicons -->
     <script src="{% static 'assets/js/lib/bootstrap.bundle.min.js' %}"></script>
-    <!-- Ionicons -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@latest/dist/ionicons/ionicons.esm.js"></script>
-    <!-- Splide -->
     <script src="{% static 'assets/js/plugins/splide/splide.min.js' %}"></script>
-    <!-- Base Js File -->
     <script src="{% static 'assets/js/base.js' %}"></script>
 
+    <!-- PWA Installation prompt handler -->
     <script>
     let deferredPrompt;
     const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
@@ -261,6 +368,7 @@
     });
     </script>
 
+    <!-- Password visibility toggle & Clear input handlers -->
     <script>
         function togglePassword() {
             const pinInput = document.getElementById("pin_number");
@@ -274,27 +382,23 @@
             }
         }
 
-        // Function to handle clear input icons
         function setupClearInputs() {
             document.querySelectorAll('.clear-input').forEach(clearIcon => {
-                const input = clearIcon.previousElementSibling; // The input field is the sibling before the clear icon
+                const input = clearIcon.previousElementSibling; 
 
                 if (input) {
-                    // Initial check to show/hide icon
                     if (input.value) {
                         clearIcon.style.opacity = '1';
                     } else {
                         clearIcon.style.opacity = '0';
                     }
 
-                    // Event listener for clearing input
                     clearIcon.addEventListener('click', () => {
                         input.value = '';
-                        input.focus(); // Keep focus on the input after clearing
-                        clearIcon.style.opacity = '0'; // Hide icon after clearing
+                        input.focus(); 
+                        clearIcon.style.opacity = '0'; 
                     });
 
-                    // Event listener for input changes to show/hide clear icon
                     input.addEventListener('input', () => {
                         if (input.value) {
                             clearIcon.style.opacity = '1';
@@ -305,21 +409,18 @@
                 }
             });
         }
-
-        // Call setupClearInputs when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', setupClearInputs);
-
     </script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+    <!-- SweetAlert integration -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
 
     {% if messages %}
         <script>
             {% for message in messages %}
                 var msg = "{{ message|escapejs }}";
                 var tag = "{{ message.tags }}";
-
                 var alertType = "info";
                 var alertTitle = "Info";
 
@@ -341,5 +442,4 @@
         </script>
     {% endif %}
 </body>
-
 </html>

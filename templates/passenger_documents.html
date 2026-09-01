@@ -1,48 +1,146 @@
+<!-- templates/passenger_documents.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Yatra Darshan - Passenger Documents</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Yatra Darshan - Passenger Documents (Premium Orange)</title>
 
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- ADDED: Select2 CSS Libraries -->
+    <!-- Select2 CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
     <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
 
     <style>
-        :root{ --brand-orange: #ff7b00; }
-        body{ background:#f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-        .navbar{ background:var(--brand-orange); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .back-btn { font-size: 1.75rem; color: white; text-decoration: none; }
-        .navbar-brand { font-weight: 600; font-size: 1.1rem; }
-        .container-main { max-width: 450px; margin: 70px auto 40px; padding: 0 15px; }
+        :root {
+            --brand-orange: #FF7B00; /* Vibrant Brand Orange */
+            --brand-orange-dark: #E06B00; /* Deep Orange for hovers */
+            --brand-primary: #0F172A; /* Slate Charcoal for Headers */
+            --danger-red: #EF4444; /* Soft Red */
+            --bg-slate: #f8fafc;
+            --border-slate: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body { 
+            background: var(--bg-slate); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            color: var(--text-dark);
+            padding-top: 60px;
+        }
+
+        /* Fixed Navigation Header */
+        .navbar { 
+            background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.2); 
+            border: none;
+        }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; transition: opacity 0.2s; }
+        .back-btn:hover { opacity: 0.8; }
+        .navbar-brand { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
+
+        .container-main { 
+            max-width: 550px; 
+            margin: 20px auto 40px auto; 
+            padding: 0 14px;
+        }
         
-        .filter-card { background-color: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.07); margin-bottom: 1.5rem; }
-        .passenger-card { background-color: #fff; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
-        .passenger-card .card-header { background-color: #fff; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e9ecef; }
-        .passenger-card .card-header h4 { font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: #343a40; }
-        .passenger-card .card-body { padding: 1rem 1.25rem; }
-        .contact-info { padding-bottom: 1rem; border-bottom: 1px solid #e9ecef; }
-        .doc-links { padding-top: 1rem; }
-        .doc-link { margin-right: 0.5rem; }
-        .seat-badge { background-color: #dc3545 !important; color: #fff !important; padding: 0.4em 0.8em; font-size: 0.85rem; }
-        .print-ticket-icon { text-decoration: none; color: #198754; font-size: 1.5rem; }
+        .filter-card { 
+            background-color: #fff; 
+            padding: 24px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); 
+            border: 1px solid var(--border-slate); 
+            margin-bottom: 16px; 
+        }
+
+        /* Search input Box */
+        .search-box-wrapper {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 4px 12px;
+            border: 1.5px solid var(--border-slate);
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .search-box-wrapper:focus-within {
+            border-color: var(--brand-orange);
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
+        }
+        .search-box-wrapper .form-control {
+            border: none;
+            outline: none;
+            box-shadow: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Modern Passenger Card with Photo Support */
+        .passenger-card { 
+            background-color: #fff; 
+            border-radius: 18px; 
+            border: 1px solid var(--border-slate); 
+            margin-bottom: 14px; 
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01); 
+            overflow: hidden; 
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .passenger-card:hover {
+            border-color: var(--brand-orange);
+            box-shadow: 0 6px 18px rgba(255, 123, 0, 0.06);
+        }
+        .passenger-card .card-body { padding: 18px; }
         
-        .select2-container--bootstrap-5 .select2-selection { min-height: 48px; padding: .5rem 1rem; }
-        .select2-container--bootstrap-5 .select2-dropdown { border-radius: .5rem; }
+        .contact-info { padding-bottom: 12px; border-bottom: 1px dashed var(--border-slate); }
+        .doc-links { padding-top: 12px; }
+        
+        /* Document Buttons */
+        .doc-link { 
+            margin-right: 4px; 
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 10px;
+        }
+        .seat-badge { 
+            background-color: #fef2f2 !important; 
+            color: #991b1b !important; 
+            border: 1px solid #fca5a5;
+            padding: 5px 10px; 
+            font-size: 11px; 
+            font-weight: 700;
+            border-radius: 8px;
+        }
+        .print-ticket-icon { 
+            text-decoration: none; 
+            color: var(--brand-orange); 
+            font-size: 1.5rem; 
+            transition: color 0.2s;
+        }
+        .print-ticket-icon:hover { color: var(--brand-orange-dark); }
+        
+        /* Select2 Style reset */
+        .select2-container--bootstrap-5 .select2-selection { min-height: 48px; padding: .5rem 1rem; border-radius: 12px; border: 1.5px solid var(--border-slate); background-color: #F8FAFC; }
+        .select2-container--bootstrap-5 .select2-selection__rendered { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection { border-color: var(--brand-orange); box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1); }
+        .select2-container--bootstrap-5 .select2-dropdown { border-radius: 12px; border: 1.5px solid var(--border-slate); }
     </style>
 </head>
 <body>
 
 <nav class="navbar fixed-top">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a href="{% url 'dashboard' %}" class="back-btn"><i class="bi bi-arrow-left-circle"></i></a>
+        <a href="{% url 'dashboard' %}" class="back-btn"><i class="bi bi-arrow-left-circle-fill"></i></a>
         <span class="navbar-brand mb-0 h1" style="color:white">Passenger Documents</span>
         <span style="width: 30px;"></span> 
     </div>
@@ -51,7 +149,7 @@
 <div class="container-main">
     <div class="filter-card">
         <div class="mb-3">
-            <label class="form-label fw-bold">1. Select Route</label>
+            <label class="form-label fw-bold" style="font-size:12px; color: var(--brand-orange); text-transform:uppercase;">1. Select Route</label>
             <select id="routeSelect" class="form-select">
                 <option value="">-- Please choose a route --</option>
                 {% for route in routes %}
@@ -60,45 +158,44 @@
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label fw-bold">2. Select Yatra Date</label>
+            <label class="form-label fw-bold" style="font-size:12px; color: var(--brand-orange); text-transform:uppercase;">2. Select Yatra Date</label>
             <select id="yatraSelect" class="form-select" disabled>
                 <option value="">-- Select a route first --</option>
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label fw-bold">3. Select Bus</label>
+            <label class="form-label fw-bold" style="font-size:12px; color: var(--brand-orange); text-transform:uppercase;">3. Select Bus</label>
             <select id="busSelect" class="form-select" disabled>
                 <option value="">-- Select a yatra date first --</option>
             </select>
         </div>
     </div>
 
-    <!-- NEW: Search box, hidden by default -->
+    <!-- Real-time Search Box -->
     <div id="searchContainer" class="mb-3 d-none">
-        <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" id="searchInput" class="form-control" placeholder="Search by passenger name...">
+        <div class="search-box-wrapper">
+            <span class="text-muted me-2"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search passenger name...">
         </div>
     </div>
 
     <div id="loader" class="text-center my-5 d-none">
-        <div class="spinner-border text-primary" role="status"></div>
+        <div class="spinner-border text-primary" style="color: var(--brand-orange)" role="status"></div>
     </div>
     <div id="passengerResults">
-        <div class="alert alert-info text-center">
+        <div class="alert alert-warning text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">
             <i class="bi bi-info-circle-fill me-2"></i>Please select filters to view passenger details.
         </div>
     </div>
 </div>
 
-<!-- ADDED: jQuery and Select2 JS Libraries -->
+<!-- jQuery and Select2 JS Libraries -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function () {
-        // --- NEW: INITIALIZE SELECT2 ---
         $('#routeSelect, #yatraSelect, #busSelect').select2({
             theme: "bootstrap-5",
             width: '100%'
@@ -115,7 +212,7 @@
             const routeId = $(this).val();
             resetYatraSelect();
             resetBusSelect();
-            passengerResults.html('<div class="alert alert-info text-center">Select a Yatra date.</div>');
+            passengerResults.html('<div class="alert alert-warning text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">Select a Yatra date.</div>');
             searchContainer.addClass('d-none');
             if (!routeId) return;
             fetchFilterData(routeId);
@@ -124,7 +221,7 @@
         $('#yatraSelect').on('change', function() {
             const yatraId = $(this).val();
             resetBusSelect();
-            passengerResults.html('<div class="alert alert-info text-center">Select a bus.</div>');
+            passengerResults.html('<div class="alert alert-warning text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">Select a bus.</div>');
             searchContainer.addClass('d-none');
             if (!yatraId) return;
             populateBusSelect(yatraId);
@@ -133,20 +230,19 @@
         $('#busSelect').on('change', function() {
             const busId = $(this).val();
             if (!busId) {
-                 passengerResults.html('<div class="alert alert-info text-center">Select a bus.</div>');
+                 passengerResults.html('<div class="alert alert-warning text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">Select a bus.</div>');
                  searchContainer.addClass('d-none');
                  return;
             }
             fetchPassengerData();
         });
 
-        // --- NEW: SEARCH INPUT EVENT ---
         searchInput.on('input', function() {
             const searchTerm = $(this).val().toLowerCase();
             if (!currentPassengers.length) return;
 
             const filteredPassengers = currentPassengers.filter(pax => {
-                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ').toLowerCase();
+                const fullName = pax.PilgrimName || [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ').toLowerCase();
                 return fullName.includes(searchTerm);
             });
             renderPassengers(filteredPassengers);
@@ -156,7 +252,7 @@
             e.preventDefault();
             const printIcon = $(this);
             const originalIconClass = printIcon.html();
-            printIcon.html('<div class="spinner-border spinner-border-sm text-success" role="status"></div>');
+            printIcon.html('<div class="spinner-border spinner-border-sm text-warning" role="status"></div>');
             const regId = printIcon.data('reg-id');
             
             $.ajax({
@@ -164,9 +260,8 @@
                 method: 'POST',
                 data: { 'registration_id': regId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
                 success: function(data) {
-                    if (data.message_code === 999 && data.message_data) {
-                        const CARD_IMAGE_BASE_URL = "http://127.0.0.1:8000/api/cards/";
-                        printImage(CARD_IMAGE_BASE_URL + data.message_data);
+                    if (data.message_code === 1000 && data.message_data) {
+                        printImage(data.message_data);
                     } else { alert("Error printing ticket: " + data.message_text); }
                 },
                 error: function() { alert("An error occurred."); },
@@ -209,7 +304,7 @@
                 },
                 success: function(result) {
                     if (result.status === 'success') {
-                        currentPassengers = result.data; // Store for searching
+                        currentPassengers = result.data; 
                         renderPassengers(currentPassengers);
                     } else { handleError(result.message); }
                 },
@@ -255,7 +350,7 @@
                 if (searchInput.val()) {
                     message = `No passengers matching "${searchInput.val()}" found.`
                 }
-                passengerResults.html(`<div class="alert alert-warning text-center">${message}</div>`);
+                passengerResults.html(`<div class="alert alert-warning text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">${message}</div>`);
                 return;
             }
 
@@ -265,30 +360,46 @@
             searchContainer.removeClass('d-none');
             let html = '';
             passengers.forEach(pax => {
-                const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ');
+                // 🔴 दुरुस्ती १: PilgrimName मधुन नाव मिळवून सेव्ह करा
+                const fullName = pax.PilgrimName || [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ') || 'N/A';
                 
-                let docButtonsHtml = `<a href="${pax.PhotoFileName || '#'}" target="_blank" class="btn btn-sm btn-primary doc-link ${!pax.PhotoFileName ? 'disabled' : ''}" title="Profile"><i class="bi bi-person-circle me-1"></i> Profile</a>`;
-                docButtonsHtml += `<a href="${pax.IdProofFileName || '#'}" target="_blank" class="btn btn-sm btn-secondary doc-link ${!pax.IdProofFileName ? 'disabled' : ''}" title="Aadhar"><i class="bi bi-postcard me-1"></i> Aadhar</a>`;
-                docButtonsHtml += `<a href="${pax.VoterIdProof || '#'}" target="_blank" class="btn btn-sm btn-info text-white doc-link ${!pax.VoterIdProof ? 'disabled' : ''}" title="Voter ID"><i class="bi bi-person-vcard me-1"></i> Voter ID</a>`;
+                // 🔴 दुरुस्ती २: फोटो न मिळाल्यास किंवा लिंक तुटल्यास सुंदर फॉलबॅक अवतार दाखवा
+                const profilePhotoUrl = pax.PhotoFileName ? pax.PhotoFileName : '';
+                let avatarHtml = '';
+                if (profilePhotoUrl && profilePhotoUrl !== "None" && !profilePhotoUrl.endsWith('/None')) {
+                    avatarHtml = `<img src="${profilePhotoUrl}" onerror="this.onerror=null; this.outerHTML='<div class=&quot;rounded-circle shadow-sm border border-light bg-light text-muted d-flex align-items-center justify-content-center&quot; style=&quot;width: 50px; height: 50px; font-size: 20px;&quot;><i class=&quot;bi bi-person-fill&quot;></i></div>';" class="rounded-circle shadow-sm border border-light" alt="Avatar" style="width: 50px; height: 50px; object-fit: cover;">`;
+                } else {
+                    avatarHtml = `<div class="rounded-circle shadow-sm border border-light bg-light text-muted d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;"><i class="bi bi-person-fill"></i></div>`;
+                }
+
+                let docButtonsHtml = `<a href="${pax.PhotoFileName || '#'}" target="_blank" class="btn btn-sm btn-outline-primary doc-link ${!pax.PhotoFileName ? 'disabled' : ''}" title="Profile"><i class="bi bi-person-circle"></i> Profile</a>`;
+                docButtonsHtml += `<a href="${pax.IdProofFileName || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary doc-link ${!pax.IdProofFileName ? 'disabled' : ''}" title="Aadhar"><i class="bi bi-postcard"></i> Aadhar</a>`;
+                docButtonsHtml += `<a href="${pax.VoterIdProof || '#'}" target="_blank" class="btn btn-sm btn-outline-info doc-link ${!pax.VoterIdProof ? 'disabled' : ''}" title="Voter ID"><i class="bi bi-person-vcard"></i> Voter ID</a>`;
 
                 let printIconHtml = `<a href="#" class="print-ticket-icon" data-reg-id="${pax.RegistrationId}" title="Print Ticket"><i class="bi bi-printer-fill"></i></a>`;
                 
                 let footerContent = `
                     <div class="doc-links d-flex justify-content-between align-items-center">
-                        <div>${docButtonsHtml}</div>
+                        <div class="d-flex flex-wrap gap-1">${docButtonsHtml}</div>
                         <div>${printIconHtml}</div>
                     </div>`;
 
                 html += `
                 <div class="card passenger-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4>${fullName}</h4>
-                        <span class="badge rounded-pill seat-badge">${busName} : ${pax.SeatNo || 'N/A'}</span>
-                    </div>
                     <div class="card-body">
+                        <!-- Passenger header with Photo and Name -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-3" style="border-bottom: 1px dashed var(--border-slate);">
+                            <div class="d-flex align-items-center gap-3">
+                                ${avatarHtml}
+                                <div>
+                                    <h4 class="fw-bold text-dark m-0" style="font-size:15px;">${fullName}</h4>
+                                    <div class="text-muted small fw-bold mt-1"><i class="bi bi-telephone me-1"></i>${pax.MobileNo || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill seat-badge">${busName} : ${pax.SeatNo || 'N/A'}</span>
+                        </div>
                         <div class="contact-info">
-                            <p class="card-text mb-2"><i class="bi bi-phone me-2"></i><strong>Mobile:</strong> <a href="tel:${pax.MobileNo || ''}">${pax.MobileNo || 'N/A'}</a></p>
-                            <p class="card-text"><i class="bi bi-phone-flip me-2"></i><strong>Alternate:</strong> <a href="tel:${pax.AlternateMobileNo || ''}">${pax.AlternateMobileNo || 'N/A'}</a></p>
+                            <p class="card-text mb-2"><i class="bi bi-phone-flip me-2 text-muted"></i><strong>Alternate Mobile:</strong> <a href="tel:${pax.AlternateMobileNo || ''}" class="text-dark fw-semibold" style="text-decoration:none;">${pax.AlternateMobileNo || 'N/A'}</a></p>
                         </div>
                         ${footerContent}
                     </div>
@@ -312,33 +423,27 @@
             $('#busSelect').html('<option value="">-- Select a yatra date first --</option>').prop('disabled', true).trigger('change.select2');
         }
         function handleError(message) {
-            passengerResults.html(`<div class="alert alert-danger text-center">${message}</div>`);
+            passengerResults.html(`<div class="alert alert-danger text-center fw-bold py-4" style="border-radius:12px; font-size:13px;">${message}</div>`);
         }
     });
-// --- DEFAULT SELECTION LOGIC ---
-$(document).ready(function () {
-    const routeSelect = $('#routeSelect');
 
-    // Select the last option if there are only 2 routes (skips placeholder)
-    if (routeSelect.find('option').length > 2) {
-        // If 3 or more options, pick index 2
-        routeSelect.val(routeSelect.find('option').eq(2).val()).trigger('change');
-    } else if (routeSelect.find('option').length === 2) {
-        // If exactly 2 (placeholder + 1 route), pick index 1
-        routeSelect.val(routeSelect.find('option').eq(1).val()).trigger('change');
-    }
+    // --- DEFAULT SELECTION LOGIC ---
+    $(document).ready(function () {
+        const routeSelect = $('#routeSelect');
 
-    // After Yatra dropdown is populated, auto-select the first available date
-    $(document).on('change.select2', '#yatraSelect', function () {
-        const yatraSelect = $(this);
-        if (yatraSelect.find('option').length > 1 && !yatraSelect.val()) {
-            yatraSelect.val(yatraSelect.find('option').eq(1).val()).trigger('change');
+        if (routeSelect.find('option').length > 2) {
+            routeSelect.val(routeSelect.find('option').eq(2).val()).trigger('change');
+        } else if (routeSelect.find('option').length === 2) {
+            routeSelect.val(routeSelect.find('option').eq(1).val()).trigger('change');
         }
+
+        $(document).on('change.select2', '#yatraSelect', function () {
+            const yatraSelect = $(this);
+            if (yatraSelect.find('option').length > 1 && !yatraSelect.val()) {
+                yatraSelect.val(yatraSelect.find('option').eq(1).val()).trigger('change');
+            }
+        });
     });
-});
-
-
-
 </script>
 
 </body>

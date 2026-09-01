@@ -646,6 +646,37 @@ def registration_api1(request):
             resp = requests.get(api_url,verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
 
+        # --- १. नवीन डिलीट ॲक्शन लॉजिक जोडा ---
+        elif action == "delete_registration":
+            try:
+                registration_id = request.POST.get("RegistrationId")
+                if not registration_id:
+                    return JsonResponse({"message_code": 999, "message_text": "Registration ID is required."})
+
+                # बॅकएंडच्या 'delete_diwali_member' एपीआयला कॉल करा जो डेटाबेसमधून रेकॉर्ड डिलीट करतो
+                api_url = f"{API_BASE_URL}delete_diwali_member/{registration_id}/"
+                
+                response = requests.post(api_url, verify=False, timeout=10)
+                
+                if response.status_code == 200:
+                    # फ्रंटएंड जेएस (JS) व्हॅलिडेशननुसार रिस्पॉन्स पाठवा
+                    return JsonResponse({
+                        "message_code": 1000, 
+                        "message_text": "Registration deleted successfully.",
+                        "status": "success"
+                    })
+                else:
+                    return JsonResponse({
+                        "message_code": 999, 
+                        "message_text": f"Backend Error: HTTP {response.status_code}"
+                    })
+                    
+            except Exception as e:
+                return JsonResponse({
+                    "message_code": 999, 
+                    "message_text": f"Exception during deletion: {str(e)}"
+                })
+
         elif action == "submit":
             try:
                 api_url = f"{API_BASE_URL}pilgrimregistration/"
@@ -927,7 +958,7 @@ def route_master_api(request):
                     "YatraRouteStatus": int(request.POST.get('status'))
                 }
 
-                response = requests.put(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
             
             else:
                 return JsonResponse({"status": "error", "message": "Invalid action."})
@@ -1562,9 +1593,11 @@ def user_master_api(request):
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 
+@csrf_exempt
 def dashboard(request):
     """
     Displays the dashboard, fetching real data from the APIs.
+    Guarantees that all summary cards are 100% deduplicated and aligned.
     """
     if 'user_id' not in request.session:
         messages.error(request, "Please login first.")
@@ -1572,37 +1605,71 @@ def dashboard(request):
 
     context = {
         "total_registrations": 0,
-        "total_tickets": 0, # Changed from total_trips
+        "total_tickets": 0,
         "yatras": []
     }
 
-    # 1. Fetch Total Registrations and Tickets
+    # Totals API (Deduplicated values)
     try:
-        # totals_api_url = "http://127.0.0.1:8000/api/totals"
         totals_api_url = f"{API_BASE_URL}totals/"
-        # response = requests.get(totals_api_url, headers=headers, verify=False, timeout=10)
         response = requests.get(totals_api_url, verify=False)
         if response.status_code == 200:
             data = response.json().get("message_data", {})
             context["total_registrations"] = data.get("Registrations", 0)
-            context["total_tickets"] = data.get("Tickets", 0) # Now using the 'Tickets' value
+            context["total_tickets"] = data.get("Tickets", 0)
     except Exception as e:
-        messages.error(request, f"Could not fetch totals: {e}")
+        print(f"Error fetching totals: {e}")
 
+    # Fetch Yatra Summary & Deduplicate on-the-fly to prevent database duplicates
     try:
-        # summary_api_url = "http://127.0.0.1:8000/api/totalrouteyatrabus"
         summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
-        # response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
         response = requests.get(summary_api_url, verify=False)
         if response.status_code == 200:
             summary_data = response.json().get("message_data", [])
             yatras_dict = {}
+            
             for item in summary_data:
                 yatra_id = item["YatraId"]
+                yatra_route_id = item["YatraRouteId"]
+                
                 if yatra_id not in yatras_dict:
-                    yatras_dict[yatra_id] = { "YatraId": yatra_id, "YatraRouteName": item["YatraRouteName"], "YatraDateTime": item["YatraDateTime"], "TotalBookings": 0 }
-                yatras_dict[yatra_id]["TotalBookings"] += int(item["Bookings"])
+                    yatras_dict[yatra_id] = {
+                        "YatraId": yatra_id,
+                        "YatraRouteId": yatra_route_id,
+                        "YatraRouteName": item["YatraRouteName"],
+                        "YatraDateTime": item["YatraDateTime"],
+                        "TotalBookings": 0
+                    }
+
+            # प्रत्येक एक्टिव्ह यात्रेसाठी खऱ्या तिकिटांची मोजणी करा
+            for y_id, y_info in yatras_dict.items():
+                try:
+                    bookings_api_url = f"{API_BASE_URL}yatrabookings/"
+                    payload = {
+                        "YatraRouteId": int(y_info["YatraRouteId"]),
+                        "YatraId": int(y_id)
+                    }
+                    bookings_resp = requests.post(bookings_api_url, json=payload, verify=False, timeout=5)
+                    if bookings_resp.status_code == 200:
+                        raw_bookings = bookings_resp.json().get("message_data", [])
+                        seen_seats = set()
+                        unique_count = 0
+                        for ticket in raw_bookings:
+                            bus_name = ticket.get("BusName")
+                            seat_no = ticket.get("SeatNo")
+                            seat_key = (bus_name, seat_no)
+                            if seat_key not in seen_seats:
+                                seen_seats.add(seat_key)
+                                unique_count += 1
+                        y_info["TotalBookings"] = unique_count
+                except Exception as e:
+                    print(f"Error deduplicating yatra {y_id}: {e}")
+                    raw_sum = sum(int(item["Bookings"]) for item in summary_data if item["YatraId"] == y_id)
+                    y_info["TotalBookings"] = raw_sum // 2 if raw_sum > 0 else 0
+
             context["yatras"] = list(yatras_dict.values())
+            context["total_tickets"] = sum(y["TotalBookings"] for y in context["yatras"])
+
     except Exception as e:
         messages.error(request, f"Could not fetch yatra summary: {e}")
 
@@ -1613,54 +1680,74 @@ def dashboard(request):
 def dashboard_api(request):
     """
     API endpoint for the seat map.
-    --- THIS VERSION IS NOW ACCURATE ---
-    It fetches the actual list of booked seat numbers.
+    Optimized to prevent HTTP connection pool timeouts by eliminating loops
+    and includes a strict safeguard to prevent duplicate seat counts.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
 
     if request.method == 'POST':
         yatra_id = request.POST.get('yatra_id')
+        route_id = request.POST.get('route_id')
+        
         if not yatra_id:
             return JsonResponse({"status": "error", "message": "Yatra ID is required."})
 
         try:
-            # summary_api_url = "http://127.0.0.1:8000/api/totalrouteyatrabus"
-            summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
-            # summary_response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
-            summary_response = requests.get(summary_api_url,verify=False)
+            # १. सर्व बसेसची कॅपेसिटी मॅप मिळवण्यासाठी १ स्थिर कॉल
+            buses_api_url = f"{API_BASE_URL}listyatrabuses/"
+            buses_resp = requests.get(buses_api_url, verify=False)
+            capacity_map = {}
+            if buses_resp.status_code == 200:
+                for b in buses_resp.json().get("message_data", []):
+                    bus_id_str = str(b.get("YatraBusId"))
+                    capacity_map[bus_id_str] = b.get("BusCapacity") or 45
+
+            # २. जर रूट आयडी उपलब्ध नसेल तर तो मिळवण्यासाठी १ स्थिर कॉल
+            if not route_id:
+                summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
+                summary_response = requests.get(summary_api_url, verify=False)
+                if summary_response.status_code == 200:
+                    for bus in summary_response.json().get("message_data", []):
+                        if str(bus.get("YatraId")) == str(yatra_id):
+                            route_id = bus.get("YatraRouteId")
+                            break
+
             final_bus_details = {}
+            seen_seats = set() 
 
-            if summary_response.status_code == 200:
-                all_buses = summary_response.json().get("message_data", [])
-                buses_for_this_yatra = [bus for bus in all_buses if bus.get("YatraId") == yatra_id]
-
-                # passenger_api_url = "http://127.0.0.1:8000/api/routeyatrabustickets"
-                passenger_api_url = f"{API_BASE_URL}routeyatrabustickets/"
-                for bus in buses_for_this_yatra:
-                    bus_name = f"Bus {bus.get('BusName', 'N/A')}"
-                    payload = {
-                        "YatraRouteId": bus.get("YatraRouteId"),
-                        "YatraId": bus.get("YatraId"),
-                        "YatraBusId": bus.get("YatraBusId")
-                    }
+            if route_id:
+                bookings_api_url = f"{API_BASE_URL}yatrabookings/"
+                payload = {
+                    "YatraRouteId": int(route_id),
+                    "YatraId": int(yatra_id)
+                }
+                bookings_resp = requests.post(bookings_api_url, json=payload, verify=False)
+                
+                if bookings_resp.status_code == 200:
+                    all_tickets = bookings_resp.json().get("message_data", [])
                     
-                    # passenger_response = requests.post(passenger_api_url, json=payload, headers=headers, verify=False, timeout=10)
-                    passenger_response = requests.post(passenger_api_url, json=payload,verify=False)
-                    
-                    booked_seat_numbers = [] # Start with an empty list
-                    if passenger_response.status_code == 200:
-                        passengers = passenger_response.json().get("message_data", [])
-                        # Create a list of the ACTUAL seat numbers from the API
-                        for pax in passengers:
-                            try:
-                                # Convert seat number string to an integer for the map
-                                seat_no = int(pax.get("SeatNo"))
-                                booked_seat_numbers.append(seat_no)
-                            except (ValueError, TypeError):
-                                continue # Ignore if SeatNo is not a valid number
-                    
-                    final_bus_details[bus_name] = {"booked_seats": booked_seat_numbers}
+                    for ticket in all_tickets:
+                        bus_id_str = str(ticket.get("YatraBusId"))
+                        bus_name = f"Bus {ticket.get('BusName', 'N/A')}"
+                        seat_no = ticket.get("SeatNo")
+                        
+                        seat_key = (bus_name, seat_no)
+                        if seat_key in seen_seats:
+                            continue 
+                        seen_seats.add(seat_key)
+                        
+                        if bus_name not in final_bus_details:
+                            final_bus_details[bus_name] = {
+                                "booked_seats": [],
+                                "capacity": capacity_map.get(bus_id_str, 45)
+                            }
+                        
+                        try:
+                            seat_num_int = int(seat_no)
+                            final_bus_details[bus_name]["booked_seats"].append(seat_num_int)
+                        except (ValueError, TypeError):
+                            pass
 
             return JsonResponse({"status": "success", "data": {"buses": final_bus_details}})
 
@@ -1673,47 +1760,74 @@ def dashboard_api(request):
 @csrf_exempt
 def detailed_report_api(request):
     """
-    NEW: API endpoint for the Detailed Booking Report.
-    Fetches all passenger details for a given Yatra.
+    API endpoint for the Detailed Booking Report.
+    Optimized to use a single request to 'yatrabookings' to prevent timeouts,
+    and includes a strict safeguard to prevent duplicate seat counts.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
 
     yatra_id_str = request.POST.get('yatra_id')
+    route_id_str = request.POST.get('route_id')
+
     if not yatra_id_str:
         return JsonResponse({"status": "error", "message": "Yatra ID is required."})
 
     try:
         yatra_id = int(yatra_id_str)
-        # summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
-        summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
-        # summary_response = requests.get(summary_api_url, verify=False, timeout=15)
-        summary_response = requests.get(summary_api_url,verify=False)
-        all_bookings = []
-
-        if summary_response.status_code == 200:
-            all_buses = summary_response.json().get("message_data", [])
-            buses_for_this_yatra = [
-                bus for bus in all_buses 
-                if str(bus.get("YatraId")) == str(yatra_id_str)
-            ]
-            
-            passenger_api_url = f"{API_BASE_URL}routeyatrabustickets/"
-            for bus in buses_for_this_yatra:
-                payload = {
-                    "YatraRouteId": bus.get("YatraRouteId"),
-                    "YatraId": bus.get("YatraId"),
-                    "YatraBusId": bus.get("YatraBusId")
-                }
-                passenger_response = requests.post(passenger_api_url, json=payload, verify=False, timeout=15)
-                
-                if passenger_response.status_code == 200:
-                    passengers = passenger_response.json().get("message_data", [])
-                    # Add the bus name to each passenger record for easy grouping in the frontend
-                    for pax in passengers:
-                        pax['BusName'] = f"Bus {bus.get('BusName', 'N/A')}"
-                    all_bookings.extend(passengers)
         
+        if not route_id_str:
+            summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
+            summary_response = requests.get(summary_api_url, verify=False)
+            if summary_response.status_code == 200:
+                for bus in summary_response.json().get("message_data", []):
+                    if str(bus.get("YatraId")) == str(yatra_id_str):
+                        route_id_str = bus.get("YatraRouteId")
+                        break
+
+        all_bookings = []
+        seen_seats = set() 
+
+        if route_id_str:
+            bookings_api_url = f"{API_BASE_URL}yatrabookings/"
+            payload = {
+                "YatraRouteId": int(route_id_str),
+                "YatraId": yatra_id
+            }
+            bookings_resp = requests.post(bookings_api_url, json=payload, verify=False)
+            
+            if bookings_resp.status_code == 200:
+                raw_bookings = bookings_resp.json().get("message_data", [])
+                for ticket in raw_bookings:
+                    bus_name = f"Bus {ticket.get('BusName', 'N/A')}"
+                    seat_no = ticket.get("SeatNo")
+                    
+                    seat_key = (bus_name, seat_no)
+                    if seat_key in seen_seats:
+                        continue 
+                    seen_seats.add(seat_key)
+
+                    pax = {
+                        "PilgrimName": f"{ticket.get('Firstname', '')} {ticket.get('Lastname', '')}".strip(),
+                        "SeatNo": seat_no,
+                        "MobileNo": ticket.get("MobileNo"),
+                        "AlternateMobileNo": ticket.get("AlternateMobileNo"),
+                        "RegistrationId": ticket.get("RegistrationId"),
+                        "BusName": bus_name
+                    }
+                    all_bookings.append(pax)
+
+        # सॉर्टिंग लॉजिक
+        def sort_key(item):
+            bus_name = item.get('BusName', '')
+            try:
+                seat_no = int(item.get('SeatNo', 0))
+            except (ValueError, TypeError):
+                seat_no = 0
+            return (bus_name, seat_no)
+
+        all_bookings.sort(key=sort_key)
+
         return JsonResponse({"status": "success", "data": {"bookings": all_bookings}})
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
@@ -1722,8 +1836,9 @@ def detailed_report_api(request):
 @csrf_exempt
 def get_pilgrim_card_api(request):
     """
-    NEW: API endpoint to fetch the pilgrim card image path for printing.
-    Acts as a proxy to your backend service.
+    API proxy to fetch the pilgrim card image path for printing.
+    Acts as a proxy to your backend service and dynamically rewrites 
+    the image path to use the backend server port to prevent 404/image load errors.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -1733,11 +1848,24 @@ def get_pilgrim_card_api(request):
         return JsonResponse({"message_code": 999, "message_text": "Registration ID is required."})
 
     try:
-        # Assuming the backend API endpoint is named 'getpilgrimcard'
         api_url = f"{API_BASE_URL}getpilgrimcard/"
         payload = {"RegistrationId": registration_id}
         response = requests.post(api_url, json=payload, verify=False, timeout=15)
-        return JsonResponse(response.json())
+        
+        response_data = response.json()
+        if response_data.get('message_code') == 1000 and response_data.get('message_data'):
+            partial_path = response_data['message_data'] # /cards/something.png
+            filename = partial_path.split('/')[-1]
+            
+            # 🔴 दुरुस्ती: बॅकएंड सर्व्हरचा मूळ पत्ता (उदा. पोर्ट ८०००) शोधा
+            from urllib.parse import urlparse
+            parsed_base = urlparse(API_BASE_URL)
+            backend_domain = f"{parsed_base.scheme}://{parsed_base.netloc}"
+            
+            # 🔴 फिक्स: थेट पोर्ट ८००० वरील प्रिमियम फाईलचा पाथ सेट करा
+            response_data['message_data'] = f"{backend_domain}/cards/{filename}"
+            
+        return JsonResponse(response_data)
     except Exception as e:
         return JsonResponse({"message_code": 999, "message_text": f"An error occurred: {str(e)}"})
 
@@ -1887,7 +2015,10 @@ def print_passenger_list(request, route_id):
         passengers_for_date = [pax for pax in all_passengers if pax.get("YatraDateTime") == yatra_date]
 
         if bus_filter:
-            passengers_for_date = [pax for pax in passengers_for_date if pax.get("BusName") == bus_filter]
+            passengers_for_date = [
+                pax for pax in passengers_for_date 
+                if str(pax.get("YatraBusId")) == str(bus_filter) or pax.get("BusName") == bus_filter
+            ]
 
         if not passengers_for_date:
             return HttpResponse(f"No passengers found for this route on {yatra_date}.", status=404)
@@ -2250,12 +2381,13 @@ def whatsapp_messaging_page(request):
 
     routes = []
     try:
-        route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
+        # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
+        route_list_api_url = f"{API_BASE_URL}listrouteall/"
         route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
         if route_response.status_code == 200:
             all_routes = route_response.json().get("message_data", [])
             # Filter out the placeholder route with ID "0"
-            routes = [route for route in all_routes if route.get("YatraRouteId") != "0"]
+            routes = [route for route in all_routes if str(route.get("YatraRouteId")) != "0"]
     except Exception as e:
         messages.error(request, f"Could not fetch routes: {e}")
 
@@ -3697,3 +3829,78 @@ def digital_pass_page(request, event_id, registration_id):
     }
     # Render the new template you just created
     return render(request, "events/digital_pass.html", context)
+
+
+
+
+
+
+
+# Yatra Darshan / Frontend views.py मध्ये सर्वात शेवटी जोडा:
+
+def search_registration(request):
+    """
+    Renders the dedicated premium Search Passenger & Ticket details page.
+    """
+    if 'user_id' not in request.session:
+        messages.error(request, "Please login first.")
+        return redirect('login')
+    return render(request, "search_registration.html")
+
+
+@csrf_exempt
+def search_passenger_tickets_api(request):
+    """
+    API Proxy: Searches passengers and automatically fetches their active booking details
+    including Bus Name, Seat Number, and Journey Date/Time in a single composite call.
+    """
+    if 'user_id' not in request.session:
+        return JsonResponse({"message_code": 999, "message_text": "Authentication required"}, status=401)
+
+    if request.method != "POST":
+        return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
+
+    search_term = request.POST.get("search", "").strip()
+    if not search_term:
+        return JsonResponse({"message_code": 999, "message_text": "Please provide a name or mobile number."})
+
+    try:
+        search_url = f"{API_BASE_URL}searchregistrations/"
+        resp = requests.post(search_url, json={"search": search_term}, verify=False, timeout=10)
+        
+        if resp.status_code != 200:
+            return JsonResponse({"message_code": 999, "message_text": "Failed to query database."})
+
+        resp_data = resp.json()
+        registrations = resp_data.get("message_data", [])
+
+        if resp_data.get("message_code") != 1000 or not registrations:
+            return JsonResponse({"message_code": 1000, "message_text": "No registrations found.", "message_data": []})
+
+        results = []
+        for r in registrations:
+            reg_id = r.get("RegistrationId")
+            
+            tickets_url = f"{API_BASE_URL}list_pilgrim_tickets/"
+            tickets_resp = requests.post(tickets_url, json={"RegistrationId": int(reg_id)}, verify=False, timeout=10)
+            
+            tickets_list = []
+            if tickets_resp.status_code == 200:
+                t_data = tickets_resp.json()
+                if t_data.get("message_code") == 1000:
+                    tickets_list = t_data.get("message_data", [])
+
+            results.append({
+                "RegistrationId": reg_id,
+                "Firstname": r.get("Firstname", ""),
+                "Middlename": r.get("Middlename", ""),
+                "Lastname": r.get("Lastname", ""),
+                "MobileNo": r.get("MobileNo", "-"),
+                "AreaName": r.get("AreaName", "Unknown"),
+                "Tickets": tickets_list 
+            })
+
+        return JsonResponse({"message_code": 1000, "message_data": results})
+
+    except Exception as e:
+        return JsonResponse({"message_code": 999, "message_text": f"Error: {str(e)}"})

@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Registration & Passes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- Bootstrap, Icons & SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --brand-primary: #0F172A; /* Deep Charcoal Slate */
+            --brand-teal: #0D9488; /* Royal Premium Teal */
+            --brand-teal-dark: #0F766E;
+            --bg-slate: #f8fafc;
+            --border-slate: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-slate);
+            padding-top: 60px;
+            color: var(--text-dark);
+        }
+
+        /* Fixed Navigation Header */
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, #1e293b 100%);
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: none;
+        }
+
+        .navbar-brand {
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+        }
+
+        .container-main {
+            max-width: 550px;
+            margin: 20px auto 40px auto;
+            padding: 0 14px;
+        }
+
+        /* Search Input Styling */
+        .search-box-wrapper {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03);
+            border: 1px solid var(--border-slate);
+            margin-bottom: 16px;
+        }
+
+        .search-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-field {
+            width: 100%;
+            height: 52px;
+            padding: 10px 55px 10px 16px;
+            border: 1.5px solid var(--border-slate);
+            border-radius: 12px;
+            background: #f8fafc;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input-field:focus {
+            border-color: var(--brand-teal);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.10);
+        }
+
+        .search-action-btn {
+            position: absolute;
+            right: 8px;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--brand-teal);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        /* Passenger Ticket Cards */
+        .passenger-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.02);
+            border: 1px solid var(--border-slate);
+        }
+
+        .passenger-header {
+            border-bottom: 1.5px solid var(--border-slate);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .passenger-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand-primary);
+        }
+
+        .ticket-pill {
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .btn-print-ticket {
+            background-color: var(--brand-teal);
+            color: white !important;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-print-ticket:hover {
+            background-color: var(--brand-teal-dark);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-custom fixed-top">
+  <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
+    <a href="{% url 'dashboard' %}" class="btn" style="position:absolute; left:12px; color: white; font-size: 1.5rem; padding:0;">
+        <i class="bi bi-arrow-left-circle"></i>
+    </a>
+    <span class="navbar-brand">Search Passenger Passes</span>
+  </div>
+</nav>
+
+<div class="container-main">
+
+    <!-- Search Input Wrapper -->
+    <div class="search-box-wrapper">
+        <div class="search-input-group">
+            <input id="searchQuery" type="text" class="search-input-field" placeholder="Search by Mobile or Name..." autocomplete="off">
+            <button id="btnRunSearch" class="search-action-btn" type="button">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Area -->
+    <div id="searchResultsArea">
+        <div class="text-center py-5 text-muted" style="font-size: 14px;">
+            <i class="bi bi-search" style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
+            Enter passenger name or mobile to fetch active bookings.
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchQuery');
+    const searchBtn = document.getElementById('btnRunSearch');
+    const resultsArea = document.getElementById('searchResultsArea');
+
+    // Auto search when user finishes typing 10 digits
+    searchInput.addEventListener('input', (e) => {
+        const cleaned = e.target.value.replace(/\D/g, '');
+        if (cleaned.length === 10) {
+            executeSearch();
+        }
+    });
+
+    searchBtn.addEventListener('click', executeSearch);
+
+    function executeSearch() {
+        const queryValue = searchInput.value.trim();
+        if (queryValue.length < 2) {
+            Swal.fire({ icon: 'warning', title: 'Invalid Search', text: 'Please type at least 2 characters.', confirmButtonColor: '#0D9488' });
+            return;
+        }
+
+        resultsArea.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-teal" style="color: var(--brand-teal);" role="status"></div>
+                <div class="mt-2 text-muted fw-bold" style="font-size:13px;">Searching database...</div>
+            </div>`;
+
+        let formData = new FormData();
+        formData.append('search', queryValue);
+
+        fetch("{% url 'search_passenger_tickets_api' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.message_code === 1000) {
+                renderSearchResults(result.message_data);
+            } else {
+                resultsArea.innerHTML = `<div class="alert alert-danger text-center">${result.message_text}</div>`;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            resultsArea.innerHTML = `<div class="alert alert-danger text-center">An error occurred during search.</div>`;
+        });
+    }
+
+    function renderSearchResults(data) {
+        if (!data || data.length === 0) {
+            resultsArea.innerHTML = `
+                <div class="text-center py-5 text-muted" style="font-size: 14px;">
+                    <i class="bi bi-exclamation-circle" style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: #fca5a5;"></i>
+                    No matches found. Check name/number spelling.
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        data.forEach(pax => {
+            let ticketsHtml = '';
+            
+            if (pax.Tickets && pax.Tickets.length > 0) {
+                pax.Tickets.forEach(ticket => {
+                    // Check only active/confirmed bookings
+                    if ([1, 2, 3, 4].includes(ticket.TicketStatusId)) {
+                        ticketsHtml += `
+                            <div class="ticket-pill">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold" style="color: var(--brand-primary);">${ticket.YatraRouteName}</span>
+                                    <span class="badge rounded-pill bg-teal" style="background-color: var(--brand-teal);">Confirmed</span>
+                                </div>
+                                <div class="text-muted mb-2" style="font-size: 11px;">
+                                    <i class="bi bi-calendar-event me-1"></i>Dep: ${ticket.BusDateTimeStart || 'N/A'}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center" style="border-top:1px solid #f1f5f9; padding-top:6px;">
+                                    <span>
+                                        <strong style="color:var(--brand-teal);"><i class="bi bi-bus-front-fill me-1"></i>${ticket.BusName || 'Bus'}</strong> &nbsp;&bull;&nbsp; 
+                                        Seat: <strong>${ticket.SeatNo}</strong>
+                                    </span>
+                                    <button class="btn-print-ticket btn-print-card" data-reg-id="${pax.RegistrationId}" type="button">
+                                        <i class="bi bi-printer-fill me-1"></i>Print Pass
+                                    </button>
+                                </div>
+                            </div>`;
+                    }
+                });
+            }
+
+            if (!ticketsHtml) {
+                ticketsHtml = `<div class="text-muted text-center py-2" style="font-size:12px;"><i class="bi bi-info-circle me-1"></i>No active bookings found for this passenger.</div>`;
+            }
+
+            html += `
+                <div class="passenger-card">
+                    <div class="passenger-header">
+                        <div class="passenger-name">${pax.Firstname} ${pax.Middlename || ''} ${pax.Lastname}</div>
+                        <div class="text-muted d-flex gap-3 mt-1" style="font-size: 12px;">
+                            <span><i class="bi bi-telephone-fill me-1"></i>${pax.MobileNo}</span>
+                            <span><i class="bi bi-geo-alt-fill me-1"></i>${pax.AreaName}</span>
+                        </div>
+                    </div>
+                    <div>
+                        ${ticketsHtml}
+                    </div>
+                </div>`;
+        });
+
+        resultsArea.innerHTML = html;
+
+        // Print card handler integration
+        document.querySelectorAll('.btn-print-card').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const regId = this.dataset.regId;
+                
+                Swal.fire({
+                    title: 'Generating Pass...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                let printFormData = new FormData();
+                printFormData.append('registration_id', regId);
+
+                fetch("{% url 'get_pilgrim_card_api' %}", {
+                    method: "POST",
+                    body: printFormData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.message_code === 1000 && data.message_data) {
+                        Swal.close();
+                        window.open(data.message_data, '_blank');
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.message_text || 'Generation failed.' });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection failed.' });
+                });
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

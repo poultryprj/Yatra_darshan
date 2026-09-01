@@ -3,8 +3,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Messaging</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Darshan Yatra - WhatsApp Sender (Premium Orange)</title>
 
     <!-- Essential CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -18,42 +18,196 @@
 
     <style>
         :root {
-            --brand-orange: #ff7b00;
-            --brand-orange-dark: #e67000;
-            --brand-blue: #003399;
-            --brand-green: #006633;
+            --brand-orange: #FF7B00; /* Vibrant Brand Orange */
+            --brand-orange-dark: #E06B00; /* Deep Orange for hovers */
+            --brand-orange-light: #FFF7ED; /* Soft light orange tint */
+            --brand-primary: #0F172A; /* Slate Charcoal for Headers */
+            --accent-green: #10B981; /* Success Green */
+            --bg-slate: #f8fafc;
+            --border-slate: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; }
-        .navbar { background-color: var(--brand-orange); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
-        .navbar-brand { font-weight: bold; }
-        .container-main { max-width: 900px; margin: 70px auto; padding: 10px; padding-bottom: 100px; /* Space for sticky footer */ }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background-color: var(--bg-slate); 
+            color: var(--text-dark);
+            padding-top: 60px;
+        }
+
+        /* Fixed Navigation Header */
+        .navbar { 
+            background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.2); 
+            border: none;
+        }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; transition: opacity 0.2s; }
+        .back-btn:hover { opacity: 0.8; }
+        .navbar-brand { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
+
+        /* Main Card Container */
+        .container-main { 
+            max-width: 550px; 
+            margin: 20px auto; 
+            padding: 0 14px;
+            padding-bottom: 100px; /* Space for sticky footer */
+        }
         
+        .main-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            border: 1px solid var(--border-slate);
+        }
+
+        .main-title { color: var(--brand-primary); font-weight: 800; font-size: 20px; letter-spacing: -0.3px; margin-bottom: 24px; }
+
+        /* Step Headers */
+        .step-heading {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-orange-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1.5px solid var(--border-slate);
+            padding-bottom: 6px;
+            margin-bottom: 16px;
+            margin-top: 12px;
+        }
+
+        /* Custom Input Icon Wrappers */
+        .input-group-custom { 
+            display: flex; 
+            align-items: center; 
+            border: 1.5px solid var(--border-slate); 
+            border-radius: 12px; 
+            padding: 0 14px; 
+            margin-bottom: 16px; 
+            transition: border-color 0.2s, box-shadow 0.2s; 
+            height: 52px; 
+            background-color: #F8FAFC;
+        }
+        .input-group-custom:focus-within { 
+            border-color: var(--brand-orange); 
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1); 
+        }
+        .input-group-custom .form-control, 
+        .input-group-custom .select2-container { 
+            flex-grow: 1; 
+        }
+        .input-group-custom .form-control, 
+        .input-group-custom .select2-container--bootstrap-5 .select2-selection { 
+            border: none !important; 
+            box-shadow: none !important; 
+            padding-left: 0; 
+            background-color: transparent; 
+            height: 100%; 
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .input-group-custom .input-group-text { 
+            background: transparent; 
+            border: none; 
+            color: var(--brand-orange); 
+            font-size: 1.3rem; 
+            padding-right: 12px; 
+        }
+
+        /* Sticky Footer */
         .sticky-footer-send {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: white;
-            padding: 1rem;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+            z-index: 1030;
+            display: flex;
+            justify-content: center;
         }
-        .btn-brand-send { background-color: var(--brand-orange); color: white; font-weight: bold; padding: 12px; font-size: 1.1rem; border: none; }
-        .btn-brand-send:hover { background-color: var(--brand-orange-dark); color: white; }
+        .sticky-footer-inner {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        /* Premium Buttons */
+        .btn-brand-send { 
+            background-color: var(--brand-orange); 
+            color: white !important; 
+            font-weight: 700; 
+            padding: 12px; 
+            font-size: 15px; 
+            border: none; 
+            border-radius: 12px;
+            height: 52px;
+            box-shadow: 0 4px 14px rgba(255, 123, 0, 0.25);
+            transition: all 0.2s;
+        }
+        .btn-brand-send:active { transform: scale(0.98); }
+        .btn-brand-send:hover { background-color: var(--brand-orange-dark); }
         
-        .passenger-item { display: flex; align-items: center; padding: 12px; }
+        /* Recipient Cards */
+        .passenger-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 16px; 
+            border: 1px solid var(--border-slate);
+            border-radius: 12px;
+            background-color: #ffffff;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        .passenger-item:hover { border-color: var(--brand-orange); }
+
         .avatar {
-            width: 40px; height: 40px; border-radius: 50%; background-color: var(--brand-blue);
-            color: white; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; margin-right: 15px; flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 50%; 
+            background-color: var(--brand-orange-light);
+            border: 1px solid #fed7aa;
+            color: var(--brand-orange-dark); 
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; margin-right: 15px; flex-shrink: 0;
+            font-size: 14px;
         }
         .passenger-details { flex-grow: 1; }
-        .passenger-name { font-weight: 600; }
-        .passenger-mobile { font-size: 0.9em; color: #6c757d; }
-        .passenger-checkbox { transform: scale(1.4); margin-left: 15px; flex-shrink: 0; }
+        .passenger-name { font-weight: 700; font-size: 14px; color: var(--brand-primary); }
+        .passenger-mobile { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .passenger-checkbox { transform: scale(1.3); margin-left: 15px; flex-shrink: 0; accent-color: var(--brand-orange); }
         
-        .select2-container--bootstrap-5 .select2-dropdown { z-index: 1060; }
+        /* Select2 Style reset */
+        .select2-container--bootstrap-5 .select2-selection { min-height: 48px; padding: .5rem 1rem; border-radius: 12px; border: 1.5px solid var(--border-slate); background-color: #F8FAFC; }
+        .select2-container--bootstrap-5 .select2-selection__rendered { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection { border-color: var(--brand-orange); box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1); }
+        .select2-container--bootstrap-5 .select2-dropdown { border-radius: 12px; border: 1.5px solid var(--border-slate); }
+
+        /* Textarea Style */
+        #customMessageBody {
+            border: 1.5px solid var(--border-slate);
+            border-radius: 12px;
+            background-color: #F8FAFC;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 12px;
+        }
+        #customMessageBody:focus {
+            border-color: var(--brand-orange);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
+            outline: none;
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -69,73 +223,105 @@
 
 <!-- Main Page Content -->
 <div class="container-main">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <h4 class="mb-3" style="color: var(--brand-green);"><i class="bi bi-chat-dots-fill"></i> Bulk Message Sender</h4>
+    <div class="main-card">
+        <h4 class="main-title"><i class="bi bi-chat-dots-fill me-2" style="color: var(--brand-orange);"></i> Bulk Message Sender</h4>
 
-            <!-- Step 1: Filters -->
-            <div class="card-header bg-transparent fw-bold ps-0">Step 1: Select Recipients</div>
-            <div class="p-3 border rounded mb-4">
-                <div class="mb-3">
-                    <label for="routeFilter" class="form-label text-muted">Route</label>
-                    <select id="routeFilter" class="form-select form-select-lg">
-                        <option value="">-- Choose a Route --</option>
-                        {% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="yatraFilter" class="form-label text-muted">Yatra (Date)</label>
-                    <select id="yatraFilter" class="form-select form-select-lg" disabled><option value="">-- Select Route First --</option></select>
-                </div>
-                <div>
-                    <label for="busFilter" class="form-label text-muted">Bus</label>
-                    <select id="busFilter" class="form-select form-select-lg" disabled><option value="">-- Select Yatra First --</option></select>
-                </div>
+        <!-- Step 1: Filters -->
+        <div class="step-heading">Step 1: Select Recipients</div>
+        <div class="mb-3">
+            <div class="input-group-custom">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <select id="routeFilter" class="form-select">
+                    <option value="">-- Choose a Route --</option>
+                    {% for route in routes %}<option value="{{ route.YatraRouteId }}">{{ route.YatraRouteName }}</option>{% endfor %}
+                </select>
             </div>
+        </div>
+        <div class="mb-3">
+            <div class="input-group-custom">
+                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                <select id="yatraFilter" class="form-select" disabled><option value="">-- Select Route First --</option></select>
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="input-group-custom">
+                <span class="input-group-text"><i class="bi bi-bus-front"></i></span>
+                <select id="busFilter" class="form-select" disabled><option value="">-- Select Yatra First --</option></select>
+            </div>
+        </div>
 
-            <!-- Message Composer and Recipient List Container -->
-            <div id="mainContentContainer" class="d-none">
-                <!-- Step 2: Message Composer -->
-                <div class="card-header bg-transparent fw-bold ps-0">Step 2: Compose Your Message</div>
-                <div class="p-3 border rounded mb-4">
-                    <!-- ✅ ADDED THIS BLOCK -->
-                    <div class="mb-3">
-                        <label for="messageMethodSelector" class="form-label text-muted">Message Method</label>
-                        <select id="messageMethodSelector" class="form-select form-select-lg">
-                            <option value="2" selected>WhatsApp</option>
-                            <option value="1">Text Message (SMS)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label for="templateSelector" class="form-label text-muted">Select a Template (Optional)</label><select id="templateSelector" class="form-select form-select-lg"><option value="">-- Write a Custom Message --</option></select></div>
-                    <div><label for="customMessageBody" class="form-label text-muted">Message Body</label><textarea id="customMessageBody" class="form-control" rows="5" placeholder="Type a message or select a template..."></textarea></div>
-                    <small class="form-text text-muted">Placeholders like <code>{{NAME}}</code> will be replaced.</small>
-                </div>
-
-                <!-- Step 3: Recipient List -->
-                <div class="card shadow-sm">
-                    <div class="card-header fw-bold bg-light d-flex justify-content-between align-items-center">
-                        <span>Recipients (Selected: <span id="recipientCount">0</span>)</span>
-                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="selectAllCheckbox"><label class="form-check-label" for="selectAllCheckbox">Select All</label></div>
-                    </div>
-                    <div id="passengerTableBody" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;"></div>
-                </div>
-
-                <!-- STICKY FOOTER FOR THE SEND BUTTON -->
-                <div class="sticky-footer-send">
-                    <button id="btnSendCustomMessage" class="btn btn-brand-send w-100"><i class="bi bi-send-fill me-2"></i>Send to Selected</button>
+        <!-- Message Composer and Recipient List Container -->
+        <div id="mainContentContainer" class="d-none">
+            
+            <!-- Step 2: Message Composer -->
+            <div class="step-heading">Step 2: Compose Your Message</div>
+            
+            <div class="mb-3">
+                <div class="input-group-custom">
+                    <span class="input-group-text"><i class="bi bi-phone-flip"></i></span>
+                    <select id="messageMethodSelector" class="form-select">
+                        <option value="2" selected>WhatsApp</option>
+                        <option value="1">Text Message (SMS)</option>
+                    </select>
                 </div>
             </div>
             
-            <div id="loader" class="text-center my-4 d-none"><div class="spinner-border" style="color: var(--brand-orange);"></div><p class="mt-2">Fetching...</p></div>
-            <div id="statusMessage" class="alert text-center d-none"></div>
-             <div id="initialPrompt" class="text-center text-muted p-4"><i class="bi bi-filter-circle fs-1"></i><p class="mt-2">Please select a Route, Yatra, and Bus to load recipients.</p></div>
+            <div class="mb-3">
+                <div class="input-group-custom">
+                    <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
+                    <select id="templateSelector" class="form-select">
+                        <option value="">-- Write a Custom Message --</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <textarea id="customMessageBody" class="form-control" rows="5" placeholder="Type a message or select a template..."></textarea>
+                <div class="form-text text-muted mt-2" style="font-size: 11px; font-weight: 600;">Placeholders like <code>{{NAME}}</code> will be replaced automatically.</div>
+            </div>
+
+            <!-- Step 3: Recipient List -->
+            <div class="step-heading">Step 3: Recipient List</div>
+            <div class="card border-0">
+                <div class="card-header fw-bold bg-transparent d-flex justify-content-between align-items-center px-0 mb-2">
+                    <span style="font-size: 14px;">Selected Recipients: <span id="recipientCount" class="badge bg-success" style="border-radius:6px; padding:5px 10px;">0</span></span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="selectAllCheckbox" style="accent-color: var(--brand-orange);">
+                        <label class="form-check-label fw-bold" for="selectAllCheckbox" style="font-size: 13px;">Select All</label>
+                    </div>
+                </div>
+                <div id="passengerTableBody" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto; border-radius: 12px;"></div>
+            </div>
+
+            <!-- STICKY FOOTER FOR THE SEND BUTTON -->
+            <div class="sticky-footer-send">
+                <div class="sticky-footer-inner">
+                    <button id="btnSendCustomMessage" class="btn btn-brand-send w-100"><i class="bi bi-send-fill me-2"></i>Send Messages</button>
+                </div>
+            </div>
         </div>
+        
+        <div id="loader" class="text-center my-4 d-none"><div class="spinner-border" style="color: var(--brand-orange);"></div><p class="mt-2 text-muted fw-bold">Fetching passengers...</p></div>
+        <div id="statusMessage" class="alert text-center d-none" style="border-radius:12px;"></div>
+        <div id="initialPrompt" class="text-center text-muted py-5"><i class="bi bi-filter-circle" style="font-size: 3rem; color: #cbd5e1; display: block; margin-bottom: 10px;"></i><p style="font-size: 13px; font-weight:600;">Please select a Route, Yatra, and Bus to load recipients.</p></div>
     </div>
 </div>
 
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmBulkSendModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirm Bulk Message</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div id="modalBodyContent" class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" id="confirmSendBtn" class="btn btn-success">Yes, Send Message</button></div></div></div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--brand-primary); color: white;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">Confirm Bulk Message</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="modalBodyContent" class="modal-body p-4" style="font-weight: 600; color: var(--text-dark);"></div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 700;">Cancel</button>
+                <button type="button" id="confirmSendBtn" class="btn btn-success" style="background-color: var(--accent-green); border: none; border-radius: 10px; font-weight: 700; height: 40px; padding: 0 20px;">Yes, Send Message</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- JavaScript Libraries -->
@@ -163,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let yatraDataCache = {};
     let messageTemplates = [];
 
-    $('#routeFilter, #yatraFilter, #busFilter, #templateSelector, #messageMethodSelector').select2({ theme: "bootstrap-5", containerCssClass: "form-select-lg", dropdownCssClass: "form-select-lg" });
+    $('#routeFilter, #yatraFilter, #busFilter, #templateSelector, #messageMethodSelector').select2({ theme: "bootstrap-5" });
 
     async function loadMessageTemplates() { try { const response = await fetch("{% url 'get_whatsapp_templates_api' %}"); const result = await response.json(); if (result.message_code === 1000 && Array.isArray(result.message_data)) { messageTemplates = result.message_data; const templateSelect = $('#templateSelector'); templateSelect.find('option:not(:first)').remove(); messageTemplates.forEach(template => { templateSelect.append(new Option(template.TemplateTitle, template.TemplateId, false, false)); }); templateSelect.trigger('change'); } } catch (error) { console.error("Failed to load message templates:", error); } }
     loadMessageTemplates();
@@ -240,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const validRecipients = passengers.filter(pax => pax.MobileNo && pax.MobileNo.length >= 10);
         if (validRecipients.length === 0) { passengerTableBody.innerHTML = `<div class="list-group-item text-center text-muted">No valid recipients found.</div>`; }
         validRecipients.forEach((pax) => {
-            const fullName = [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ');
+            const fullName = pax.PilgrimName || [pax.Firstname, pax.Middlename, pax.Lastname].filter(Boolean).join(' ');
             const initials = (fullName.split(' ').map(n => n[0]).join('')).substring(0, 2).toUpperCase();
             const row = `
                 <div class="list-group-item passenger-item"
@@ -266,7 +452,6 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSendCustomMessage.addEventListener('click', function() {const message = customMessageBody.value.trim(); if (!message) {swal("Wait!", "Please type a message before sending.", "warning"); customMessageBody.focus(); return;} const selectedRows = passengerTableBody.querySelectorAll('.row-checkbox:checked'); if (selectedRows.length > 0) {modalBodyContent.innerHTML = `<p>You are about to send a custom message to <strong>${selectedRows.length}</strong> selected recipients.</p><p>Do you want to proceed?</p>`; confirmBulkSendModal.show();} else {swal("No Recipients Selected", "Please select at least one recipient.", "info");}});
     confirmSendBtn.addEventListener('click', async function() { confirmBulkSendModal.hide(); const customText = customMessageBody.value.trim(); const selectedRecipientRows = Array.from(passengerTableBody.querySelectorAll('.row-checkbox:checked')).map(cb => cb.closest('.passenger-item')); let successCount = 0; let failCount = 0; const originalButtonText = btnSendCustomMessage.innerHTML; btnSendCustomMessage.disabled = true; btnSendCustomMessage.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Sending...`; for (const row of selectedRecipientRows) {const success = await sendMessage(row.dataset, customText); if (success) successCount++; else failCount++; await new Promise(resolve => setTimeout(resolve, 200));} btnSendCustomMessage.disabled = false; btnSendCustomMessage.innerHTML = originalButtonText; swal({title: "Bulk Send Complete!", text: `Messages sent to ${selectedRecipientRows.length} recipients.\n\nSuccessful: ${successCount}\nFailed: ${failCount}`, type: "success"}, function(isConfirm){ if(isConfirm){ document.querySelectorAll('.row-checkbox:checked').forEach(c => c.checked=false); selectAllCheckbox.checked=false; updateSelectedCount();}});});
     
-    // ✅ MODIFIED THIS FUNCTION
     async function sendMessage(dataset, customText) {
         try {
             const fd = new FormData();
@@ -280,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fd.append('bus_no', dataset.busNo);
             fd.append('seat_no', dataset.seatNo);
             fd.append('custom_message_body', customText);
-            fd.append('sms_method', smsMethod); // Add the new parameter
+            fd.append('sms_method', smsMethod);
 
             const response = await fetch("{% url 'send_whatsapp_api' %}", { method: 'POST', body: fd });
             const result = await response.json();
