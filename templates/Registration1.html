@@ -1687,7 +1687,43 @@
             upiFieldsDiv.classList.toggle('d-none', !isUpiSelected);
             document.getElementById('upiScreenshot').required = isUpiSelected;
             document.getElementById('transactionId').required = isUpiSelected;
-            if (isUpiSelected) qrCodeModal.show();
+            
+            if (isUpiSelected) {
+                // युपीआय निवडल्यास खऱ्या आणि अचूक रक्कमेचा क्यूआर जनरेट करा
+                const totalFeesVal = parseFloat(totalFeesInput.value || '0') - parseFloat(discountInput.value || '0');
+                
+                Swal.fire({
+                    title: 'Generating Custom QR...',
+                    text: 'Fetching details from bank server',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const fd = new FormData();
+                fd.append('action', 'get_upi_qr');
+                fd.append('amount', totalFeesVal);
+                fd.append('yatra_name', selectYatra.options[selectYatra.selectedIndex]?.text.split(' (')[0] || 'Yatra');
+
+                fetch(API_BASE_URL, { method: 'POST', body: fd })
+                    .then(res => res.json())
+                    .then(result => {
+                        Swal.close();
+                        if (result.message_code === 1000 && result.message_data.qr_url) {
+                            // पेमेंट मोडलमधील क्युआर कोडचा फोटो बदला
+                            document.querySelector('#qrCodeModal img').src = result.message_data.qr_url;
+                            qrCodeModal.show();
+                        } else {
+                            showMsg('error', 'Could not generate dynamic QR. Opening default QR.');
+                            document.querySelector('#qrCodeModal img').src = "/static/assets/img/Payment_QR.jpeg";
+                            qrCodeModal.show();
+                        }
+                    })
+                    .catch(err => {
+                        Swal.close();
+                        document.querySelector('#qrCodeModal img').src = "/static/assets/img/Payment_QR.jpeg";
+                        qrCodeModal.show();
+                    });
+            }
         }
 
         async function submitBooking() {
