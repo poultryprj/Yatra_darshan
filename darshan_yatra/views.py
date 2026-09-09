@@ -44,7 +44,7 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
-API_BASE_URL = "https://kukudku.in/LakshyaPratishthan/api/"
+API_BASE_URL = "http://127.0.0.1:8000/LakshyaPratishthan/api/"
 
 def login(request):
     if request.method == 'GET':
@@ -55,7 +55,7 @@ def login(request):
         pin = request.POST.get('pin_number')
         
         # 👈 दुरुस्ती १: पोस्टमनमध्ये यशस्वी झालेली अचूक युआरएल येथे ठेवा
-        api_url = 'https://kukudku.in/LakshyaPratishthan/api/agentlogin/'
+        api_url = 'http://127.0.0.1:8000/LakshyaPratishthan/api/agentlogin/'
         
         payload = {
             "userMobileNo": mobile,
@@ -235,7 +235,7 @@ def Registrationpage1(request):
 
     # If you still need route_yatras later for booking, keep this block
     route_yatras_data = []
-    # api_url = "https://kukudku.in/api/routeyatradates"
+    # api_url = "http://127.0.0.1:8000/api/routeyatradates"
     api_url = f"{API_BASE_URL}routeyatradates/"
     try:
         # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
@@ -272,7 +272,7 @@ def registration_api1(request):
     try:
         if action == "search_list":
             mobile = request.POST.get("search")
-            # api_url = "https://kukudku.in/api/searchregistrations"
+            # api_url = "http://127.0.0.1:8000/api/searchregistrations"
             api_url = f"{API_BASE_URL}searchregistrations/"
             payload = {"search": mobile}
             # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -287,7 +287,7 @@ def registration_api1(request):
                 # 🔥 FETCH AREA LOOKUP TABLE
                 area_lookup = {}
                 try:
-                    # area_api_url = "https://kukudku.in/api/listarea"
+                    # area_api_url = "http://127.0.0.1:8000/api/listarea"
                     area_api_url = f"{API_BASE_URL}listarea/"
                     # area_resp = requests.get(area_api_url, headers=headers, verify=False, timeout=10)
                     area_resp = requests.get(area_api_url,verify=False)
@@ -372,14 +372,14 @@ def registration_api1(request):
             return JsonResponse({"message_code": 999, "message_text": data.get("message_text", "No data")})
 
         elif action == "list_area":
-            # api_url = "https://kukudku.in/api/listarea"
+            # api_url = "http://127.0.0.1:8000/api/listarea"
             api_url = f"{API_BASE_URL}listarea/"
             # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
             resp = requests.get(api_url, verify=False)
             return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
 
         elif action == "list_gender":
-            # api_url = "https://kukudku.in/api/listgender"
+            # api_url = "http://127.0.0.1:8000/api/listgender"
             api_url = f"{API_BASE_URL}listgender/"
             # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
             resp = requests.get(api_url,verify=False)
@@ -579,7 +579,7 @@ def registration_api1(request):
                     # Let's dynamically and safely extract the domain from your existing constant
                     from urllib.parse import urlparse
                     
-                    # urlparse("https://kukudku.in/LakshyaPratishthan/api/")
+                    # urlparse("http://127.0.0.1:8000/LakshyaPratishthan/api/")
                     parsed_base = urlparse(API_BASE_URL) 
                     
                     # This will correctly result in "http://127.0.0.1:8000"
@@ -640,7 +640,7 @@ def registration_api1(request):
                 }, status=500)        
             
         elif action == "list_bloodgroup":
-            # api_url = "https://kukudku.in/api/listbloodgroup"
+            # api_url = "http://127.0.0.1:8000/api/listbloodgroup"
             api_url = f"{API_BASE_URL}listbloodgroup/"
             # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
             resp = requests.get(api_url,verify=False)
@@ -737,13 +737,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in aadhar_file.chunks():
                                 dest.write(chunk)
-                        aadhar_url = f"https://kukudku.in/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
+                        aadhar_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(aadhar_file)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        aadhar_url = f"https://kukudku.in/Yatra_darshan/static/assets/adhar/{file_name}.png"
+                        aadhar_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/adhar/{file_name}.png"
 
                 # --- Save Profile Pic ---
                 if profile_file:
@@ -756,13 +756,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in profile_file.chunks():
                                 dest.write(chunk)
-                        profile_url = f"https://kukudku.in/Yatra_darshan/static/assets/profile/{file_name}.pdf"
+                        profile_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/profile/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(profile_file)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        profile_url = f"https://kukudku.in/Yatra_darshan/static/assets/profile/{file_name}.png"
+                        profile_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/profile/{file_name}.png"
 
                 # --- Save VoterID Pic ---
                 if voterId_File:
@@ -775,13 +775,13 @@ def registration_api1(request):
                         with open(save_path, "wb+") as dest:
                             for chunk in voterId_File.chunks():
                                 dest.write(chunk)
-                        voterId_url = f"https://kukudku.in/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
+                        voterId_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
                     else:
                         save_path = os.path.join(img_directory, f"{file_name}.png")
                         image = Image.open(voterId_File)
                         image = image.convert("RGB")
                         image.save(save_path, "PNG")
-                        voterId_url = f"https://kukudku.in/Yatra_darshan/static/assets/voterId/{file_name}.png"
+                        voterId_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/voterId/{file_name}.png"
                 
                 # --- Intelligent Payload Preparation ---
                 dob_in = request.POST.get("DateOfBirth", "")
@@ -1547,7 +1547,7 @@ def user_master(request):
         messages.error(request, "Please login first.")
         return redirect('login')
     
-    # api_url = "https://kukudku.in/api/listuserall"
+    # api_url = "http://127.0.0.1:8000/api/listuserall"
     api_url = f"{API_BASE_URL}listuserall/"
     users = []
     try:
@@ -1574,7 +1574,7 @@ def user_master_api(request):
         
         try:
             if action == 'add_user':
-                # api_url = "https://kukudku.in/api/insertuser"
+                # api_url = "http://127.0.0.1:8000/api/insertuser"
                 api_url = f"{API_BASE_URL}insertuser/"
                 payload = {
                     "UserFirstname": request.POST.get('firstName'),
@@ -1587,7 +1587,7 @@ def user_master_api(request):
                 response = requests.post(api_url,json=payload,verify=False)
 
             elif action == 'update_user':
-                # api_url = "https://kukudku.in/api/modifyuser"
+                # api_url = "http://127.0.0.1:8000/api/modifyuser"
                 api_url = f"{API_BASE_URL}modifyuser/"
                 user_id = request.POST.get('userId')
                 if not user_id:
@@ -1606,7 +1606,7 @@ def user_master_api(request):
                 response = requests.post(api_url,json=payload,verify=False)
 
             elif action == 'delete_user':
-                # api_url = "https://kukudku.in/api/deleteuser"
+                # api_url = "http://127.0.0.1:8000/api/deleteuser"
                 api_url = f"{API_BASE_URL}deleteuser/"
                 user_id = request.POST.get('userId')
                 if not user_id:
@@ -1874,8 +1874,6 @@ def detailed_report_api(request):
 def get_pilgrim_card_api(request):
     """
     API proxy to fetch the pilgrim card image path for printing.
-    Acts as a proxy to your backend service and dynamically rewrites 
-    the image path to use the backend server port to prevent 404/image load errors.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -1891,16 +1889,22 @@ def get_pilgrim_card_api(request):
         
         response_data = response.json()
         if response_data.get('message_code') == 1000 and response_data.get('message_data'):
-            partial_path = response_data['message_data'] # /cards/something.png
-            filename = partial_path.split('/')[-1]
+            partial_path = str(response_data['message_data'])
             
-            # 🔴 दुरुस्ती: बॅकएंड सर्व्हरचा मूळ पत्ता (उदा. पोर्ट ८०००) शोधा
+            # बॅकएंड डोमेन मिळवणे (उदा. http://127.0.0.1:8000)
             from urllib.parse import urlparse
             parsed_base = urlparse(API_BASE_URL)
             backend_domain = f"{parsed_base.scheme}://{parsed_base.netloc}"
             
-            # 🔴 फिक्स: थेट पोर्ट ८००० वरील प्रिमियम फाईलचा पाथ सेट करा
-            response_data['message_data'] = f"{backend_domain}/cards/{filename}"
+            # 🔴 फिक्स: partial_path जसा आहे तसाच जोडा (मधला media पाथ कापू नका)
+            if partial_path.startswith('http'):
+                full_image_url = partial_path
+            else:
+                if not partial_path.startswith('/'):
+                    partial_path = '/' + partial_path
+                full_image_url = f"{backend_domain}{partial_path}"
+            
+            response_data['message_data'] = full_image_url
             
         return JsonResponse(response_data)
     except Exception as e:
@@ -1919,7 +1923,7 @@ def daily_report(request):
 
     if str(user_role) == '1':
         try:
-            # api_url = "https://kukudku.in/api/listuserall"
+            # api_url = "http://127.0.0.1:8000/api/listuserall"
             api_url = f"{API_BASE_URL}listuserall/"
             # response = requests.get(api_url, headers=headers, verify=False, timeout=10)
             response = requests.get(api_url, verify=False, )
@@ -1960,7 +1964,7 @@ def daily_report_api(request):
 
         try:
             
-            # api_url = "https://kukudku.in/api/agentbookings"
+            # api_url = "http://127.0.0.1:8000/api/agentbookings"
             api_url = f"{API_BASE_URL}agentbookings/"
             
             payload = {
@@ -1998,7 +2002,7 @@ def print_report_page(request):
     all_yatras_summary = []
 
     try:
-        # summary_api_url = "https://kukudku.in/api/totalrouteyatrabus"
+        # summary_api_url = "http://127.0.0.1:8000/api/totalrouteyatrabus"
         summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
         # response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
         response = requests.get(summary_api_url)
@@ -2024,7 +2028,7 @@ def print_passenger_list(request, route_id):
     try:
         route_name = "N/A"
         try:
-            # route_list_api_url = "https://kukudku.in/api/listrouteall"
+            # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
             route_list_api_url = f"{API_BASE_URL}listrouteall/"
             route_response = requests.get(route_list_api_url, verify=False)
             if route_response.status_code == 200:
@@ -2036,7 +2040,7 @@ def print_passenger_list(request, route_id):
         except Exception:
             pass # Continue even if this fails, will just show "N/A"
 
-        # api_url = "https://kukudku.in/api/yatrabookings"
+        # api_url = "http://127.0.0.1:8000/api/yatrabookings"
         api_url = f"{API_BASE_URL}yatrabookings/"
         payload = {"YatraRouteId": route_id}
         # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -2095,7 +2099,7 @@ def passenger_documents(request):
 
     routes = []
     try:
-        # route_list_api_url = "https://kukudku.in/api/listrouteall"
+        # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
         route_list_api_url = f"{API_BASE_URL}listrouteall/"
         # route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
         route_response = requests.get(route_list_api_url)
@@ -2132,7 +2136,7 @@ def passenger_documents_api(request):
             if not route_id:
                 return JsonResponse({"status": "error", "message": "Route ID is required."}, status=400)
 
-            # summary_api_url = "https://kukudku.in/api/totalrouteyatrabus"
+            # summary_api_url = "http://127.0.0.1:8000/api/totalrouteyatrabus"
             summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
             # response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
             response = requests.get(summary_api_url ,verify=False)
@@ -2165,7 +2169,7 @@ def passenger_documents_api(request):
                 return JsonResponse({"status": "error", "message": "Route, Yatra, and Bus IDs are required."}, status=400)
 
             # THIS IS THE CORRECT API that returns all document fields
-            # api_url = "https://kukudku.in/api/routeyatrabustickets"
+            # api_url = "http://127.0.0.1:8000/api/routeyatrabustickets"
             api_url = f"{API_BASE_URL}routeyatrabustickets/"
             payload = { "YatraRouteId": int(route_id), "YatraId": int(yatra_id), "YatraBusId": int(bus_id) }
             # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -2197,7 +2201,7 @@ def area_report(request):
 
     # Fetch all routes for the first filter
     try:
-        # route_list_api_url = "https://kukudku.in/api/listrouteall"
+        # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
         route_list_api_url = f"{API_BASE_URL}listrouteall/"
         # response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
         response = requests.get(route_list_api_url)
@@ -2209,7 +2213,7 @@ def area_report(request):
 
     # Fetch all areas for the second filter
     try:
-        # area_list_api_url = "https://kukudku.in/api/listarea"
+        # area_list_api_url = "http://127.0.0.1:8000/api/listarea"
         area_list_api_url = f"{API_BASE_URL}listarea/"
         # response = requests.get(area_list_api_url, headers=headers, verify=False, timeout=10)
         response = requests.get(area_list_api_url)
@@ -2239,7 +2243,7 @@ def area_report_api(request):
             return JsonResponse({"status": "error", "message": "Route ID is required."}, status=400)
 
         try:
-            # api_url = "https://kukudku.in/api/yatrabookings"
+            # api_url = "http://127.0.0.1:8000/api/yatrabookings"
             api_url = f"{API_BASE_URL}yatrabookings/"
             payload = {"YatraRouteId": int(route_id)}
             # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -2267,7 +2271,7 @@ def area_report_pdf(request, route_id, area_name):
         # Fetch route name for the PDF header (optional but good for context)
         route_name = "N/A"
         try:
-            # route_list_api_url = "https://kukudku.in/api/listrouteall"
+            # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
             route_list_api_url = f"{API_BASE_URL}listrouteall/"
             # route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
             route_response = requests.get(route_list_api_url)
@@ -2280,7 +2284,7 @@ def area_report_pdf(request, route_id, area_name):
             pass # Continue even if this fails
 
         # Fetch all passenger data for the route
-        # api_url = "https://kukudku.in/api/yatrabookings"
+        # api_url = "http://127.0.0.1:8000/api/yatrabookings"
         api_url = f"{API_BASE_URL}yatrabookings/"
         payload = {"YatraRouteId": route_id}
         # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -2362,7 +2366,7 @@ def send_whatsapp_api(request):
                                                      .replace("{{SEATNO}}", seat_no)
 
             # --- 3. Prepare payload for the external API ---
-            send_api_url = "https://kukudku.in/api/addsmsrequest"
+            send_api_url = "http://127.0.0.1:8000/api/addsmsrequest"
             payload = {
                 "RegistrationId": int(reg_id),
                 "UserId": int(user_id),
@@ -2418,7 +2422,7 @@ def whatsapp_messaging_page(request):
 
     routes = []
     try:
-        # route_list_api_url = "https://kukudku.in/api/listrouteall"
+        # route_list_api_url = "http://127.0.0.1:8000/api/listrouteall"
         route_list_api_url = f"{API_BASE_URL}listrouteall/"
         route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
         if route_response.status_code == 200:
@@ -2444,7 +2448,7 @@ def get_whatsapp_templates_api(request):
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
     
     try:
-        template_api_url = "https://kukudku.in/api/listsmstemplate"
+        template_api_url = "http://127.0.0.1:8000/api/listsmstemplate"
         response = requests.get(template_api_url, headers=headers, verify=False, timeout=10)
 
         if response.status_code == 200:
@@ -2513,7 +2517,7 @@ import json
 #         #         "reg_id":620,  
 #         #     })
 #         if request.POST.get("action") == "submit":
-#             api_url = "https://kukudku.in/LakshyaPratishthan/api/diwaliregistration/"
+#             api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/diwaliregistration/"
 
 #             # --- File Upload Logic (no changes here) ---
 #             ration_card_url = None
@@ -2527,7 +2531,7 @@ import json
 #                 with open(save_path, "wb+") as dest:
 #                     for chunk in ration_card_file.chunks():
 #                         dest.write(chunk)
-#                 ration_card_url = f"https://kukudku.in/Yatra_darshan/static/assets/ration_cards/{file_name}"
+#                 ration_card_url = f"http://127.0.0.1:8000/Yatra_darshan/static/assets/ration_cards/{file_name}"
 
 #             head_details = json.loads(request.POST.get("head"))
 #             family_members_data = json.loads(request.POST.get("family"))
@@ -2660,7 +2664,7 @@ import json
 #             if data.get("action") == "check_ration":
 #                 ration_card_no = data.get("RationCardNo")
 #                 if not ration_card_no: return JsonResponse({"message_code": 999, "message_text": "Ration Card number is required."})
-#                 api_url_check = "https://kukudku.in/LakshyaPratishthan/api/check_rationcard/"
+#                 api_url_check = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
 #                 payload = {"SearchString": ration_card_no}
 #                 response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
 #                 return JsonResponse(response.json())
@@ -2702,7 +2706,7 @@ def diwali_registration(request):
         # ACTION: SUBMIT (Create/Update)
         # ---------------------------------------------------------
         if action == "submit":
-            api_url = "https://kukudku.in/LakshyaPratishthan/api/diwaliregistration/"
+            api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/diwaliregistration/"
 
             # --- Parse Data ---
             head_details = json.loads(request.POST.get("head"))
@@ -2713,7 +2717,7 @@ def diwali_registration(request):
             # --- ✅ FIX: Unique Ration Card Check (Prevent Duplicate Logic) ---
             # Only check if it's a NEW registration (recordId is 0 or empty)
             if not record_id or str(record_id) == "0":
-                check_api = "https://kukudku.in/LakshyaPratishthan/api/check_rationcard/"
+                check_api = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
                 check_resp = requests.post(check_api, json={"SearchString": ration_card_no}, headers=headers, verify=False, timeout=5)
                 
                 if check_resp.ok:
@@ -2836,7 +2840,7 @@ def diwali_registration(request):
             
             # Check for token if missing
             if not TokenNo:
-                token_api_url = "https://kukudku.in/LakshyaPratishthan/api/add_diwali_kirana/"
+                token_api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/add_diwali_kirana/"
                 token_payload = {
                     "RegistrationId": head_reg_id,
                     "RationCardNo": ration_card_no,
@@ -2872,7 +2876,7 @@ def diwali_registration(request):
             if not ration_card_no: 
                 return JsonResponse({"message_code": 999, "message_text": "Ration Card number is required."})
             
-            api_url_check = "https://kukudku.in/LakshyaPratishthan/api/check_rationcard/"
+            api_url_check = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
             payload = {"SearchString": ration_card_no}
             response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
             return JsonResponse(response.json())
@@ -2898,7 +2902,7 @@ def diwali_registration(request):
 
 #     all_families = []
 #     try:
-#         api_url = "https://kukudku.in/LakshyaPratishthan/api/list_diwalikirana/"
+#         api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
         
 
 #         payload = {} 
@@ -2930,7 +2934,7 @@ def diwali_registration(request):
 #                 for ration_card, members in families_dict.items():
 #                     members.sort(key=lambda x: int(x.get("RegistrationId", 0)))
 #                     head = next((m for m in members if m.get("ParentId") in ["1", str(m.get("RegistrationId"))]), members[0])
-#                     # token_res = requests.post("https://kukudku.in/api/diwalikirana", json={"RegistrationId":head.get("RegistrationId"),"RationCardNo":ration_card},  headers=headers, verify=False, timeout=20)
+#                     # token_res = requests.post("http://127.0.0.1:8000/api/diwalikirana", json={"RegistrationId":head.get("RegistrationId"),"RationCardNo":ration_card},  headers=headers, verify=False, timeout=20)
 #                     # print(token_res.text)
 #                     token_no = head.get("TokenNo") or "N/A"
             
@@ -2969,7 +2973,7 @@ def diwali_all_registrations(request):
         messages.error(request, "Please login first.")
         return redirect('login')
 
-    api_url = "https://kukudku.in/LakshyaPratishthan/api/list_diwalikirana/"
+    api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
     payload = {"DiwaliYearMonth": "2025-10"}  # optional
 
     try:
@@ -3053,7 +3057,7 @@ def rationcardscan(request):
             if not token_no or not status:
                 return JsonResponse({"status": "error", "message": "Token and status are required."}, status=400)
 
-            api_url = "https://kukudku.in/LakshyaPratishthan/api/update_token_status/"
+            api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/update_token_status/"
             
             # ✅ --- CRITICAL FIX: Changed "TokenQR" to "TokenNo" and ensure it's an integer ---
             payload = {
@@ -3084,7 +3088,7 @@ def rationcardscan(request):
     if token:
         try:
             token_number = int(token)
-            api_url = "https://kukudku.in/LakshyaPratishthan/api/list_family/"
+            api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_family/"
             payload = {"TokenNo": token_number}
             response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
 
@@ -3136,7 +3140,7 @@ def change_diwali_token(request):
         if not all([old_token, new_token, reg_id]):
             return JsonResponse({"status": "error", "message": "Missing required data."}, status=400)
 
-        api_url = "https://kukudku.in/LakshyaPratishthan/api/change_diwali_token/"
+        api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/change_diwali_token/"
         payload = {
             "OldTokenNo": int(old_token),
             "NewTokenNo": int(new_token),
@@ -3177,7 +3181,7 @@ def diwali_report_page(request):
     try:
         # --- This logic remains the same: it fetches and prepares the data ---
         area_map = {}
-        area_api_url = "https://kukudku.in/LakshyaPratishthan/api/listareaall/"
+        area_api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/listareaall/"
         area_response = requests.post(area_api_url, json={}, headers=headers, verify=False, timeout=15)
         if area_response.ok:
             area_data = area_response.json()
@@ -3185,7 +3189,7 @@ def diwali_report_page(request):
                 for area in area_data["message_data"]:
                     area_map[area.get("AreaId")] = area.get("AreaName")
 
-        registrations_api_url = "https://kukudku.in/LakshyaPratishthan/api/list_diwalikirana/"
+        registrations_api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
         reg_response = requests.post(registrations_api_url, json={}, headers=headers, verify=False, timeout=30)
         
         if reg_response.ok:
@@ -3260,7 +3264,7 @@ def manage_family_members(request, ration_card_no):
     
     try:
         # We reuse the existing API to get all members for this ration card
-        api_url_check = "https://kukudku.in/LakshyaPratishthan/api/check_rationcard/"
+        api_url_check = "http://127.0.0.1:8000/LakshyaPratishthan/api/check_rationcard/"
         payload = {"SearchString": ration_card_no}
         response = requests.post(api_url_check, json=payload, headers=headers, verify=False, timeout=10)
 
@@ -3298,7 +3302,7 @@ def delete_diwali_member(request, reg_id):
 
     try:
         # This will call the new API endpoint we will create in Step 5
-        api_url = f"https://kukudku.in/LakshyaPratishthan/api/delete_diwali_member/{reg_id}/"
+        api_url = f"http://127.0.0.1:8000/LakshyaPratishthan/api/delete_diwali_member/{reg_id}/"
         response = requests.post(api_url, headers=headers, verify=False, timeout=10)
         
         if response.ok:
@@ -3331,7 +3335,7 @@ def darshan_yatra_management(request):
     try:
         # 1. Fetch all ACTIVE areas using your 'listarea' API
         # ✅ CHANGED: Updated the API endpoint URL
-        area_api_url = "https://kukudku.in/LakshyaPratishthan/api/listarea/"
+        area_api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/listarea/"
         
         # ✅ CHANGED: Switched from POST to GET request as required by your API decorator @api_view(['GET'])
         area_response = requests.get(area_api_url, headers=headers, verify=False, timeout=15)
@@ -3343,7 +3347,7 @@ def darshan_yatra_management(request):
                 area_map[area.get("AreaId")] = area.get("AreaName")
 
         # 2. Fetch all registered families (this logic is unchanged)
-        api_url = "https://kukudku.in/LakshyaPratishthan/api/list_diwalikirana/"
+        api_url = "http://127.0.0.1:8000/LakshyaPratishthan/api/list_diwalikirana/"
         response = requests.post(api_url, json={}, headers=headers, verify=False, timeout=20)
 
         if response.ok and response.json().get("message_code") == 1000:
@@ -3844,7 +3848,7 @@ def registration_details_page(request, event_id, registration_id):
     context = {
         'event_id': event_id,
         'registration_id': registration_id,
-        'api_base_url': "https://kukudku.in/LakshyaPratishthan/api/" # Or your actual API URL
+        'api_base_url': "http://127.0.0.1:8000/LakshyaPratishthan/api/" # Or your actual API URL
     }
     return render(request, "events/registration_details.html", context)
 
@@ -3862,7 +3866,7 @@ def digital_pass_page(request, event_id, registration_id):
         'event_id': event_id,
         'registration_id': registration_id,
         # IMPORTANT: This URL must point to your BACKEND project's API.
-        'api_base_url': "https://kukudku.in/LakshyaPratishthan/api/" 
+        'api_base_url': "http://127.0.0.1:8000/LakshyaPratishthan/api/" 
     }
     # Render the new template you just created
     return render(request, "events/digital_pass.html", context)

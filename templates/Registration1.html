@@ -613,20 +613,6 @@
                 <label>Payment Type</label>
             </div>
 
-            <div id="upiFields" class="d-none mt-2">
-                <div class="row g-2 align-items-center">
-                    <div class="col-12">
-                        <div class="floating mb-2">
-                            <input id="transactionId" type="text" placeholder=" ">
-                            <label>UPI Transaction ID</label>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" style="font-size: 11px; font-weight: 700; color: var(--text-dark);">Upload Screenshot</label>
-                        <input id="upiScreenshot" type="file" class="form-control" accept="image/*,.pdf" style="border-radius: 10px; height: 42px;">
-                    </div>
-                </div>
-            </div>
 
             <div class="row g-2 mt-4">
                 <div class="col-6">
@@ -1684,9 +1670,6 @@
 
         function handlePaymentModeChange() {
             const isUpiSelected = paymentModeSelect.value === 'upi';
-            upiFieldsDiv.classList.toggle('d-none', !isUpiSelected);
-            document.getElementById('upiScreenshot').required = isUpiSelected;
-            document.getElementById('transactionId').required = isUpiSelected;
             
             if (isUpiSelected) {
                 // युपीआय निवडल्यास खऱ्या आणि अचूक रक्कमेचा क्यूआर जनरेट करा
@@ -1736,10 +1719,11 @@
             const discount = discountInput.value || '0';
             const discountReason = discountReasonInput.value || '';
             const paymentMode = paymentModeSelect.value;
-            const upiFile = document.getElementById('upiScreenshot').files[0];
 
-            if (paymentMode === '') { showMsg('error', 'Please select a payment mode.'); return; }
-            if (paymentMode === 'upi' && !upiFile) { showMsg('error', 'Please upload your UPI payment screenshot.'); return; }
+            if (paymentMode === '') { 
+                showMsg('error', 'Please select a payment mode.'); 
+                return; 
+            }
 
             const bookingsObject = addedTickets.map(group => {
                 return {
@@ -1759,7 +1743,6 @@
             formData.append('Discount', discount);
             formData.append('DiscountReason', discountReason);
             formData.append('PaymentMode', paymentMode);
-            if (upiFile) formData.append('UPIScreenshot', upiFile);
             formData.append('Bookings', JSON.stringify(bookingsObject));
 
             try {
