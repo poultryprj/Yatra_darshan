@@ -784,16 +784,35 @@
     </div>
 
     <!-- QR Code Payment Modal -->
-    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
-            <div class="modal-content" style="border-radius: 20px;">
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 360px;">
+            <div class="modal-content" style="border-radius: 20px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
                 <div class="modal-header" style="background-color: var(--slate-base); color: white;">
-                    <h5 class="modal-title" style="color: white; font-weight: 700;">Scan & Pay</h5>
+                    <h6 class="modal-title mb-0" style="color: white; font-weight: 700;">
+                        <i class="bi bi-qr-code me-2"></i> Direct Bank UPI Pay
+                    </h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <img src="{% static 'assets/img/Payment_QR.jpeg' %}" class="img-fluid" alt="UPI QR" style="max-width: 220px; border-radius: 10px;">
-                    <p class="mt-3" style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Please scan QR, make payment and fill details below.</p>
+                <div class="modal-body text-center p-3">
+                    <div class="badge bg-warning text-dark fs-6 mb-2 px-3 py-2" id="qrAmountBadge">Amount: ₹0.00</div>
+                    <div class="text-muted mb-2" style="font-size:12px; font-weight:700;">
+                        UPI ID: <span style="color:var(--primary-brand);">lakshyaprathishtan@idbi</span>
+                    </div>
+                    
+                    <div class="p-2 border rounded-3 d-inline-block bg-white shadow-sm mb-2">
+                        <img id="upiQrImage" src="{% static 'assets/img/Payment_QR.jpeg' %}" class="img-fluid" alt="UPI QR" style="max-width: 210px; display: block; margin: 0 auto;">
+                    </div>
+
+                    <p class="text-muted mb-2" style="font-size:11px;">
+                        ग्राहकाने PhonePe, GPay किंवा Paytm ने स्कॅन करून पैसे पाठवल्यावर खालील बटण दाबा.
+                    </p>
+
+                    <button type="button" class="btn btn-success w-100 py-2 fw-bold" id="btnConfirmUpiPayment" style="border-radius: 10px; font-size: 14px;">
+                        <i class="bi bi-check2-circle me-1"></i> Payment Received ➔ Confirm
+                    </button>
+                </div>
+                <div class="modal-footer p-2 bg-light d-flex justify-content-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -1073,6 +1092,8 @@
     let hasBookingDataLoaded = false;
     let ticketDetailsModal; 
     let qrCodeModal;
+    let currentClientTxnId = "";
+
     
     // --- MODULE FOR STEP 1 SEARCH & HISTORY ---
     const RegistrationDisplay = (() => {
@@ -1669,45 +1690,47 @@
         }
 
         function handlePaymentModeChange() {
-            const isUpiSelected = paymentModeSelect.value === 'upi';
+        const isUpiSelected = paymentModeSelect.value === 'upi';
+        
+        if (isUpiSelected) {
+            const totalFeesVal = parseFloat(totalFeesInput.value || '0') - parseFloat(discountInput.value || '0');
             
-            if (isUpiSelected) {
-                // युपीआय निवडल्यास खऱ्या आणि अचूक रक्कमेचा क्यूआर जनरेट करा
-                const totalFeesVal = parseFloat(totalFeesInput.value || '0') - parseFloat(discountInput.value || '0');
-                
-                Swal.fire({
-                    title: 'Generating Custom QR...',
-                    text: 'Fetching details from bank server',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                const fd = new FormData();
-                fd.append('action', 'get_upi_qr');
-                fd.append('amount', totalFeesVal);
-                fd.append('yatra_name', selectYatra.options[selectYatra.selectedIndex]?.text.split(' (')[0] || 'Yatra');
-
-                fetch(API_BASE_URL, { method: 'POST', body: fd })
-                    .then(res => res.json())
-                    .then(result => {
-                        Swal.close();
-                        if (result.message_code === 1000 && result.message_data.qr_url) {
-                            // पेमेंट मोडलमधील क्युआर कोडचा फोटो बदला
-                            document.querySelector('#qrCodeModal img').src = result.message_data.qr_url;
-                            qrCodeModal.show();
-                        } else {
-                            showMsg('error', 'Could not generate dynamic QR. Opening default QR.');
-                            document.querySelector('#qrCodeModal img').src = "/static/assets/img/Payment_QR.jpeg";
-                            qrCodeModal.show();
-                        }
-                    })
-                    .catch(err => {
-                        Swal.close();
-                        document.querySelector('#qrCodeModal img').src = "/static/assets/img/Payment_QR.jpeg";
-                        qrCodeModal.show();
-                    });
+            if (totalFeesVal <= 0) {
+                showMsg('warning', 'Total amount must be greater than 0 for UPI.');
+                paymentModeSelect.value = 'cash';
+                return;
             }
+
+            document.getElementById('qrAmountBadge').textContent = `Amount: ₹${totalFeesVal.toFixed(2)}`;
+
+            const fd = new FormData();
+            fd.append('action', 'get_upi_qr');
+            fd.append('amount', totalFeesVal);
+            fd.append('yatra_name', selectYatra.options[selectYatra.selectedIndex]?.text.split(' (')[0] || 'Darshan Yatra');
+
+            fetch(API_BASE_URL, { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.message_code === 1000 && result.message_data && result.message_data.qr_url) {
+                        currentClientTxnId = result.message_data.client_txn_id;
+                        document.getElementById('upiQrImage').src = result.message_data.qr_url;
+                        qrCodeModal.show();
+                    } else {
+                        showMsg('error', 'Error creating UPI QR.');
+                    }
+                })
+                .catch(err => {
+                    showMsg('error', 'Network error.');
+                });
         }
+    }
+
+    // 🔴 एजंटने "Payment Received" दाबल्यावर थेट तिकीट बुक होईल:
+    document.getElementById('btnConfirmUpiPayment').addEventListener('click', () => {
+        isPaymentVerified = true;
+        qrCodeModal.hide();
+        submitBooking();
+    });
 
         async function submitBooking() {
             if (addedTickets.length === 0) {
@@ -1744,6 +1767,8 @@
             formData.append('DiscountReason', discountReason);
             formData.append('PaymentMode', paymentMode);
             formData.append('Bookings', JSON.stringify(bookingsObject));
+            const safeTxnId = (typeof currentClientTxnId !== 'undefined' && currentClientTxnId) ? currentClientTxnId : ('CASH_' + Date.now());
+            formData.append('client_txn_id', safeTxnId);
 
             try {
                 const csrfTokenElement = document.querySelector('input[name="csrfmiddlewaretoken"]');

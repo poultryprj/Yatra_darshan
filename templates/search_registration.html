@@ -264,9 +264,9 @@
                                         <strong style="color:var(--brand-teal);"><i class="bi bi-bus-front-fill me-1"></i>${ticket.BusName || 'Bus'}</strong> &nbsp;&bull;&nbsp; 
                                         Seat: <strong>${ticket.SeatNo}</strong>
                                     </span>
-                                    <button class="btn-print-ticket btn-print-card" data-reg-id="${pax.RegistrationId}" type="button">
-                                        <i class="bi bi-printer-fill me-1"></i>Print Pass
-                                    </button>
+                                    <button class="btn-print-ticket btn-print-card" data-reg-id="${pax.RegistrationId}" data-ticket-id="${ticket.TicketId}" type="button">
+    <i class="bi bi-printer-fill me-1"></i>Print Pass
+</button>
                                 </div>
                             </div>`;
                     }
@@ -299,6 +299,7 @@
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const regId = this.dataset.regId;
+                const ticketId = this.dataset.ticketId;
                 
                 Swal.fire({
                     title: 'Generating Pass...',
@@ -309,6 +310,9 @@
 
                 let printFormData = new FormData();
                 printFormData.append('registration_id', regId);
+                if (ticketId) {
+                    printFormData.append('ticket_id', ticketId); 
+                }
 
                 fetch("{% url 'get_pilgrim_card_api' %}", {
                     method: "POST",

@@ -543,15 +543,36 @@
         if (printButton) {
             printButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
             printButton.disabled = true;
+            
             let formData = new FormData();
             formData.append('registration_id', printButton.dataset.regId);
+            
+            // 🔴 १. तिकीट आयडी आणि सीट नंबर जोडा:
+            if (printButton.dataset.ticketId) {
+                formData.append('ticket_id', printButton.dataset.ticketId);
+            }
+            if (printButton.dataset.seatNo) {
+                formData.append('seat_no', printButton.dataset.seatNo);
+            }
+
+            // 🔴 २. निवडलेल्या यात्रेचा आणि रूटचा आयडी जोडा:
+            const selectedYatraVal = $('#reportYatraSelect').val();
+            if (selectedYatraVal) {
+                const [yId, rId] = selectedYatraVal.split('|');
+                formData.append('yatra_id', yId);
+                formData.append('route_id', rId);
+            }
+
             fetch("{% url 'get_pilgrim_card_api' %}", { method: 'POST', body: formData })
                 .then(res => res.json()).then(data => {
                     if (data.message_code === 1000 && data.message_data) {
                         printImage(data.message_data);
                     }
                     else alert("Error: " + data.message_text);
-                }).finally(() => { printButton.innerHTML = '<i class="bi bi-printer-fill"></i>'; printButton.disabled = false; });
+                }).finally(() => { 
+                    printButton.innerHTML = '<i class="bi bi-printer-fill"></i>'; 
+                    printButton.disabled = false; 
+                });
         }
         const callButton = e.target.closest('.call-btn');
         if(callButton) {
@@ -606,7 +627,7 @@
                     <td class="text-end border-0 py-2">
                         <div class="btn-group">
                             <button class="btn btn-sm text-white call-btn" style="background-color: var(--accent-green);" type="button" data-mobile="${mobileNo}" data-alternate="${alternateMobileNo}"><i class="bi bi-telephone-fill"></i></button>
-                            ${booking.RegistrationId ? `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}"><i class="bi bi-printer-fill"></i></button>` : ''}
+                            ${booking.RegistrationId ? `<button class="btn btn-sm btn-outline-primary print-btn" type="button" data-reg-id="${booking.RegistrationId}" data-ticket-id="${booking.TicketId || ''}" data-seat-no="${booking.SeatNo || ''}"><i class="bi bi-printer-fill"></i></button>` : ''}
                         </div>
                     </td>
                 </tr>`;

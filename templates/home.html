@@ -26,6 +26,7 @@
       --border-slate: #e2e8f0;
       --text-dark: #1e293b;
       --text-muted: #64748b;
+      --danger-red: #EF4444;
     }
     
     body { 
@@ -37,14 +38,14 @@
       position: relative;
     }
 
-    /* 🔴 HIGH-SPEED GLOSS BACKGROUND BLOBS (खोली आणि अप्रतिम रंगांचा फील देण्यासाठी) */
+    /* Gloss Background Blobs */
     .bg-blob-1 {
         position: fixed;
         top: 15%;
         left: -15%;
         width: 320px;
         height: 320px;
-        background: rgba(255, 123, 0, 0.12); /* Soft orange blur */
+        background: rgba(255, 123, 0, 0.12);
         border-radius: 50%;
         filter: blur(80px);
         -webkit-filter: blur(80px);
@@ -57,7 +58,7 @@
         right: -15%;
         width: 320px;
         height: 320px;
-        background: rgba(37, 99, 235, 0.08); /* Soft blue blur */
+        background: rgba(37, 99, 235, 0.08);
         border-radius: 50%;
         filter: blur(85px);
         -webkit-filter: blur(85px);
@@ -73,20 +74,21 @@
         border: none;
     }
     .navbar-brand { color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
-    .navbar-toggler-btn { border: none; background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 6px 10px; color: white; font-size: 1.2rem; }
+    .navbar-toggler-btn { border: none; background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 6px 10px; color: white; font-size: 1.2rem; cursor: pointer; }
 
     /* Premium Drawer Menu */
     .drawer { 
       position: fixed; 
       top: 0; 
       left: -100%; 
-      width: 72%; 
+      width: 78%; 
+      max-width: 320px;
       height: 100%; 
       background: #ffffff; 
       transition: left .3s cubic-bezier(0.4, 0, 0.2, 1); 
       z-index: 1100; 
       box-shadow: 4px 0 30px rgba(15, 23, 42, 0.15); 
-      overflow: auto; 
+      overflow-y: auto; 
     }
     .drawer.open { left: 0; }
     .drawer .additional-content { 
@@ -117,6 +119,13 @@
     
     .drawer a[data-bs-toggle="collapse"] {
         position: relative;
+        justify-content: space-between;
+    }
+    .drawer a[data-bs-toggle="collapse"]::after {
+        content: "\F282";
+        font-family: "bootstrap-icons";
+        font-size: 12px;
+        transition: transform 0.2s ease;
     }
     .drawer a[data-bs-toggle="collapse"][aria-expanded="true"]::after {
         transform: rotate(180deg);
@@ -129,13 +138,25 @@
     .submenu {
         padding-left: 12px !important;
         margin-left: 12px;
-        border-left: 2px dashed var(--border-color);
+        border-left: 2px dashed var(--border-slate);
         margin-top: 4px;
     }
     .submenu a {
         font-size: 13px;
         color: var(--text-muted) !important;
         padding: 8px 12px;
+    }
+
+    /* Role Badge in Drawer */
+    .user-role-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 700;
+        margin-top: 6px;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
     }
 
     /* Home Page Layout */
@@ -145,7 +166,7 @@
       padding: 0 16px; 
     }
 
-    /* Beautiful Welcome Greeting */
+    /* Welcome Greeting */
     .welcome-greeting-section {
         padding: 12px 6px;
         margin-bottom: 16px;
@@ -165,7 +186,7 @@
         margin-top: 2px;
     }
 
-    /* Minimalist Elegant White Navigation Cards with Color Accents */
+    /* Navigation Cards */
     .home-card-button {
         display: flex;
         align-items: center;
@@ -188,10 +209,9 @@
         transform: scale(0.98);
     }
     
-    /* Left Border color accents */
     .btn-yatra-card { border-left: 4.5px solid var(--brand-orange); }
     .btn-diwali-card { border-left: 4.5px solid var(--accent-green); }
-    .btn-event-card { border-left: 4.5px solid #8B5CF6; } /* Royal Purple accent */
+    .btn-event-card { border-left: 4.5px solid #8B5CF6; }
 
     .button-icon-circle {
         width: 46px;
@@ -204,7 +224,6 @@
         flex-shrink: 0;
     }
     
-    /* Specific Icon Circle Colors */
     .icon-yatra { background-color: var(--brand-orange-light); border: 1px solid #fed7aa; color: var(--brand-orange-dark); }
     .icon-diwali { background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; }
     .icon-event { background-color: #f5f3ff; border: 1px solid #ddd6fe; color: #6d28d9; }
@@ -237,7 +256,6 @@
     @media (max-width: 480px) {
         .container-home { margin: 76px 0 40px 0; padding: 0 12px; }
     }
-
   </style>
 </head>
 <body>
@@ -258,48 +276,75 @@
   </div>
 </nav>
 
-<!-- Side Drawer -->
+<!-- Side Drawer (रोलनुसार मेनू फिल्टर) -->
 <div id="drawer" class="drawer">
   <div class="additional-content">
     <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" width="80" height="90" class="rounded-circle" alt="logo" style="border: 2px solid white;">
-    <div style="margin-top:10px;"><b style="color:#fff; font-size:16px;">Darshan Yatra</b></div>
+    <div style="margin-top:10px;"><b style="color:#fff; font-size:16px;">{{ user.first_name }} {{ user.last_name }}</b></div>
+    
+    <!-- रोल बॅज -->
+    {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+        <span class="user-role-badge"><i class="bi bi-shield-check me-1"></i> Admin</span>
+    {% else %}
+        <span class="user-role-badge"><i class="bi bi-person-badge me-1"></i> Operator</span>
+    {% endif %}
+
     <button onclick="closeDrawer()" class="btn btn-sm position-absolute text-white" style="right:12px; top:12px; font-size:1.2rem;"><i class="bi bi-x-lg"></i></button>
   </div>
   <ul>
     <li>
-        <a href="{% url 'home' %}" class="text-decoration-none">
+        <a href="{% url 'home' %}">
             <i class="bi bi-house-door me-2" style="color: var(--brand-orange)"></i> Home
         </a>
     </li>
 
-    <!-- Yatra Booking Section -->
+    <!-- 🔴 १. YATRA BOOKING DROPDOWN: फक्त ADMIN (ROLE 1) साठीच दिसेल -->
+    {% if request.session.user_role == "1" or request.session.user_role == 1 %}
     <li>
         <a href="#yatraSubmenu" data-bs-toggle="collapse" aria-expanded="false">
-            <i class="bi bi-person-plus-fill me-2" style="color: var(--brand-orange)"></i> Yatra Booking
+            <span><i class="bi bi-ticket-perforated-fill me-2" style="color: var(--brand-orange)"></i> Yatra Booking</span>
         </a>
         <ul class="collapse list-unstyled submenu" id="yatraSubmenu">
-            {% if request.session.user_role != "2" %}
-                <li>
-                    <a href="{% url 'user_master' %}">
-                        <i class="bi bi-people-fill me-2"></i> User Management
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'route_master' %}">
-                        <i class="bi bi-geo-alt-fill me-2"></i> Route Master
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'area_master' %}">
-                        <i class="bi bi-map-fill me-2"></i> Area Master
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'yatra_master' %}">
-                        <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master
-                    </a>
-                </li>
-            {% endif %}
+            <li>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2"></i> Yatra Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'Registrationpage1' %}">
+                    <i class="bi bi-plus-circle me-2"></i> Book Tickets
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'search_registration' %}">
+                    <i class="bi bi-search me-2"></i> Search Registration
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'user_master' %}">
+                    <i class="bi bi-people-fill me-2"></i> User Management
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'route_master' %}">
+                    <i class="bi bi-geo-alt-fill me-2"></i> Route Master
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'area_master' %}">
+                    <i class="bi bi-map-fill me-2"></i> Area Master
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'yatra_master' %}">
+                    <i class="bi bi-calendar-event-fill me-2"></i> Yatra Master
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'yatra_bus_master' %}">
+                    <i class="bi bi-bus-front me-2"></i> Bus Master
+                </a>
+            </li>
             <li>
                 <a href="{% url 'daily_report' %}">
                     <i class="bi bi-cash-coin me-2"></i> Daily Collection
@@ -316,7 +361,9 @@
                 </a>
             </li>
             <li>
-              <a href="{% url 'area_report' %}"><i class="bi bi-pin-map-fill me-2"></i> Area Report</a>
+                <a href="{% url 'area_report' %}">
+                    <i class="bi bi-pin-map-fill me-2"></i> Area Report
+                </a>
             </li>
             <li>
                 <a href="{% url 'whatsapp_messaging_page' %}">
@@ -325,21 +372,22 @@
             </li>
         </ul>
     </li>
+    {% endif %}
 
-    <!-- Diwali Kirana Section -->
+    <!-- 🔴 २. DIWALI KIRANA DROPDOWN: ADMIN आणि OPERATOR दोघांनाही दिसेल -->
     <li>
         <a href="#diwaliSubmenu" data-bs-toggle="collapse" aria-expanded="false">
-            <i class="bi bi-brightness-high-fill me-2" style="color: var(--brand-orange)"></i> Diwali Kirana
+            <span><i class="bi bi-gift-fill me-2" style="color: var(--accent-green)"></i> Diwali Kirana</span>
         </a>
         <ul class="collapse list-unstyled submenu" id="diwaliSubmenu">
             <li>
-                <a href="{% url 'rationcardscan' %}">
-                    <i class="bi bi-patch-check me-2"></i> Verify Kit Delivery
+                <a href="{% url 'diwali_yatra_page' %}">
+                    <i class="bi bi-card-checklist me-2"></i> Kit Registration
                 </a>
             </li>
             <li>
-                <a href="{% url 'diwali_report_page' %}">
-                    <i class="bi bi-file-earmark-arrow-down me-2"></i> Download Report
+                <a href="{% url 'rationcardscan' %}">
+                    <i class="bi bi-patch-check me-2"></i> Verify Kit Delivery
                 </a>
             </li>
             <li>
@@ -349,16 +397,24 @@
             </li>
             <li>
                 <a href="{% url 'darshan_yatra_management' %}">
-                    <i class="bi bi-people me-2"></i> Add Member
+                    <i class="bi bi-person-plus me-2"></i> Add Member
                 </a>
             </li>
+            <!-- रिपोर्ट फक्त Admin साठी हवा असल्यास -->
+            {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+            <li>
+                <a href="{% url 'diwali_report_page' %}">
+                    <i class="bi bi-file-earmark-arrow-down me-2"></i> Download Report (Excel)
+                </a>
+            </li>
+            {% endif %}
         </ul>
     </li>
 
-    <!-- Event Management Section -->
+    <!-- 🔴 ३. EVENT MANAGEMENT DROPDOWN: ADMIN आणि OPERATOR दोघांनाही दिसेल -->
     <li>
         <a href="#eventSubmenu" data-bs-toggle="collapse" aria-expanded="false">
-            <i class="bi bi-calendar-event me-2" style="color: var(--brand-orange)"></i> Event Management
+            <span><i class="bi bi-calendar2-check-fill me-2" style="color: #8B5CF6"></i> Event Management</span>
         </a>
         <ul class="collapse list-unstyled submenu" id="eventSubmenu">
             <li>
@@ -368,13 +424,13 @@
             </li>
             <li>
               <a href="{% url 'qr_scanner_page' %}">
-                <i class="bi bi-qr-code-scan me-2"></i> QR Scan
+                <i class="bi bi-qr-code-scan me-2"></i> QR Scanner
               </a>
             </li>
         </ul>
     </li>
 
-    <li>
+    <li class="mt-3 pt-2" style="border-top: 1px solid var(--border-slate);">
         <a href="{% url 'logout' %}">
             <i class="bi bi-box-arrow-right me-2" style="color: var(--danger-red)"></i> Logout
         </a>
@@ -386,15 +442,21 @@
 <!-- Main Content Area -->
 <div class="container-home">
 
-    <!-- Premium Welcoming Header Section -->
+    <!-- Welcoming Header Section -->
     <div class="welcome-greeting-section">
-        <div class="welcome-subtitle">Welcome Back Agent</div>
+        <div class="welcome-subtitle">
+            {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+                Administrator Portal
+            {% else %}
+                Operator Portal
+            {% endif %}
+        </div>
         <div class="welcome-title">Hello, {{ user.first_name }}! 👋</div>
     </div>
 
-    <!-- Conditional Minimalist Cards Grid with Color Accents -->
-    {% if request.session.user_role == "1" %}
-        <!-- Admin: Full Access -->
+    <!-- Conditional Minimalist Cards Grid -->
+    {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+        <!-- Admin: Full Access to all 3 modules -->
         <a href="{% url 'dashboard' %}" class="home-card-button btn-yatra-card">
             <div class="button-icon-circle icon-yatra"><i class="bi bi-ticket-perforated-fill"></i></div>
             <div class="button-text-container">
@@ -422,27 +484,8 @@
             <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
         </a>
         
-    {% elif request.session.user_role == "2" %}
-        <!-- Operator: Access Diwali & Events only -->
-        <a href="{% url 'diwali_yatra_page' %}" class="home-card-button btn-diwali-card">
-            <div class="button-icon-circle icon-diwali"><i class="bi bi-gift-fill"></i></div>
-            <div class="button-text-container">
-                <div class="button-title-text">Diwali Kirana</div>
-                <div class="button-desc-text">Verify kit delivery, reports & registrations.</div>
-            </div>
-            <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
-        </a>
-        
-        <a href="{% url 'event_list_page' %}" class="home-card-button btn-event-card">
-            <div class="button-icon-circle icon-event"><i class="bi bi-calendar2-check-fill"></i></div>
-            <div class="button-text-container">
-                <div class="button-title-text">Event Management</div>
-                <div class="button-desc-text">Manage dynamic events, scans & registers.</div>
-            </div>
-            <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
-        </a>
     {% else %}
-        <!-- Default: Access Diwali & Events only -->
+        <!-- Operator: Access to Diwali Kirana & Events only -->
         <a href="{% url 'diwali_yatra_page' %}" class="home-card-button btn-diwali-card">
             <div class="button-icon-circle icon-diwali"><i class="bi bi-gift-fill"></i></div>
             <div class="button-text-container">
@@ -463,15 +506,25 @@
     {% endif %}
 </div>
 
-
+<!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // Drawer functionality
-  const menuBtn = document.getElementById('menuBtn'), drawer = document.getElementById('drawer');
-  menuBtn.addEventListener('click', ()=> drawer.classList.add('open'));
-  function closeDrawer(){ drawer.classList.remove('open'); }
-  window.addEventListener('click', (e)=> { if (!drawer.contains(e.target) && !menuBtn.contains(e.target)) closeDrawer(); });
+  // Drawer open/close functionality
+  const menuBtn = document.getElementById('menuBtn');
+  const drawer = document.getElementById('drawer');
+
+  menuBtn.addEventListener('click', () => drawer.classList.add('open'));
+
+  function closeDrawer() { 
+      drawer.classList.remove('open'); 
+  }
+
+  window.addEventListener('click', (e) => { 
+      if (!drawer.contains(e.target) && !menuBtn.contains(e.target)) {
+          closeDrawer(); 
+      }
+  });
 </script>
 
 </body>

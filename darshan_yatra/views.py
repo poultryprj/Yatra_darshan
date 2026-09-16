@@ -19,6 +19,8 @@
 # from openpyxl import Workbook
 # from openpyxl.styles import Font, Alignment
 import datetime
+import time
+from datetime import datetime
 # from msilib.schema import Font
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, JsonResponse
@@ -259,24 +261,20 @@ def Registrationpage1(request):
 @csrf_exempt
 def registration_api1(request):
     """
-    Unified API proxy for Registration page.
-    Added:
-      - action=search_list -> returns FULL list of registrations for a mobile
-      - action=submit      -> insert/update pilgrim (keys aligned to external API)
-      - list_area / list_gender / list_bloodgroup passthrough
+    Unified API proxy for Registration & Booking page.
+    100% compatible with original business logic.
     """
     if request.method != "POST":
         return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
 
     action = request.POST.get("action")
     try:
+        # --- 1. SEARCH LIST ---
         if action == "search_list":
             mobile = request.POST.get("search")
-            # api_url = "https://kukudku.in/api/searchregistrations"
             api_url = f"{API_BASE_URL}searchregistrations/"
             payload = {"search": mobile}
-            # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
-            response = requests.post(api_url, json=payload,verify=False)
+            response = requests.post(api_url, json=payload, verify=False)
 
             if response.status_code != 200:
                 return JsonResponse({"message_code": 999, "message_text": f"HTTP Error {response.status_code}"})
@@ -284,13 +282,10 @@ def registration_api1(request):
             data = response.json()
             if str(data.get("message_code")) == "1000":
                 from datetime import datetime
-                # 🔥 FETCH AREA LOOKUP TABLE
                 area_lookup = {}
                 try:
-                    # area_api_url = "https://kukudku.in/api/listarea"
                     area_api_url = f"{API_BASE_URL}listarea/"
-                    # area_resp = requests.get(area_api_url, headers=headers, verify=False, timeout=10)
-                    area_resp = requests.get(area_api_url,verify=False)
+                    area_resp = requests.get(area_api_url, verify=False)
                     if area_resp.status_code == 200:
                         area_data = area_resp.json()
                         if str(area_data.get("message_code")) == "1000":
@@ -304,18 +299,16 @@ def registration_api1(request):
                     dob_raw = r.get("DateOfBirth")
                     dob_fmt = ""
                     try:
-                        if dob_raw and dob_raw.isdigit():
+                        if dob_raw and str(dob_raw).isdigit():
                             dob_fmt = datetime.fromtimestamp(int(dob_raw)).strftime("%d-%m-%Y")
                         else:
                             dob_fmt = dob_raw or ""
                     except Exception:
                         dob_fmt = dob_raw or ""
 
-                    # 🔥 FIX: Map Gender value to proper IDs
                     gender_raw = r.get("Gender", "0")
-                    gender_id = "1"  # Default to "Select"
+                    gender_id = "1"
                     gender_name = "Select"
-                    
                     if str(gender_raw) == "2":
                         gender_id = "2"
                         gender_name = "Male"
@@ -326,12 +319,8 @@ def registration_api1(request):
                         gender_id = "4"
                         gender_name = "Custom"
 
-                    # 🔥 FIX: Handle BloodGroup properly
-                    # blood_group_name = r.get("BloodGroup", "").strip()
                     blood_group_name = (r.get("BloodGroup") or "").strip()
-                    blood_group_id = "1"  # Default to "Select"
-                    
-                    # Map blood group names to IDs
+                    blood_group_id = "1"
                     blood_group_mapping = {
                         "A+": "2", "A-": "3", "B+": "4", "B-": "5",
                         "O+": "6", "O-": "7", "AB+": "8", "AB-": "9"
@@ -341,9 +330,8 @@ def registration_api1(request):
                     elif not blood_group_name:
                         blood_group_name = "Select"
                         
-                    # 🔥 FIX: Get AreaId from AreaName using lookup table
                     area_name = r.get("AreaName", "")
-                    area_id = area_lookup.get(area_name, "1")  # Default to "1" if not found
+                    area_id = area_lookup.get(area_name, "1")
 
                     rows.append({
                         "RegistrationId": r.get("RegistrationId"),
@@ -355,11 +343,11 @@ def registration_api1(request):
                         "AadharNumber": r.get("AadharNumber"),
                         "DateOfBirth": dob_fmt,
                         "Gender": gender_raw,
-                        "GenderId": gender_id,  # 🔥 Added missing GenderId
-                        "GenderName": gender_name,  # 🔥 Added missing GenderName
+                        "GenderId": gender_id,
+                        "GenderName": gender_name,
                         "BloodGroup": blood_group_name,
-                        "BloodGroupId": blood_group_id,  # 🔥 Added missing BloodGroupId
-                        "AreaId": area_id,  # 🔥 Make sure AreaId is included
+                        "BloodGroupId": blood_group_id,
+                        "AreaId": area_id,
                         "AreaName": area_name,
                         "Address": r.get("Address"),
                         "PhotoFileName": r.get("PhotoFileName"),
@@ -371,133 +359,90 @@ def registration_api1(request):
 
             return JsonResponse({"message_code": 999, "message_text": data.get("message_text", "No data")})
 
+        # --- 2. MASTER DROPDOWNS ---
         elif action == "list_area":
-            # api_url = "https://kukudku.in/api/listarea"
-            api_url = f"{API_BASE_URL}listarea/"
-            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
-            resp = requests.get(api_url, verify=False)
-            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+            resp = requests.get(f"{API_BASE_URL}listarea/", verify=False)
+            return JsonResponse(resp.json(), safe=False)
 
         elif action == "list_gender":
-            # api_url = "https://kukudku.in/api/listgender"
-            api_url = f"{API_BASE_URL}listgender/"
-            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
-            resp = requests.get(api_url,verify=False)
-            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+            resp = requests.get(f"{API_BASE_URL}listgender/", verify=False)
+            return JsonResponse(resp.json(), safe=False)
+
+        elif action == "list_bloodgroup":
+            resp = requests.get(f"{API_BASE_URL}listbloodgroup/", verify=False)
+            return JsonResponse(resp.json(), safe=False)
         
         elif action == "list_routes":
-            api_url = f"{API_BASE_URL}listrouteall/"
-            resp = requests.get(api_url, verify=False)
+            resp = requests.get(f"{API_BASE_URL}listrouteall/", verify=False)
             return JsonResponse(resp.json(), safe=False)
 
         elif action == "list_yatras":
-            api_url = f"{API_BASE_URL}listyatraall/"
-            resp = requests.get(api_url, verify=False)
+            resp = requests.get(f"{API_BASE_URL}listyatraall/", verify=False)
             return JsonResponse(resp.json(), safe=False)
 
         elif action == "list_buses":
-            api_url = f"{API_BASE_URL}listroutebus/"
-            resp = requests.get(api_url, verify=False)
+            resp = requests.get(f"{API_BASE_URL}listroutebus/", verify=False)
             return JsonResponse(resp.json(), safe=False)
         
+        # --- 3. FETCH SEATS ---
         elif action == "fetch_seats":
             try:
-                # 1. The URL of your independent backend API
                 api_url = f"{API_BASE_URL}fetch_bus_seats/"
-
-                # 2. Get parameters from the frontend's request to this proxy
                 route_id = request.POST.get('route_id')
                 yatra_id = request.POST.get('yatra_id')
                 bus_id = request.POST.get('bus_id')
 
-                # 3. Prepare the JSON payload to send to the independent API
                 payload = {
                     "route_id": int(route_id),
                     "yatra_id": int(yatra_id),
                     "bus_id": int(bus_id)
                 }
-                # ✅ CORRECTED THIS LINE
-                response = requests.post(api_url, json=payload)
-
-                # 5. Check the response and pass it through to the frontend
-                response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
-                
-                # Return the exact JSON from the independent API back to the browser
+                response = requests.post(api_url, json=payload, verify=False)
+                response.raise_for_status()
                 return JsonResponse(response.json())
+            except Exception as e:
+                return JsonResponse({"message_code": 994, "message_text": f"Error: {str(e)}"}, status=500)
 
-            except requests.exceptions.HTTPError as e:
-                # If the backend API returned an error (e.g., 404, 500)
-                return JsonResponse({
-                    "message_code": 995,
-                    "message_text": f"Backend service error: {e.response.status_code}",
-                    "details": e.response.text
-                }, status=502) # Bad Gateway
-            except requests.exceptions.RequestException as e:
-                # Handle network errors (e.g., the backend API is down)
-                return JsonResponse({
-                    "message_code": 994,
-                    "message_text": f"Could not connect to the booking service: {e}"
-                }, status=503) # Service Unavailable
-        
+        # --- 4. TICKET BOOKING (Cash & UPI Full Compatible) ---
         elif action == "book_ticket":
             try:
-                # --- 1. GATHER ALL PARAMETERS FROM THE FRONTEND REQUEST ---
-                # user_id = request.POST.get("UserId")
-                user_id = request.POST.get("UserId") or request.session.get("user_id")
+                user_id = request.POST.get("UserId") or request.session.get("user_id", "0")
                 try:
                     user_id = int(user_id)
                 except:
                     user_id = 0
 
                 if user_id == 0:
-                    return JsonResponse({
-                        "message_code": 999,
-                        "message_text": "User not found. Please login again."
-                    }, status=200)
-                                
+                    return JsonResponse({"message_code": 999, "message_text": "User not found. Please login again."})
+
                 amount_paid = request.POST.get("AmountPaid", "0")
                 discount = request.POST.get("Discount", "0")
                 discount_reason = request.POST.get("DiscountReason", "")
-                payment_mode_raw = request.POST.get("PaymentMode", "cash").lower()
-                
-                # This is the critical part: Get the JSON string from the frontend
+                payment_mode_raw = str(request.POST.get("PaymentMode", "cash")).lower().strip()
                 bookings_json_string = request.POST.get("Bookings", "[]")
-                
-                # --- 2. CONSTRUCT THE PAYLOAD EXACTLY AS THE EXTERNAL API REQUIRES ---
-                
-                # Convert the received JSON string into a Python object
                 bookings_data = json.loads(bookings_json_string)
 
-                # Convert payment mode name to the required integer ID
-                payment_mode_id = 1  # Default to Cash
-                if payment_mode_raw == "upi":
-                    payment_mode_id = 2
+                # 1 = Cash, 2 = UPI
+                payment_mode_id = 2 if payment_mode_raw == "upi" else 1
 
-                # Build the final payload for the single API call
+                client_txn_id = request.POST.get("client_txn_id")
+                if not client_txn_id or client_txn_id.strip() == "":
+                    client_txn_id = f"CASH_{int(time.time())}" if payment_mode_id == 1 else f"UPI_{int(time.time())}"
+
                 api_payload = {
                     "UserId": user_id,
                     "AmountPaid": amount_paid,
                     "Discount": discount,
                     "DiscountReason": discount_reason,
                     "PaymentMode": payment_mode_id,
-                    "Bookings": bookings_data  # Embed the parsed booking data directly
+                    "Bookings": bookings_data,
+                    "client_txn_id": client_txn_id
                 }
 
-                # --- 3. SEND THE SINGLE, CORRECTLY FORMATTED REQUEST TO THE EXTERNAL API ---
-                
                 api_url = f"{API_BASE_URL}inserttickets/"
-                
-                print("✅ Final Payload being sent to External API:", json.dumps(api_payload, indent=2))
-
-                response = requests.post(api_url, json=api_payload, verify=False)
-                response.raise_for_status()  # Raise an error for bad status codes (4xx or 5xx)
-                
+                response = requests.post(api_url, json=api_payload, verify=False, timeout=20)
                 api_response_data = response.json()
-                print("✅ Response Received from External API:", api_response_data)
-                
-                # --- 4. RETURN THE API'S RESPONSE TO THE FRONTEND ---
-                
-                # Check the message_code from the external API's response
+
                 if str(api_response_data.get("message_code")) == "1000":
                     return JsonResponse({
                         "message_code": 1000,
@@ -505,54 +450,26 @@ def registration_api1(request):
                         "message_data": api_response_data.get("message_data", {})
                     })
                 else:
-                    # Pass through the error from the external API to the frontend
                     return JsonResponse({
-                        "message_code": 998,
-                        "message_text": api_response_data.get("message_text", "An error occurred during booking.")
-                    }, status=400)
+                        "message_code": 999,
+                        "message_text": api_response_data.get("message_text", "Booking could not be completed.")
+                    })
 
-            except json.JSONDecodeError:
-                return JsonResponse({
-                    "message_code": 997,
-                    "message_text": "Invalid JSON format received from frontend for 'Bookings'."
-                }, status=400)
-            except requests.exceptions.RequestException as e:
-                return JsonResponse({
-                    "message_code": 996,
-                    "message_text": f"Could not connect to the booking service: {str(e)}"
-                }, status=503)
             except Exception as e:
-                return JsonResponse({
-                    "message_code": 999,
-                    "message_text": f"An unexpected server error occurred: {str(e)}"
-                }, status=500)
-            
+                import traceback
+                print(traceback.format_exc())
+                return JsonResponse({"message_code": 999, "message_text": f"Booking Error: {str(e)}"})
+
+        # --- 5. TICKET CHECKS & CARDS ---
         elif action == "check_booked_tickets":
             try:
-                # Get the JSON string of registration IDs from the frontend
                 reg_ids_json = request.POST.get("regids", "[]")
-                
-                # Convert the JSON string into a Python list
                 reg_ids_list = json.loads(reg_ids_json)
-
-                # The URL of your external API endpoint
-                api_url = f"{API_BASE_URL}CheckTicketsForReg/" # Make sure this URL is correct
-
-                # The payload the external API is expecting
-                payload = {"regids": reg_ids_list}
-                
-                # Make the request to the external API
-                response = requests.post(api_url, json=payload, verify=False)
-                response.raise_for_status() # Raise an exception for bad status codes
-
-                # Return the external API's response directly to the frontend
+                api_url = f"{API_BASE_URL}CheckTicketsForReg/"
+                response = requests.post(api_url, json={"regids": reg_ids_list}, verify=False)
                 return JsonResponse(response.json())
-
-            except json.JSONDecodeError:
-                return JsonResponse({"message_code": 997, "message_text": "Invalid format for registration IDs."}, status=400)
-            except requests.exceptions.RequestException as e:
-                return JsonResponse({"message_code": 996, "message_text": f"Could not connect to the booking history service: {str(e)}"}, status=503)
-  
+            except Exception as e:
+                return JsonResponse({"message_code": 996, "message_text": f"Error: {str(e)}"}, status=500)
 
         elif action == "get_pilgrim_card":
             try:
@@ -560,122 +477,50 @@ def registration_api1(request):
                 if not registration_id:
                     return JsonResponse({"message_code": 998, "message_text": "Registration ID is required."}, status=400)
 
-                # Construct the full URL to the external API endpoint
                 api_url = f"{API_BASE_URL}getpilgrimcard/" 
-                payload = {"RegistrationId": registration_id}
-                
-                # Call the external API
+                payload = {
+                    "RegistrationId": registration_id,
+                    "TicketId": request.POST.get('ticket_id'),
+                    "SeatNo": request.POST.get('seat_no'),
+                    "YatraId": request.POST.get('yatra_id'),
+                    "YatraRouteId": request.POST.get('route_id')
+                }
                 response = requests.post(api_url, json=payload, verify=False)
-                response.raise_for_status()
-
-                # --- START: CORRECT URL CONSTRUCTION ---
                 response_data = response.json()
 
-                # Check if the API call was successful
                 if response_data.get('message_code') == 1000 and response_data.get('message_data'):
-                    # This is the partial path from the API: "/LakshyaPratishthan/media/cards/18.png"
-                    partial_path = response_data['message_data']  
+                    partial_path = str(response_data['message_data'])
+                    if not partial_path.startswith('http'):
+                        from urllib.parse import urlparse
+                        parsed_base = urlparse(API_BASE_URL) 
+                        api_domain = f"{parsed_base.scheme}://{parsed_base.netloc}"
+                        if not partial_path.startswith('/'):
+                            partial_path = '/' + partial_path
+                        response_data['message_data'] = f"{api_domain}{partial_path}"
 
-                    # Let's dynamically and safely extract the domain from your existing constant
-                    from urllib.parse import urlparse
-                    
-                    # urlparse("https://kukudku.in/LakshyaPratishthan/api/")
-                    parsed_base = urlparse(API_BASE_URL) 
-                    
-                    # This will correctly result in "http://127.0.0.1:8000"
-                    api_domain = f"{parsed_base.scheme}://{parsed_base.netloc}" 
-                    
-                    # This creates the final, correct URL:
-                    # "http://127.0.0.1:8000" + "/LakshyaPratishthan/media/cards/18.png"
-                    full_url = f"{api_domain}{partial_path}"
-                    
-                    # Update the response data with the full URL before sending it to the frontend
-                    response_data['message_data'] = full_url
-
-                # Return the modified JSON with the full URL to the frontend
                 return JsonResponse(response_data)
-                # --- END: CORRECT URL CONSTRUCTION ---
-
-            except requests.exceptions.RequestException as e:
-                return JsonResponse({"message_code": 996, "message_text": f"Could not connect to the card generation service: {str(e)}"}, status=503)
+            except Exception as e:
+                return JsonResponse({"message_code": 996, "message_text": f"Card error: {str(e)}"}, status=500)
 
         elif action == "cancel_ticket":
             try:
                 registration_id = request.POST.get("RegistrationId")
-                if not registration_id:
-                    return JsonResponse({"message_code": 998, "message_text": "Registration ID is required for cancellation."}, status=400)
-
-                # Call the internal cancelticket API endpoint
                 api_url = f"{API_BASE_URL}cancelticket/" 
-                payload = {"RegistrationId": registration_id}
-                
-                print(f"✅ Sending cancellation request to API: {api_url} with payload: {payload}")
-                response = requests.post(api_url, json=payload, verify=False)
-                response.raise_for_status() # Raise an exception for bad status codes
-
-                api_response_data = response.json()
-                print(f"✅ Cancellation API response: {api_response_data}")
-                
-                if str(api_response_data.get("message_code")) == "1000":
-                    return JsonResponse({
-                        "message_code": 1000,
-                        "message_text": api_response_data.get("message_text", "Tickets cancelled successfully."),
-                        "message_data": api_response_data.get("message_data", {})
-                    })
-                else:
-                    return JsonResponse({
-                        "message_code": 998,
-                        "message_text": api_response_data.get("message_text", "An error occurred during cancellation.")
-                    }, status=400)
-
-            except requests.exceptions.RequestException as e:
-                return JsonResponse({
-                    "message_code": 996,
-                    "message_text": f"Could not connect to the cancellation service: {str(e)}"
-                }, status=503)
+                response = requests.post(api_url, json={"RegistrationId": registration_id}, verify=False)
+                return JsonResponse(response.json())
             except Exception as e:
-                return JsonResponse({
-                    "message_code": 999,
-                    "message_text": f"An unexpected server error occurred during cancellation: {str(e)}"
-                }, status=500)        
-            
-        elif action == "list_bloodgroup":
-            # api_url = "https://kukudku.in/api/listbloodgroup"
-            api_url = f"{API_BASE_URL}listbloodgroup/"
-            # resp = requests.get(api_url, headers=headers, verify=False, timeout=10)
-            resp = requests.get(api_url,verify=False)
-            return JsonResponse(resp.json(), safe=False, status=200 if resp.status_code == 200 else 500)
+                return JsonResponse({"message_code": 999, "message_text": f"Cancel Error: {str(e)}"}, status=500)
 
-        # --- १. नवीन डिलीट ॲक्शन लॉजिक जोडा ---
         elif action == "delete_registration":
             try:
                 registration_id = request.POST.get("RegistrationId")
-                if not registration_id:
-                    return JsonResponse({"message_code": 999, "message_text": "Registration ID is required."})
-
-                # बॅकएंडच्या 'delete_diwali_member' एपीआयला कॉल करा जो डेटाबेसमधून रेकॉर्ड डिलीट करतो
                 api_url = f"{API_BASE_URL}delete_diwali_member/{registration_id}/"
-                
                 response = requests.post(api_url, verify=False, timeout=10)
-                
                 if response.status_code == 200:
-                    # फ्रंटएंड जेएस (JS) व्हॅलिडेशननुसार रिस्पॉन्स पाठवा
-                    return JsonResponse({
-                        "message_code": 1000, 
-                        "message_text": "Registration deleted successfully.",
-                        "status": "success"
-                    })
-                else:
-                    return JsonResponse({
-                        "message_code": 999, 
-                        "message_text": f"Backend Error: HTTP {response.status_code}"
-                    })
-                    
+                    return JsonResponse({"message_code": 1000, "message_text": "Registration deleted.", "status": "success"})
+                return JsonResponse({"message_code": 999, "message_text": "Failed to delete"})
             except Exception as e:
-                return JsonResponse({
-                    "message_code": 999, 
-                    "message_text": f"Exception during deletion: {str(e)}"
-                })
+                return JsonResponse({"message_code": 999, "message_text": str(e)})
 
         elif action == "get_upi_qr":
             try:
@@ -689,159 +534,134 @@ def registration_api1(request):
                 response = requests.post(api_url, json=payload, verify=False)
                 return JsonResponse(response.json())
             except Exception as e:
-                return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
+                return JsonResponse({"message_code": 999, "message_text": str(e)})
 
-        elif action == "book_ticket":
-            try:
-                api_url = f"{API_BASE_URL}inserttickets/"
-                
-                payload = {
-                    "UserId": request.POST.get("UserId"),
-                    "AmountPaid": request.POST.get("AmountPaid"),
-                    "Discount": request.POST.get("Discount", "0"),
-                    "DiscountReason": request.POST.get("DiscountReason", ""),
-                    "PaymentMode": "1" if request.POST.get("PaymentMode") == "cash" else "2",
-                    "Bookings": request.POST.get("Bookings")
-                }
-                
-                files = {}
-                upi_file = request.FILES.get("UPIScreenshot")
-                if upi_file:
-                    files["upiScreenshot"] = (upi_file.name, upi_file.read(), upi_file.content_type)
-                
-                response = requests.post(api_url, data=payload, files=files, verify=False, timeout=30)
-                return JsonResponse(response.json())
-            except Exception as e:
-                return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})    
-
+        # --- 6. REGISTRATION SUBMIT / UPDATE (500 Error Fix) ---
         elif action == "submit":
             try:
                 api_url = f"{API_BASE_URL}pilgrimregistration/"
 
-                # --- File upload logic remains the same ---
                 aadhar_file = request.FILES.get("AadharUpload")
                 profile_file = request.FILES.get("ProfilePicUpload")
                 voterId_File = request.FILES.get("VoterIdUpload")
 
                 aadhar_url, profile_url, voterId_url = None, None, None
 
-                # (Keep all your file saving code here, it is correct)
-                # --- Save Aadhar ---
+                # Save Aadhar
                 if aadhar_file:
                     ext = os.path.splitext(aadhar_file.name)[1].lower()
                     file_name = f"{uuid.uuid4().hex}"
-                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
-                    os.makedirs(img_directory, exist_ok=True)
+                    img_dir = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "adhar")
+                    os.makedirs(img_dir, exist_ok=True)
                     if ext == ".pdf":
-                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        save_path = os.path.join(img_dir, f"{file_name}.pdf")
                         with open(save_path, "wb+") as dest:
-                            for chunk in aadhar_file.chunks():
-                                dest.write(chunk)
+                            for chunk in aadhar_file.chunks(): dest.write(chunk)
                         aadhar_url = f"https://kukudku.in/Yatra_darshan/static/assets/adhar/{file_name}.pdf"
                     else:
-                        save_path = os.path.join(img_directory, f"{file_name}.png")
-                        image = Image.open(aadhar_file)
-                        image = image.convert("RGB")
+                        save_path = os.path.join(img_dir, f"{file_name}.png")
+                        image = Image.open(aadhar_file).convert("RGB")
                         image.save(save_path, "PNG")
                         aadhar_url = f"https://kukudku.in/Yatra_darshan/static/assets/adhar/{file_name}.png"
 
-                # --- Save Profile Pic ---
+                # Save Profile Pic
                 if profile_file:
                     ext = os.path.splitext(profile_file.name)[1].lower()
                     file_name = f"{uuid.uuid4().hex}"
-                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
-                    os.makedirs(img_directory, exist_ok=True)
+                    img_dir = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "profile")
+                    os.makedirs(img_dir, exist_ok=True)
                     if ext == ".pdf":
-                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        save_path = os.path.join(img_dir, f"{file_name}.pdf")
                         with open(save_path, "wb+") as dest:
-                            for chunk in profile_file.chunks():
-                                dest.write(chunk)
+                            for chunk in profile_file.chunks(): dest.write(chunk)
                         profile_url = f"https://kukudku.in/Yatra_darshan/static/assets/profile/{file_name}.pdf"
                     else:
-                        save_path = os.path.join(img_directory, f"{file_name}.png")
-                        image = Image.open(profile_file)
-                        image = image.convert("RGB")
+                        save_path = os.path.join(img_dir, f"{file_name}.png")
+                        image = Image.open(profile_file).convert("RGB")
                         image.save(save_path, "PNG")
                         profile_url = f"https://kukudku.in/Yatra_darshan/static/assets/profile/{file_name}.png"
 
-                # --- Save VoterID Pic ---
+                # Save VoterID Pic
                 if voterId_File:
                     ext = os.path.splitext(voterId_File.name)[1].lower()
                     file_name = f"{uuid.uuid4().hex}"
-                    img_directory = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
-                    os.makedirs(img_directory, exist_ok=True)
+                    img_dir = os.path.join(settings.BASE_DIR, "staticfiles", "assets", "voterId")
+                    os.makedirs(img_dir, exist_ok=True)
                     if ext == ".pdf":
-                        save_path = os.path.join(img_directory, f"{file_name}.pdf")
+                        save_path = os.path.join(img_dir, f"{file_name}.pdf")
                         with open(save_path, "wb+") as dest:
-                            for chunk in voterId_File.chunks():
-                                dest.write(chunk)
+                            for chunk in voterId_File.chunks(): dest.write(chunk)
                         voterId_url = f"https://kukudku.in/Yatra_darshan/static/assets/voterId/{file_name}.pdf"
                     else:
-                        save_path = os.path.join(img_directory, f"{file_name}.png")
-                        image = Image.open(voterId_File)
-                        image = image.convert("RGB")
+                        save_path = os.path.join(img_dir, f"{file_name}.png")
+                        image = Image.open(voterId_File).convert("RGB")
                         image.save(save_path, "PNG")
                         voterId_url = f"https://kukudku.in/Yatra_darshan/static/assets/voterId/{file_name}.png"
-                
-                # --- Intelligent Payload Preparation ---
-                dob_in = request.POST.get("DateOfBirth", "")
-                dob_final = dob_in
-                if dob_in and "-" in dob_in and "/" not in dob_in:
-                    try:
-                        from datetime import datetime
-                        dob_final = datetime.strptime(dob_in, "%Y-%m-%d").strftime("%d/%m/%Y")
-                    except Exception:
-                        pass
+
+                # Date of Birth conversion (Safe ISO format)
+                raw_dob = request.POST.get("DateOfBirth", "").strip()
+                valid_dob = None
+                if raw_dob:
+                    if "/" in raw_dob:
+                        try:
+                            valid_dob = datetime.strptime(raw_dob, "%d/%m/%Y").strftime("%Y-%m-%d")
+                        except Exception:
+                            valid_dob = raw_dob
+                    else:
+                        valid_dob = raw_dob
+
+                gender_id = request.POST.get("Gender", "1")
+                area_id = request.POST.get("AreaId", "1")
+                blood_group = request.POST.get("BloodGroup", "Select")
 
                 payload = {
-                    "userMobileNo": request.POST.get("userMobileNo"),
-                    "userFirstname": request.POST.get("userFirstname"),
-                    "userMiddlename": request.POST.get("userMiddlename", ""),
-                    "userLastname": request.POST.get("userLastname"),
-                    "AreaId": request.POST.get("AreaId", "1"),
-                    "Gender": request.POST.get("Gender", "1"),
-                    "Address": request.POST.get("Address", ""),
-                    "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", ""),
-                    "BloodGroup": request.POST.get("BloodGroup", "Select"),
-                    "DateOfBirth": dob_final,
+                    "userMobileNo": request.POST.get("userMobileNo", "").strip(),
+                    "userFirstname": request.POST.get("userFirstname", "").strip(),
+                    "userMiddlename": request.POST.get("userMiddlename", "").strip(),
+                    "userLastname": request.POST.get("userLastname", "").strip(),
+                    "AreaId": int(area_id) if str(area_id).isdigit() else 1,
+                    "Gender": int(gender_id) if str(gender_id).isdigit() else 1,
+                    "GenderId": int(gender_id) if str(gender_id).isdigit() else 1,
+                    "Address": request.POST.get("Address", "").strip(),
+                    "userAlternateMobileNo": request.POST.get("userAlternateMobileNo", "").strip(),
+                    "BloodGroup": blood_group,
+                    "BloodGroupId": request.POST.get("BloodGroupId") or None,
+                    "DateOfBirth": valid_dob,
+                    "DateofBirth": valid_dob,
                     "UserId": str(request.session.get("user_id", "0")),
                     "Photo": profile_url or request.POST.get("PhotoFileName", ""),
+                    "PhotoFileName": profile_url or request.POST.get("PhotoFileName", ""),
                     "PhotoId": aadhar_url or request.POST.get("IdProofFileName", ""),
+                    "IdProofFileName": aadhar_url or request.POST.get("IdProofFileName", ""),
                     "VoterId": voterId_url or request.POST.get("VoterId", ""),
+                    "AadharNumber": request.POST.get("AadharNumber", "").strip(),
                 }
-                
-                payload["PhotoFileName"] = payload["Photo"]
-                payload["IdProofFileName"] = payload["PhotoId"]
 
-                registration_id = request.POST.get("RegistrationId", "0")
+                reg_id = request.POST.get("RegistrationId", "0")
+                if reg_id and str(reg_id) != "0":
+                    payload["RegistrationId"] = int(reg_id)
 
-                # ✅ THE CRUCIAL FIX:
-                # If the registration_id is NOT '0', it's an update.
-                # Only then do we add the 'RegistrationId' key to the payload.
-                # If it IS '0', the key is omitted, signaling a NEW registration.
-                if registration_id != "0":
-                    payload["RegistrationId"] = registration_id
+                resp = requests.post(api_url, json=payload, verify=False, timeout=15)
 
-                print("✅ Final Payload being sent to External API:", payload) 
-
-                resp = requests.post(api_url, json=payload, verify=False)
-                
                 if resp.status_code not in [200, 201]:
-                    return JsonResponse({"message_code": 999, "message_text": f"API HTTP Error {resp.status_code}"})
-                
-                response_data = resp.json()
-                print("✅ Response Received from External API:", response_data)
-                return JsonResponse(response_data, safe=False)
+                    print("Backend Error Details:", resp.text)
+                    return JsonResponse({
+                        "message_code": 999, 
+                        "message_text": f"Backend Error ({resp.status_code}): {resp.text[:150]}"
+                    })
+
+                return JsonResponse(resp.json(), safe=False)
 
             except Exception as e:
-                print(f"❌ Exception in submit action: {str(e)}")
-                return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
+                import traceback
+                print(traceback.format_exc())
+                return JsonResponse({"message_code": 999, "message_text": f"Submit Exception: {str(e)}"})
 
         else:
-            return JsonResponse({"message_code": 999, "message_text": "Invalid action"})
+            return JsonResponse({"message_code": 999, "message_text": "Invalid action specified"})
 
     except Exception as e:
-        return JsonResponse({"message_code": 999, "message_text": f"Exception: {str(e)}"})
+        return JsonResponse({"message_code": 999, "message_text": f"Global Exception: {str(e)}"})
     
 
 # def TicketBooking(request):
@@ -1845,6 +1665,7 @@ def detailed_report_api(request):
                     seen_seats.add(seat_key)
 
                     pax = {
+                        "TicketId": ticket.get("TicketId") or ticket.get("ticket_id"),
                         "PilgrimName": f"{ticket.get('Firstname', '')} {ticket.get('Lastname', '')}".strip(),
                         "SeatNo": seat_no,
                         "MobileNo": ticket.get("MobileNo"),
@@ -1869,34 +1690,39 @@ def detailed_report_api(request):
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"})
 
-
 @csrf_exempt
 def get_pilgrim_card_api(request):
     """
-    API proxy to fetch the pilgrim card image path for printing.
+    API proxy to fetch the pilgrim card image for a specific ticket.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
 
     registration_id = request.POST.get('registration_id')
+    ticket_id = request.POST.get('ticket_id')  # 👈 हा तिकीट आयडी मिळवा
+
     if not registration_id:
         return JsonResponse({"message_code": 999, "message_text": "Registration ID is required."})
 
     try:
         api_url = f"{API_BASE_URL}getpilgrimcard/"
-        payload = {"RegistrationId": registration_id}
+        payload = {
+            
+            "RegistrationId": registration_id,
+            "TicketId": ticket_id,                    
+            "SeatNo": request.POST.get('seat_no'), 
+            "YatraId": request.POST.get('yatra_id'),
+            "YatraRouteId": request.POST.get('route_id')
+        }
         response = requests.post(api_url, json=payload, verify=False, timeout=15)
-        
         response_data = response.json()
+        
         if response_data.get('message_code') == 1000 and response_data.get('message_data'):
             partial_path = str(response_data['message_data'])
-            
-            # बॅकएंड डोमेन मिळवणे (उदा. http://127.0.0.1:8000)
             from urllib.parse import urlparse
             parsed_base = urlparse(API_BASE_URL)
             backend_domain = f"{parsed_base.scheme}://{parsed_base.netloc}"
             
-            # 🔴 फिक्स: partial_path जसा आहे तसाच जोडा (मधला media पाथ कापू नका)
             if partial_path.startswith('http'):
                 full_image_url = partial_path
             else:
@@ -1909,6 +1735,7 @@ def get_pilgrim_card_api(request):
         return JsonResponse(response_data)
     except Exception as e:
         return JsonResponse({"message_code": 999, "message_text": f"An error occurred: {str(e)}"})
+    
 
 def daily_report(request):
     """
