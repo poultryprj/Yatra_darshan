@@ -1336,15 +1336,60 @@
 
         let isSubmitting = false; // 🔴 डबल-क्लिक १००% रोखण्यासाठी
 
+        // 🔴 मोबाईलचा ५ MB चा मोठा फोटो क्वालिटी न घालवता १५० KB करणारा फास्ट कोड
+        async function compressImage(file, maxWidth = 1200, quality = 0.7) {
+            // जर फाईल नसेल किंवा ती इमेज नसेल (उदा. PDF असेल) तर कॉम्प्रेस न करता तशीच पाठवा
+            if (!file || !file.type.startsWith('image/')) return file;
+
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // फोटोची रुंदी आवश्यकतेनुसार 1200px वर सेट करणे
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (!blob) {
+                                resolve(file);
+                                return;
+                            }
+                            // कॉम्प्रेस झालेली लहान फाईल तयार करणे
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = () => resolve(file);
+                };
+                reader.onerror = () => resolve(file);
+            });
+        }
+
         async function handleSubmit(e) {
             e.preventDefault();
 
-            // 🔴 जर आधीच सेव्ह होत असेल, तर पुढचे ४-५ क्लिक्स लगेच अडवा
             if (isSubmitting) return;
 
             const btnSubmit = document.getElementById('btnSubmit');
             isSubmitting = true;
-            btnSubmit.disabled = true; // बटण लॉक केले
+            btnSubmit.disabled = true;
             btnSubmit.style.pointerEvents = 'none';
             const originalBtnHtml = btnSubmit.innerHTML;
             btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
@@ -1366,12 +1411,24 @@
             formData.append("DateOfBirth", document.getElementById('DateOfBirth').value);
             formData.append("AadharNumber", document.getElementById('AadharNumber').value.replace(/\D/g, ''));
             
-            const aadharFile = document.getElementById('AadharUpload').files[0];
-            if (aadharFile) formData.append("AadharUpload", aadharFile);
-            const profileFile = document.getElementById('ProfilePicUpload').files[0];
-            if (profileFile) formData.append("ProfilePicUpload", profileFile);
-            const voterFile = document.getElementById('VoterIdUpload').files[0];
-            if (voterFile) formData.append("VoterIdUpload", voterFile);
+            // 🔴 येथे फोटो १ सेकंदात आपोआप कॉम्प्रेस होऊन लहान होतील:
+            let aadharFile = document.getElementById('AadharUpload').files[0];
+            if (aadharFile) {
+                aadharFile = await compressImage(aadharFile);
+                formData.append("AadharUpload", aadharFile);
+            }
+
+            let profileFile = document.getElementById('ProfilePicUpload').files[0];
+            if (profileFile) {
+                profileFile = await compressImage(profileFile);
+                formData.append("ProfilePicUpload", profileFile);
+            }
+
+            let voterFile = document.getElementById('VoterIdUpload').files[0];
+            if (voterFile) {
+                voterFile = await compressImage(voterFile);
+                formData.append("VoterIdUpload", voterFile);
+            }
             
             formData.append("IdProofFileName", document.getElementById('IdProofFileName').value);
             formData.append("PhotoFileName", document.getElementById('PhotoFileName').value);
@@ -1391,7 +1448,6 @@
                 console.error(err);
                 showMsg('error', 'Something went wrong.');
             } finally {
-                // 🔴 प्रोसेस पूर्ण झाल्यावरच बटण पुन्हा मोकळे करा
                 isSubmitting = false;
                 btnSubmit.disabled = false;
                 btnSubmit.style.pointerEvents = 'auto';
