@@ -473,8 +473,7 @@
         <div class="wizard-step-card active-step" id="stepCard_1">
             <div class="mb-3">
                 <div class="search-input-wrapper">
-                    <!-- 🔴 प्रिमियम इनलाईन सर्च बार (Magnifying Glass input च्या उजवीकडे सेट केला आहे) -->
-                    <input id="searchMobile" type="tel" class="search-input-field" placeholder="Type 10 Digit Mobile Number..." autocomplete="off" />
+                    <input id="searchMobile" type="tel" class="search-input-field" placeholder="Type 10 Digit Mobile Number..." autocomplete="off" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
                     <button id="btnSearch" class="search-action-btn" title="Search Mobile" type="button">
                         <i class="bi bi-search"></i>
                     </button>
@@ -643,13 +642,13 @@
                 <div class="row g-2">
                     <div class="col-6">
                         <div class="floating">
-                            <input id="MobileNo" type="tel" placeholder=" " required>
+                            <input id="MobileNo" type="tel" placeholder=" " required maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                             <label>Mobile Number *</label>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="floating">
-                            <input id="AlternateMobileNo" type="tel" placeholder=" ">
+                            <input id="AlternateMobileNo" type="tel" placeholder=" " maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                             <label>Alternate Mobile</label>
                         </div>
                     </div>
@@ -1335,8 +1334,21 @@
             regActionBar.show();
         }
 
+        let isSubmitting = false; // 🔴 डबल-क्लिक १००% रोखण्यासाठी
+
         async function handleSubmit(e) {
             e.preventDefault();
+
+            // 🔴 जर आधीच सेव्ह होत असेल, तर पुढचे ४-५ क्लिक्स लगेच अडवा
+            if (isSubmitting) return;
+
+            const btnSubmit = document.getElementById('btnSubmit');
+            isSubmitting = true;
+            btnSubmit.disabled = true; // बटण लॉक केले
+            btnSubmit.style.pointerEvents = 'none';
+            const originalBtnHtml = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
             const formData = new FormData();
             formData.append("action", "submit");
             formData.append("RegistrationId", document.getElementById('RegistrationId').value);
@@ -1378,6 +1390,12 @@
             } catch (err) {
                 console.error(err);
                 showMsg('error', 'Something went wrong.');
+            } finally {
+                // 🔴 प्रोसेस पूर्ण झाल्यावरच बटण पुन्हा मोकळे करा
+                isSubmitting = false;
+                btnSubmit.disabled = false;
+                btnSubmit.style.pointerEvents = 'auto';
+                btnSubmit.innerHTML = originalBtnHtml;
             }
         }
         
