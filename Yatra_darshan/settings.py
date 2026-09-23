@@ -146,7 +146,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.lakshyapratishthan.com' ]
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8000',
-    'https://kukudku.in/' ]
+    'https://lakshyapratishthan.com/' ]
 
 
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/assets/js', 'serviceworker.js')
