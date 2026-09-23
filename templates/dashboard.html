@@ -319,20 +319,40 @@
     <div class="content-section">
         <h4 class="section-title">Menu Options</h4>
         <div class="menu-grid">
+            
+            {% if 'yatra_booking' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'Registrationpage1' %}" class="menu-item"><i class="fa-solid fa-ticket"></i><span class="menu-text">Yatra Ticket<br>Booking</span></a>
+            {% endif %}
+
+            {% if 'search_registration' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'search_registration' %}" class="menu-item"><i class="fa-solid fa-magnifying-glass"></i><span class="menu-text">Search<br>Registration</span></a>
-            {% if request.session.user_role != "2" %}
+            {% endif %}
+
+            <!-- Admin Rights Screen Button -->
+            {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+                <a href="{% url 'user_rights_page' %}" class="menu-item"><i class="fa-solid fa-user-shield" style="color:#FF5500;"></i><span class="menu-text">User<br>Rights</span></a>
                 <a href="{% url 'user_master' %}" class="menu-item"><i class="fa-solid fa-users-gear"></i><span class="menu-text">User<br>Management</span></a>
                 <a href="{% url 'route_master' %}" class="menu-item"><i class="fa-solid fa-route"></i><span class="menu-text">Route<br>Master</span></a>
                 <a href="{% url 'area_master' %}" class="menu-item"><i class="fa-solid fa-map-location-dot"></i><span class="menu-text">Area<br>Master</span></a>
                 <a href="{% url 'yatra_master' %}" class="menu-item"><i class="fa-solid fa-calendar-days"></i><span class="menu-text">Yatra<br>Master</span></a>
                 <a href="{% url 'yatra_bus_master' %}" class="menu-item"><i class="fa-solid fa-bus"></i><span class="menu-text">Bus<br>Master</span></a>
             {% endif %}
+
+            {% if 'daily_collection' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'daily_report' %}" class="menu-item"><i class="fa-solid fa-indian-rupee-sign"></i><span class="menu-text">Daily<br>Collection</span></a>
+            {% endif %}
+
+            {% if 'print_report' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'print_report_page' %}" class="menu-item"><i class="fa-solid fa-print"></i><span class="menu-text">Print<br>Report</span></a>
+            {% endif %}
+
+            {% if 'passenger_docs' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'passenger_documents' %}" class="menu-item"><i class="fa-solid fa-id-card"></i><span class="menu-text">Passenger<br>Docs</span></a>
-            <a href="#" class="menu-item"><i class="fa-solid fa-comments"></i><span class="menu-text">Feedback</span></a>
+            {% endif %}
+
+            {% if 'whatsapp_sms' in request.session.user_rights or request.session.user_role == '1' %}
             <a href="{% url 'whatsapp_messaging_page' %}" class="menu-item"><i class="bi bi-whatsapp"></i><span class="menu-text">WhatsApp<br>SMS</span></a>
+            {% endif %}
         </div>
     </div>
 

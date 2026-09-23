@@ -763,7 +763,7 @@
                 </div>
                 <div class="modal-footer" style="border-top: none;">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 700;">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmSeatSelection" style="background-color: var(--primary-brand); border: none; border-radius: 10px; font-weight: 700;">Confirm Selection</button>
+                    <button type="button" class="btn btn-primary" id="confirmSeatSelection" data-bs-dismiss="modal" style="background-color: var(--primary-brand); border: none; border-radius: 10px; font-weight: 700;">Confirm Selection</button>
                 </div>
             </div>
         </div>
@@ -1336,9 +1336,10 @@
 
         let isSubmitting = false; // 🔴 डबल-क्लिक १००% रोखण्यासाठी
 
-        // 🔴 मोबाईलचा ५ MB चा मोठा फोटो क्वालिटी न घालवता १५० KB करणारा फास्ट कोड
-        async function compressImage(file, maxWidth = 1200, quality = 0.7) {
-            // जर फाईल नसेल किंवा ती इमेज नसेल (उदा. PDF असेल) तर कॉम्प्रेस न करता तशीच पाठवा
+        let readyFiles = { aadhar: null, profile: null, voter: null };
+
+        // 🔴 अल्ट्रा-फास्ट कॉम्प्रेशन (केवळ 50 KB फाईल साइज आणि HD क्लॅरिटी)
+        async function compressImage(file, maxWidth = 900, quality = 0.6) {
             if (!file || !file.type.startsWith('image/')) return file;
 
             return new Promise((resolve) => {
@@ -1352,7 +1353,6 @@
                         let width = img.width;
                         let height = img.height;
 
-                        // फोटोची रुंदी आवश्यकतेनुसार 1200px वर सेट करणे
                         if (width > maxWidth) {
                             height = Math.round((height * maxWidth) / width);
                             width = maxWidth;
@@ -1364,11 +1364,7 @@
                         ctx.drawImage(img, 0, 0, width, height);
 
                         canvas.toBlob((blob) => {
-                            if (!blob) {
-                                resolve(file);
-                                return;
-                            }
-                            // कॉम्प्रेस झालेली लहान फाईल तयार करणे
+                            if (!blob) { resolve(file); return; }
                             const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
                                 type: 'image/jpeg',
                                 lastModified: Date.now()
@@ -1411,30 +1407,22 @@
             formData.append("DateOfBirth", document.getElementById('DateOfBirth').value);
             formData.append("AadharNumber", document.getElementById('AadharNumber').value.replace(/\D/g, ''));
             
-            // 🔴 येथे फोटो १ सेकंदात आपोआप कॉम्प्रेस होऊन लहान होतील:
-            let aadharFile = document.getElementById('AadharUpload').files[0];
-            if (aadharFile) {
-                aadharFile = await compressImage(aadharFile);
-                formData.append("AadharUpload", aadharFile);
-            }
+            // 🔴 आधीच तयार असलेले ५० KB चे हलके फोटो थेट जोडणे (नो वेटिंग!)
+            const aadharFile = readyFiles.aadhar || document.getElementById('AadharUpload').files[0];
+            if (aadharFile) formData.append("AadharUpload", aadharFile);
 
-            let profileFile = document.getElementById('ProfilePicUpload').files[0];
-            if (profileFile) {
-                profileFile = await compressImage(profileFile);
-                formData.append("ProfilePicUpload", profileFile);
-            }
+            const profileFile = readyFiles.profile || document.getElementById('ProfilePicUpload').files[0];
+            if (profileFile) formData.append("ProfilePicUpload", profileFile);
 
-            let voterFile = document.getElementById('VoterIdUpload').files[0];
-            if (voterFile) {
-                voterFile = await compressImage(voterFile);
-                formData.append("VoterIdUpload", voterFile);
-            }
+            const voterFile = readyFiles.voter || document.getElementById('VoterIdUpload').files[0];
+            if (voterFile) formData.append("VoterIdUpload", voterFile);
             
             formData.append("IdProofFileName", document.getElementById('IdProofFileName').value);
             formData.append("PhotoFileName", document.getElementById('PhotoFileName').value);
             formData.append("VoterId", document.getElementById('VoterId').value);
 
             try {
+                // 🔴 अवघ्या काही मिलिसेकंदात सर्व्हरला डेटा पाठवला जाईल
                 const resp = await fetch(API_BASE_URL, { method: "POST", body: formData });
                 const res = await resp.json();
                 if (String(res.message_code) === "1000") {
@@ -1452,6 +1440,7 @@
                 btnSubmit.disabled = false;
                 btnSubmit.style.pointerEvents = 'auto';
                 btnSubmit.innerHTML = originalBtnHtml;
+                readyFiles = { aadhar: null, profile: null, voter: null }; // रिसेट
             }
         }
         
@@ -1484,9 +1473,19 @@
 
         function populateRoutes() {
             selectRoute.innerHTML = '<option value="">Select Route</option>';
-            allRoutes.forEach(route => {
-                selectRoute.appendChild(new Option(route.YatraRouteName, route.YatraRouteId));
-            });
+
+            // Show only routes having an active yatra with at least one bus
+            const routeIdsWithBus = new Set(
+                allBuses.map(bus => String(bus.YatraRouteId))
+            );
+
+            allRoutes
+                .filter(route => routeIdsWithBus.has(String(route.YatraRouteId)))
+                .forEach(route => {
+                    selectRoute.appendChild(
+                        new Option(route.YatraRouteName, route.YatraRouteId)
+                    );
+                });
         }
 
         function handleRouteChange() {
@@ -1665,11 +1664,14 @@
         }
 
         document.getElementById('confirmSeatSelection').addEventListener('click', () => {
-            updateSelectedSeatsDisplay(); seatModal.hide();
-        });
-        selectSeatsDisplay.addEventListener('click', () => {
-            if (selectBus.value) seatModal.show();
-            else showMsg('warning', 'Please select a Bus first.');
+            updateSelectedSeatsDisplay(); 
+            
+            // 🔴 सुरक्षितपणे मोडल बंद करणे:
+            const modalEl = document.getElementById('seatSelectionModal');
+            const modalInst = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+            if (modalInst) {
+                modalInst.hide();
+            }
         });
         
         function addTicket() {
@@ -2059,11 +2061,24 @@
             }
         });
 
-        formatInputWithGrouping('searchMobile', [2, 4, 4], 10);
-        formatInputWithGrouping('MobileNo', [2, 4, 4], 10);
-        formatInputWithGrouping('AlternateMobileNo', [2, 4, 4], 10);
+        // formatInputWithGrouping('searchMobile', [2, 4, 4], 10);
+        // formatInputWithGrouping('MobileNo', [2, 4, 4], 10);
+        // formatInputWithGrouping('AlternateMobileNo', [2, 4, 4], 10);
         formatInputWithGrouping('AadharNumber', [4, 4, 4], 12);
     });
+
+    // 🔴 फोटो निवडताच क्षणात बॅकग्राउंडमध्ये ५० KB करणे:
+        document.getElementById('AadharUpload').addEventListener('change', async function() {
+            if (this.files[0]) readyFiles.aadhar = await compressImage(this.files[0]);
+        });
+
+        document.getElementById('ProfilePicUpload').addEventListener('change', async function() {
+            if (this.files[0]) readyFiles.profile = await compressImage(this.files[0]);
+        });
+
+        document.getElementById('VoterIdUpload').addEventListener('change', async function() {
+            if (this.files[0]) readyFiles.voter = await compressImage(this.files[0]);
+        });
 </script>
 </body>
 </html>

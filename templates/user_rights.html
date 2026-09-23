@@ -1,0 +1,502 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Rights Management - Master View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --brand-orange: #FF7B00;
+            --brand-orange-dark: #E06B00;
+            --brand-orange-light: #FFF7ED;
+            --brand-primary: #0F172A;
+            --border-slate: #e2e8f0;
+            --bg-slate: #f8fafc;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(180deg, #FFF7ED 0%, #F8FAFC 100%); 
+            padding-top: 65px; 
+            padding-bottom: 40px;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .navbar { 
+            background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
+            height: 60px; 
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.2);
+            border: none;
+        }
+
+        .container-main { 
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 0 14px; 
+        }
+
+        /* Search Input */
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .search-field {
+            width: 100%;
+            height: 48px;
+            padding: 10px 42px 10px 16px;
+            border: 1.5px solid var(--border-slate);
+            border-radius: 14px;
+            background: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+            transition: all 0.2s;
+        }
+        .search-field:focus {
+            border-color: var(--brand-orange);
+            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.12);
+        }
+        .search-icon {
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            color: var(--text-muted);
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* User List Card Styling */
+        .user-access-card {
+            background: #ffffff;
+            border: 1px solid var(--border-slate);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .user-access-card:hover {
+            border-color: var(--brand-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 123, 0, 0.08);
+        }
+
+        .u-name { font-size: 15px; font-weight: 800; color: var(--brand-primary); }
+        .u-mobile { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        
+        .role-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        .badge-admin { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+        .badge-operator { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+        .btn-set-rights {
+            background: var(--brand-orange-light);
+            border: 1px solid #fed7aa;
+            color: var(--brand-orange-dark);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-set-rights:hover {
+            background: var(--brand-orange);
+            color: #ffffff;
+            border-color: var(--brand-orange);
+        }
+
+        /* Permissions Card Style */
+        .card-custom { 
+            background: #ffffff; 
+            border-radius: 20px; 
+            padding: 18px 16px; 
+            border: 1px solid var(--border-slate); 
+            box-shadow: 0 8px 25px rgba(15, 23, 42, 0.03); 
+            margin-bottom: 14px; 
+        }
+
+        .section-header { 
+            font-size: 13px; 
+            font-weight: 800; 
+            margin-bottom: 10px; 
+            border-bottom: 1.5px dashed var(--border-slate); 
+            padding-bottom: 6px; 
+            text-transform: uppercase;
+        }
+
+        .perm-toggle-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 12px 14px; 
+            background: #F8FAFC; 
+            border: 1px solid var(--border-slate); 
+            border-radius: 14px; 
+            margin-bottom: 8px; 
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .perm-toggle-row:hover { 
+            border-color: var(--brand-orange); 
+            background: #ffffff;
+        }
+
+        .perm-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; }
+        .form-check-input { width: 22px; height: 22px; cursor: pointer; border: 1.5px solid #CBD5E1; margin: 0; }
+        .form-check-input:checked { background-color: var(--brand-orange); border-color: var(--brand-orange); }
+
+        .btn-save-floating { 
+            background: var(--brand-orange); 
+            color: white !important; 
+            font-weight: 800; 
+            font-size: 15px;
+            height: 52px; 
+            border-radius: 14px; 
+            border: none; 
+            width: 100%; 
+            box-shadow: 0 6px 20px rgba(255, 123, 0, 0.3); 
+            transition: all 0.2s;
+        }
+        .btn-save-floating:hover { background: var(--brand-orange-dark); }
+        .btn-back-link { font-weight: 700; color: var(--text-muted); text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed-top">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard' %}" class="text-white fs-4 text-decoration-none"><i class="bi bi-arrow-left-circle-fill"></i></a>
+        <span class="text-white fw-bold fs-6">User Rights Master</span>
+        <div style="width:28px;"></div>
+    </div>
+</nav>
+
+<div class="container-main">
+
+    <!-- 🟢 SCREEN १: USER LIST SCREEN (सर्व युझर्सची यादी) -->
+    <div id="usersListScreen">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-bold fs-6 text-dark">Select User to Manage Rights</span>
+            <span class="badge bg-white text-muted border px-2 py-1" id="totalUsersCount">Loading...</span>
+        </div>
+
+        <!-- Search Input -->
+        <div class="search-wrapper">
+            <input type="text" id="searchUserInput" class="search-field" placeholder="Search user by name or mobile..." autocomplete="off">
+            <i class="bi bi-search search-icon"></i>
+        </div>
+
+        <!-- User Cards Container -->
+        <div id="usersCardsContainer">
+            <div class="text-center py-5">
+                <div class="spinner-border text-warning spinner-border-sm"></div>
+                <div class="text-muted mt-2 fs-6">Loading users...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 SCREEN २: ASSIGN PERMISSIONS SCREEN (सेव्ह होताच पुन्हा लिस्टवर रिडायरेक्ट होईल) -->
+    <div id="rightsSetupScreen" style="display: none;">
+        
+        <!-- Header with Back Button -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="javascript:void(0)" class="btn-back-link" id="btnBackToList">
+                <i class="bi bi-arrow-left-circle fs-5"></i> Back to Users
+            </a>
+            <span class="badge bg-warning text-dark px-2 py-1 fw-bold" id="activeUserRoleBadge">Operator</span>
+        </div>
+
+        <!-- Target User Card -->
+        <div class="card-custom mb-3 py-2 px-3 bg-white border-warning">
+            <div class="text-muted" style="font-size: 11px; font-weight: 700;">MANAGING RIGHTS FOR:</div>
+            <div class="fw-bold text-dark fs-6" id="activeUserNameText">-</div>
+            <div class="text-muted fw-semibold" style="font-size: 12px;" id="activeUserMobileText">-</div>
+            <input type="hidden" id="currentEditingUserId" value="">
+        </div>
+
+        <!-- Select All / Clear -->
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <span class="text-muted fw-bold" style="font-size:11px;">SET MENU PERMISSIONS</span>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-bold text-dark" id="btnSelectAll" style="font-size:11px;">Select All</button>
+                <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-bold text-danger" id="btnClearAll" style="font-size:11px;">Clear</button>
+            </div>
+        </div>
+
+        <!-- Group A: Booking & Ops -->
+        <div class="card-custom">
+            <div class="section-header text-primary"><i class="bi bi-ticket-perforated-fill me-1"></i> Booking & Operations</div>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-ticket-perforated me-2 text-warning fs-5"></i> Yatra Ticket Booking</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="yatra_booking">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-search me-2 text-primary fs-5"></i> Search Passenger</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="search_registration">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-cash-coin me-2 text-success fs-5"></i> Daily Collection Report</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="daily_collection">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-printer me-2 text-secondary fs-5"></i> Print Passenger List</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="print_report">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-person-badge me-2 text-danger fs-5"></i> Passenger Documents</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="passenger_docs">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-whatsapp me-2 text-success fs-5"></i> WhatsApp Messaging</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="whatsapp_sms">
+            </label>
+        </div>
+
+        <!-- Group B: Master Configurations -->
+        <div class="card-custom">
+            <div class="section-header text-danger"><i class="bi bi-shield-lock-fill me-1"></i> Master Configurations</div>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-people me-2 text-purple fs-5"></i> User Management</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="user_management">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-geo-alt me-2 text-success fs-5"></i> Route Master</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="route_master">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-map me-2 text-info fs-5"></i> Area Master</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="area_master">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-calendar-event me-2 text-warning fs-5"></i> Yatra Master</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="yatra_master">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-bus-front me-2 text-info fs-5"></i> Bus Master</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="bus_master">
+            </label>
+        </div>
+
+        <!-- Group C: Home Modules -->
+        <div class="card-custom">
+            <div class="section-header text-success"><i class="bi bi-grid-fill me-1"></i> Home Service Modules</div>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-gift text-success me-2 fs-5"></i> Diwali Kirana Access</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="module_diwali">
+            </label>
+            <label class="perm-toggle-row">
+                <span class="perm-title"><i class="bi bi-calendar2-check text-primary me-2 fs-5"></i> Event Management Access</span>
+                <input class="form-check-input perm-cb" type="checkbox" value="module_event">
+            </label>
+        </div>
+
+        <!-- 🔴 SAVE BUTTON: सेव्ह होताच आपोआप List Screen वर परत नेईल -->
+        <button type="button" class="btn btn-save-floating mb-4" id="btnSaveAndRedirect">
+            <i class="bi bi-check2-circle me-1"></i> Save & Return to List
+        </button>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let allUsersData = [];
+    const usersListScreen = document.getElementById('usersListScreen');
+    const rightsSetupScreen = document.getElementById('rightsSetupScreen');
+    const usersCardsContainer = document.getElementById('usersCardsContainer');
+    const searchUserInput = document.getElementById('searchUserInput');
+    const btnSaveAndRedirect = document.getElementById('btnSaveAndRedirect');
+    const btnBackToList = document.getElementById('btnBackToList');
+
+    // 🔴 १. पेज लोड झाल्यावर सर्व युझर्स लोड करणे:
+    async function fetchUsersList() {
+        try {
+            const res = await fetch("{% url 'user_rights_api' %}?action=get_users");
+            const data = await res.json();
+            
+            if (data.message_code === 1000 && Array.isArray(data.message_data)) {
+                allUsersData = data.message_data;
+                document.getElementById('totalUsersCount').textContent = `${allUsersData.length} Users`;
+                renderUsersCards(allUsersData);
+            } else {
+                usersCardsContainer.innerHTML = '<div class="text-center text-muted py-5">No users found.</div>';
+            }
+        } catch(e) {
+            usersCardsContainer.innerHTML = '<div class="text-center text-danger py-5">Failed to load users.</div>';
+        }
+    }
+
+    // 🔴 २. युझर कार्ड्स रेंडर करणे:
+    function renderUsersCards(users) {
+        if (users.length === 0) {
+            usersCardsContainer.innerHTML = '<div class="text-center text-muted py-4">No matching users found.</div>';
+            return;
+        }
+
+        let html = '';
+        users.forEach(u => {
+            const isAdmin = (String(u.UserRole) === "1");
+            const roleBadge = isAdmin 
+                ? '<span class="role-badge badge-admin"><i class="bi bi-shield-check me-1"></i>Admin</span>' 
+                : '<span class="role-badge badge-operator"><i class="bi bi-person me-1"></i>Operator</span>';
+
+            html += `
+                <div class="user-access-card user-row-item">
+                    <div>
+                        <div class="u-name">${u.UserFirstname} ${u.UserLastname || ''}</div>
+                        <div class="u-mobile"><i class="bi bi-telephone me-1"></i>${u.UserMobileNo}</div>
+                        ${roleBadge}
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-set-rights btn-open-rights" 
+                            data-user-id="${u.UserId}" 
+                            data-name="${u.UserFirstname} ${u.UserLastname || ''}" 
+                            data-mobile="${u.UserMobileNo}"
+                            data-role="${isAdmin ? 'Admin' : 'Operator'}">
+                            Set Rights <i class="bi bi-shield-lock-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        usersCardsContainer.innerHTML = html;
+    }
+
+    // 🔴 ३. रिअल-टाईम सर्च (नाव किंवा मोबाईलने युझर शोधणे):
+    searchUserInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const filtered = allUsersData.filter(u => {
+            const name = `${u.UserFirstname} ${u.UserLastname || ''}`.toLowerCase();
+            const mobile = String(u.UserMobileNo || '');
+            return name.includes(query) || mobile.includes(query);
+        });
+        renderUsersCards(filtered);
+    });
+
+    // 🔴 ४. "Set Rights" बटनावर क्लिक करताच Rights Screen उघडणे:
+    usersCardsContainer.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-open-rights');
+        if (!btn) return;
+
+        const userId = btn.dataset.userId;
+        const name = btn.dataset.name;
+        const mobile = btn.dataset.mobile;
+        const role = btn.dataset.role;
+
+        document.getElementById('currentEditingUserId').value = userId;
+        document.getElementById('activeUserNameText').textContent = name;
+        document.getElementById('activeUserMobileText').textContent = mobile;
+        document.getElementById('activeUserRoleBadge').textContent = role;
+
+        // सर्व बॉक्सेस अनचेक करा
+        document.querySelectorAll('.perm-cb').forEach(cb => cb.checked = false);
+
+        // API मधून त्या युझरचे सेव्ह असलेले राइट्स आणणे
+        try {
+            const res = await fetch(`{% url 'user_rights_api' %}?user_id=${userId}`);
+            const data = await res.json();
+            if (data && data.permissions && Array.isArray(data.permissions)) {
+                data.permissions.forEach(key => {
+                    const cb = document.querySelector(`.perm-cb[value="${key}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+        } catch(err) {
+            console.warn("Could not fetch existing rights:", err);
+        }
+
+        // स्क्रीन बदला
+        usersListScreen.style.display = 'none';
+        rightsSetupScreen.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // मागे परत जाणे (Back to list)
+    btnBackToList.addEventListener('click', () => {
+        rightsSetupScreen.style.display = 'none';
+        usersListScreen.style.display = 'block';
+    });
+
+    // Select All & Clear All
+    document.getElementById('btnSelectAll').addEventListener('click', () => {
+        document.querySelectorAll('.perm-cb').forEach(cb => cb.checked = true);
+    });
+    document.getElementById('btnClearAll').addEventListener('click', () => {
+        document.querySelectorAll('.perm-cb').forEach(cb => cb.checked = false);
+    });
+
+    // 🔴 ५. SAVE AND REDIRECT TO LIST:
+    btnSaveAndRedirect.addEventListener('click', async () => {
+        const userId = document.getElementById('currentEditingUserId').value;
+        if (!userId) return;
+
+        const selectedPermissions = Array.from(document.querySelectorAll('.perm-cb:checked')).map(cb => cb.value);
+
+        btnSaveAndRedirect.disabled = true;
+        btnSaveAndRedirect.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+        try {
+            const res = await fetch("{% url 'user_rights_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, permissions: selectedPermissions })
+            });
+            const data = await res.json();
+
+            if (data.message_code === 1000) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Rights Saved!',
+                    text: 'Permissions updated successfully. Returning to list...',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                // 🔴 सेव्ह झाल्यावर लगेच पुन्हा List Screen वर नेणे:
+                setTimeout(() => {
+                    rightsSetupScreen.style.display = 'none';
+                    usersListScreen.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 1500);
+
+            } else {
+                Swal.fire('Error', data.message_text || 'Failed to save rights.', 'error');
+            }
+        } catch(e) {
+            Swal.fire('Error', 'Network error occurred.', 'error');
+        } finally {
+            btnSaveAndRedirect.disabled = false;
+            btnSaveAndRedirect.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Save & Return to List';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', fetchUsersList);
+</script>
+</body>
+</html>

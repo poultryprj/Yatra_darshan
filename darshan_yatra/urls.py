@@ -117,6 +117,7 @@ urlpatterns = [
     path('search_passenger_tickets_api/', views.search_passenger_tickets_api, name='search_passenger_tickets_api'),
 
 
-    
+    path('user_rights/', views.user_rights_page, name='user_rights_page'),
+    path('user_rights_api/', views.user_rights_api, name='user_rights_api'),
         
 ]

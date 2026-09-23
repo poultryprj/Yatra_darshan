@@ -16,13 +16,12 @@
   <link rel="manifest" href="{% static 'assets/__manifest.json' %}">
 
   <style>
-    /* Palette & Base Design */
     :root {
-      --brand-orange: #FF7B00; /* Vibrant Saffron Orange */
-      --brand-orange-dark: #E06B00; /* Deep Orange for hovers */
-      --brand-orange-light: #FFF7ED; /* Soft light orange background tint */
-      --brand-primary: #0F172A; /* Deep Slate Charcoal for Headers */
-      --accent-green: #10B981; /* Success Green */
+      --brand-orange: #FF7B00;
+      --brand-orange-dark: #E06B00;
+      --brand-orange-light: #FFF7ED;
+      --brand-primary: #0F172A;
+      --accent-green: #10B981;
       --border-slate: #e2e8f0;
       --text-dark: #1e293b;
       --text-muted: #64748b;
@@ -38,7 +37,6 @@
       position: relative;
     }
 
-    /* Gloss Background Blobs */
     .bg-blob-1 {
         position: fixed;
         top: 15%;
@@ -66,7 +64,6 @@
         pointer-events: none;
     }
 
-    /* Top Navigation Navbar */
     .navbar { 
         background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
         height: 60px;
@@ -76,7 +73,6 @@
     .navbar-brand { color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
     .navbar-toggler-btn { border: none; background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 6px 10px; color: white; font-size: 1.2rem; cursor: pointer; }
 
-    /* Premium Drawer Menu */
     .drawer { 
       position: fixed; 
       top: 0; 
@@ -100,7 +96,6 @@
     .drawer ul { padding: 16px; margin: 0; }
     .drawer ul li { list-style: none; margin-bottom: 8px; }
     
-    /* Elegant Menu Links */
     .drawer a {
         display: flex;
         align-items: center;
@@ -147,7 +142,6 @@
         padding: 8px 12px;
     }
 
-    /* Role Badge in Drawer */
     .user-role-badge {
         font-size: 11px;
         padding: 3px 10px;
@@ -159,14 +153,12 @@
         color: #fff;
     }
 
-    /* Home Page Layout */
     .container-home { 
       max-width: 500px; 
       margin: 80px auto 40px; 
       padding: 0 16px; 
     }
 
-    /* Welcome Greeting */
     .welcome-greeting-section {
         padding: 12px 6px;
         margin-bottom: 16px;
@@ -186,7 +178,6 @@
         margin-top: 2px;
     }
 
-    /* Navigation Cards */
     .home-card-button {
         display: flex;
         align-items: center;
@@ -260,7 +251,6 @@
 </head>
 <body>
 
-<!-- Floating Background Blobs -->
 <div class="bg-blob-1"></div>
 <div class="bg-blob-2"></div>
 
@@ -276,13 +266,12 @@
   </div>
 </nav>
 
-<!-- Side Drawer (रोलनुसार मेनू फिल्टर) -->
+<!-- Side Drawer -->
 <div id="drawer" class="drawer">
   <div class="additional-content">
     <img src="{% static 'assets/img/lakshya_pratishthan.png' %}" width="80" height="90" class="rounded-circle" alt="logo" style="border: 2px solid white;">
     <div style="margin-top:10px;"><b style="color:#fff; font-size:16px;">{{ user.first_name }} {{ user.last_name }}</b></div>
     
-    <!-- रोल बॅज -->
     {% if request.session.user_role == "1" or request.session.user_role == 1 %}
         <span class="user-role-badge"><i class="bi bi-shield-check me-1"></i> Admin</span>
     {% else %}
@@ -298,8 +287,8 @@
         </a>
     </li>
 
-    <!-- 🔴 १. YATRA BOOKING DROPDOWN: फक्त ADMIN (ROLE 1) साठीच दिसेल -->
-    {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+    <!-- १. YATRA BOOKING DROPDOWN -->
+    {% if 'yatra_booking' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
     <li>
         <a href="#yatraSubmenu" data-bs-toggle="collapse" aria-expanded="false">
             <span><i class="bi bi-ticket-perforated-fill me-2" style="color: var(--brand-orange)"></i> Yatra Booking</span>
@@ -318,6 +307,14 @@
             <li>
                 <a href="{% url 'search_registration' %}">
                     <i class="bi bi-search me-2"></i> Search Registration
+                </a>
+            </li>
+
+            <!-- Masters & Rights (Admin Only) -->
+            {% if request.session.user_role == "1" or request.session.user_role == 1 %}
+            <li>
+                <a href="{% url 'user_rights_page' %}" style="color:var(--brand-orange) !important;">
+                    <i class="bi bi-shield-lock-fill me-2"></i> User Rights
                 </a>
             </li>
             <li>
@@ -345,36 +342,53 @@
                     <i class="bi bi-bus-front me-2"></i> Bus Master
                 </a>
             </li>
+            {% endif %}
+
+            {% if 'daily_collection' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'daily_report' %}">
                     <i class="bi bi-cash-coin me-2"></i> Daily Collection
                 </a>
             </li>
+            {% endif %}
+
+            {% if 'print_report' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'print_report_page' %}">
                     <i class="bi bi-printer-fill me-2"></i> Print Report
                 </a>
             </li>
+            {% endif %}
+
+            {% if 'passenger_docs' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'passenger_documents' %}">
                     <i class="bi bi-person-badge me-2"></i> Passenger Docs
                 </a>
             </li>
+            {% endif %}
+
+            {% if 'area_report' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'area_report' %}">
                     <i class="bi bi-pin-map-fill me-2"></i> Area Report
                 </a>
             </li>
+            {% endif %}
+
+            {% if 'whatsapp_sms' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'whatsapp_messaging_page' %}">
                     <i class="bi bi-whatsapp me-2"></i> WhatsApp SMS
                 </a>
             </li>
+            {% endif %}
         </ul>
     </li>
     {% endif %}
 
-    <!-- 🔴 २. DIWALI KIRANA DROPDOWN: ADMIN आणि OPERATOR दोघांनाही दिसेल -->
+    <!-- २. DIWALI KIRANA DROPDOWN -->
+    {% if 'module_diwali' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
     <li>
         <a href="#diwaliSubmenu" data-bs-toggle="collapse" aria-expanded="false">
             <span><i class="bi bi-gift-fill me-2" style="color: var(--accent-green)"></i> Diwali Kirana</span>
@@ -400,7 +414,6 @@
                     <i class="bi bi-person-plus me-2"></i> Add Member
                 </a>
             </li>
-            <!-- रिपोर्ट फक्त Admin साठी हवा असल्यास -->
             {% if request.session.user_role == "1" or request.session.user_role == 1 %}
             <li>
                 <a href="{% url 'diwali_report_page' %}">
@@ -410,8 +423,10 @@
             {% endif %}
         </ul>
     </li>
+    {% endif %}
 
-    <!-- 🔴 ३. EVENT MANAGEMENT DROPDOWN: ADMIN आणि OPERATOR दोघांनाही दिसेल -->
+    <!-- ३. EVENT MANAGEMENT DROPDOWN -->
+    {% if 'module_event' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
     <li>
         <a href="#eventSubmenu" data-bs-toggle="collapse" aria-expanded="false">
             <span><i class="bi bi-calendar2-check-fill me-2" style="color: #8B5CF6"></i> Event Management</span>
@@ -429,6 +444,7 @@
             </li>
         </ul>
     </li>
+    {% endif %}
 
     <li class="mt-3 pt-2" style="border-top: 1px solid var(--border-slate);">
         <a href="{% url 'logout' %}">
@@ -437,7 +453,6 @@
     </li>
   </ul>
 </div>
-
 
 <!-- Main Content Area -->
 <div class="container-home">
@@ -454,9 +469,10 @@
         <div class="welcome-title">Hello, {{ user.first_name }}! 👋</div>
     </div>
 
-    <!-- Conditional Minimalist Cards Grid -->
-    {% if request.session.user_role == "1" or request.session.user_role == 1 %}
-        <!-- Admin: Full Access to all 3 modules -->
+    <!-- Rights नुसार दाखवले जाणारे मुख्य कार्ड्स -->
+    
+    <!-- Yatra Booking Card -->
+    {% if 'yatra_booking' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
         <a href="{% url 'dashboard' %}" class="home-card-button btn-yatra-card">
             <div class="button-icon-circle icon-yatra"><i class="bi bi-ticket-perforated-fill"></i></div>
             <div class="button-text-container">
@@ -465,7 +481,10 @@
             </div>
             <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
         </a>
-        
+    {% endif %}
+    
+    <!-- Diwali Kirana Card -->
+    {% if 'module_diwali' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
         <a href="{% url 'diwali_yatra_page' %}" class="home-card-button btn-diwali-card">
             <div class="button-icon-circle icon-diwali"><i class="bi bi-gift-fill"></i></div>
             <div class="button-text-container">
@@ -474,27 +493,10 @@
             </div>
             <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
         </a>
-        
-        <a href="{% url 'event_list_page' %}" class="home-card-button btn-event-card">
-            <div class="button-icon-circle icon-event"><i class="bi bi-calendar2-check-fill"></i></div>
-            <div class="button-text-container">
-                <div class="button-title-text">Event Management</div>
-                <div class="button-desc-text">Manage dynamic events, scans & registers.</div>
-            </div>
-            <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
-        </a>
-        
-    {% else %}
-        <!-- Operator: Access to Diwali Kirana & Events only -->
-        <a href="{% url 'diwali_yatra_page' %}" class="home-card-button btn-diwali-card">
-            <div class="button-icon-circle icon-diwali"><i class="bi bi-gift-fill"></i></div>
-            <div class="button-text-container">
-                <div class="button-title-text">Diwali Kirana</div>
-                <div class="button-desc-text">Verify kit delivery, reports & registrations.</div>
-            </div>
-            <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
-        </a>
-        
+    {% endif %}
+    
+    <!-- Event Management Card -->
+    {% if 'module_event' in request.session.user_rights or request.session.user_role == "1" or request.session.user_role == 1 %}
         <a href="{% url 'event_list_page' %}" class="home-card-button btn-event-card">
             <div class="button-icon-circle icon-event"><i class="bi bi-calendar2-check-fill"></i></div>
             <div class="button-text-container">
@@ -504,13 +506,13 @@
             <div class="chevron-arrow"><i class="bi bi-chevron-right"></i></div>
         </a>
     {% endif %}
+
 </div>
 
 <!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // Drawer open/close functionality
   const menuBtn = document.getElementById('menuBtn');
   const drawer = document.getElementById('drawer');
 

@@ -70,20 +70,16 @@ def login(request):
                 data = response.json()
 
                 if data.get("message_code") == 1000:
-                    # 👈 दुरुस्ती २: "message_text" ऐवजी "message_data" मधून युझर डेटा वाचा
                     user_info = data["message_data"][0]
-                    
                     request.session["user_id"] = user_info.get("UserId")
                     request.session["first_name"] = user_info.get("UserFirstname", "")
-                    
-                    # 👈 दुरुस्ती ३: .get() वापरल्यामुळे एरर येणार नाही
                     request.session["last_name"] = user_info.get("UserLastname", "") 
                     request.session["user_role"] = user_info.get("UserRole")
+                    request.session["user_rights"] = user_info.get("UserRights", [])
+
                     return redirect('home')
                 
-                # 🔴 नवीन बदल केलेला भाग खालीलप्रमाणे आहे:
                 elif data.get("message_code") == 1001:
-                    # संदेशातून युझर डेटा मिळवून तात्पुरता सेशन्समध्ये साठवा
                     user_info = data["message_data"][0]
                     request.session["temp_user_id"] = user_info.get("UserId")
                     
@@ -377,7 +373,7 @@ def registration_api1(request):
             return JsonResponse(resp.json(), safe=False)
 
         elif action == "list_yatras":
-            resp = requests.get(f"{API_BASE_URL}listyatraall/", verify=False)
+            resp = requests.get(f"{API_BASE_URL}listyatra/", verify=False)
             return JsonResponse(resp.json(), safe=False)
 
         elif action == "list_buses":
@@ -787,7 +783,13 @@ def route_master_api(request):
         action = request.POST.get('action')
         
         try:
-            if action == 'add_route':
+            if action == 'delete_route':
+                route_id = request.POST.get('routeId')
+                api_url = f"{API_BASE_URL}deleteroute/"
+                response = requests.post(api_url, json={"YatraRouteId": int(route_id)}, verify=False, timeout=10)
+                return JsonResponse(response.json())
+
+            elif action == 'add_route':
                 # CHANGED: Using the new API endpoint for inserting a route
                 api_url = f"{API_BASE_URL}insertroute/"
                 payload = {
@@ -945,7 +947,7 @@ def yatra_master(request):
 @csrf_exempt
 def yatra_master_api(request):
     """
-    API to handle adding and updating Yatras.
+    API to handle adding, updating, and deleting Yatras.
     """
     if 'user_id' not in request.session:
         return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
@@ -954,33 +956,39 @@ def yatra_master_api(request):
         action = request.POST.get('action')
         
         try:
-            # The date format from the frontend is likely 'YYYY-MM-DDTHH:mm'
-            # The new API expects 'DD-MM-YYYY HH:MM'
-            # We must convert it.
+            # 🔴 १. जर DELETE असेल तर थेट Backend ला कॉल करा:
+            if action == 'delete_yatra':
+                yatra_id = request.POST.get('yatraId')
+                if not yatra_id:
+                    return JsonResponse({"message_code": 999, "message_text": "Yatra ID is required."})
+                
+                api_url = f"{API_BASE_URL}deleteyatra/"
+                response = requests.post(api_url, json={"YatraId": int(yatra_id)}, verify=False, timeout=10)
+                return JsonResponse(response.json())
+
+            # 🔴 २. तारीख फक्त add/update असेल तरच तपासा:
             date_time_raw = request.POST.get('dateTime')
-            from datetime import datetime
-            date_time_obj = datetime.strptime(date_time_raw, "%Y-%m-%dT%H:%M")
-            date_time_formatted = date_time_obj.strftime("%d-%m-%Y %H:%M")
+            date_time_formatted = ""
+            if date_time_raw:
+                from datetime import datetime
+                date_time_obj = datetime.strptime(date_time_raw, "%Y-%m-%dT%H:%M")
+                date_time_formatted = date_time_obj.strftime("%d-%m-%Y %H:%M")
 
             if action == 'add_yatra':
-                # CHANGED: Using the new API endpoint
                 api_url = f"{API_BASE_URL}insertyatra/"
                 payload = {
                     "YatraDateTime": date_time_formatted,
                     "YatraRouteId": int(request.POST.get('routeId')),
                     "YatraStatus": int(request.POST.get('status')),
                     "YatraFees": float(request.POST.get('fees')),
-                    "YatraStartDateTime": date_time_formatted # Assuming start time is same as yatra time
+                    "YatraStartDateTime": date_time_formatted
                 }
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
+                return JsonResponse(response.json())
 
             elif action == 'update_yatra':
-                # CHANGED: Using the new API endpoint
                 api_url = f"{API_BASE_URL}modifyyatra/"
                 yatra_id = request.POST.get('yatraId')
-                if not yatra_id:
-                    return JsonResponse({"message_code": 999, "message_text": "Yatra ID is required."})
-                
                 payload = {
                     "YatraId": int(yatra_id),
                     "YatraDateTime": date_time_formatted,
@@ -989,22 +997,15 @@ def yatra_master_api(request):
                     "YatraFees": float(request.POST.get('fees')),
                     "YatraStartDateTime": date_time_formatted
                 }
-                # This will be a POST request, matching our API change below
                 response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
-            
-            else:
-                return JsonResponse({"status": "error", "message": "Invalid action."})
-
-            if response.status_code == 200:
                 return JsonResponse(response.json())
-            else:
-                return JsonResponse({"status": "error", "message": f"API Error: {response.status_code}"})
+            
+            return JsonResponse({"message_code": 999, "message_text": "Invalid action."})
 
         except Exception as e:
-            return JsonResponse({"status": "error", "message": f"An exception occurred: {str(e)}"})
+            return JsonResponse({"message_code": 999, "message_text": str(e)})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
-
 
 # def yatra_bus_master(request):
 #     """
@@ -1419,7 +1420,8 @@ def user_master_api(request):
                     "UserLastname": request.POST.get('lastName'),
                     "UserMobileNo": request.POST.get('mobile'),
                     "UserLoginPin": request.POST.get('pin'),
-                    "UserRoleId": int(request.POST.get('roleId')),
+                    # "UserRoleId": int(request.POST.get('roleId')),
+                    "UserRole": request.POST.get('roleId', 2),
                     "UserStatus": int(request.POST.get('status'))
                 }
                 # response = requests.post(api_url, json=payload, headers=headers, verify=False, timeout=10)
@@ -3772,3 +3774,54 @@ def search_passenger_tickets_api(request):
 
     except Exception as e:
         return JsonResponse({"message_code": 999, "message_text": f"Error: {str(e)}"})
+
+
+
+def user_rights_page(request):
+    """
+    Renders the User Rights Management page (Admin only).
+    """
+    if 'user_id' not in request.session or str(request.session.get('user_role')) != '1':
+        messages.error(request, "Access restricted to Administrators.")
+        return redirect('home')
+
+    users = []
+    try:
+        resp = requests.get(f"{API_BASE_URL}listuserall/", verify=False)
+        if resp.status_code == 200:
+            users = resp.json().get("message_data", [])
+    except Exception as e:
+        messages.error(request, f"Error fetching users: {e}")
+
+    return render(request, "user_rights.html", {"users": users})
+@csrf_exempt
+def user_rights_api(request):
+    if 'user_id' not in request.session:
+        return JsonResponse({"message_code": 999, "message_text": "Unauthorized"}, status=401)
+
+    try:
+        if request.method == 'GET':
+            action = request.GET.get('action')
+            if action == 'get_users':
+                resp = requests.get(f"{API_BASE_URL}listuserall/", verify=False, timeout=8)
+                if resp.status_code == 200:
+                    return JsonResponse(resp.json())
+                return JsonResponse({"message_code": 999, "message_data": []})
+
+            user_id = request.GET.get('user_id')
+            resp = requests.get(f"{API_BASE_URL}manage_user_rights/?user_id={user_id}", verify=False, timeout=8)
+            if resp.status_code == 200:
+                return JsonResponse(resp.json())
+            return JsonResponse({"message_code": 1000, "permissions": []})
+
+        elif request.method == 'POST':
+            data = json.loads(request.body)
+            resp = requests.post(f"{API_BASE_URL}manage_user_rights/", json=data, verify=False, timeout=8)
+            if resp.status_code == 200:
+                return JsonResponse(resp.json())
+            return JsonResponse({"message_code": 999, "message_text": "Failed to save"})
+
+    except Exception as e:
+        return JsonResponse({"message_code": 1000, "permissions": []})
+
+    return JsonResponse({"message_code": 999, "message_text": "Invalid request method"})
