@@ -1844,7 +1844,7 @@ def print_report_page(request):
         # summary_api_url = "https://lakshyapratishthan.com/api/totalrouteyatrabus"
         summary_api_url = f"{API_BASE_URL}totalrouteyatrabus/"
         # response = requests.get(summary_api_url, headers=headers, verify=False, timeout=10)
-        response = requests.get(summary_api_url)
+        response = requests.get(summary_api_url, verify=False, timeout=10)
         if response.status_code == 200:
             all_yatras_summary = response.json().get("message_data", [])
     except Exception as e:
