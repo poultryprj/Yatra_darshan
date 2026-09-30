@@ -1473,24 +1473,42 @@
 
         function populateRoutes() {
             selectRoute.innerHTML = '<option value="">Select Route</option>';
-
-            // Show only routes having an active yatra with at least one bus
-            const routeIdsWithBus = new Set(
-                allBuses.map(bus => String(bus.YatraRouteId))
+            
+            // १. ज्या यात्रांना बसेस जोडलेल्या आहेत त्या Yatra IDs:
+            const yatraIdsWithBuses = new Set(allBuses.map(b => String(b.YatraId)));
+            
+            // २. 🔴 ज्या रूटवर खरोखर Active यात्रा आणि Bus उपलब्ध आहे फक्त तेच Route IDs:
+            const validRouteIds = new Set(
+                allYatras
+                    .filter(y => {
+                        const isActive = (String(y.YatraStatusId) === "1" || String(y.YatraStatus).toLowerCase() === "active");
+                        const hasBus = yatraIdsWithBuses.has(String(y.YatraId));
+                        return isActive && hasBus;
+                    })
+                    .map(y => String(y.YatraRouteId))
             );
 
-            allRoutes
-                .filter(route => routeIdsWithBus.has(String(route.YatraRouteId)))
-                .forEach(route => {
-                    selectRoute.appendChild(
-                        new Option(route.YatraRouteName, route.YatraRouteId)
-                    );
-                });
+            // ३. फक्त Active यात्रा असणारेच रूट्स ड्रॉपडाऊनमध्ये दाखवा:
+            allRoutes.forEach(route => {
+                const isRouteActive = String(route.YatraRouteStatus) === "1";
+                if (isRouteActive && validRouteIds.has(String(route.YatraRouteId))) {
+                    selectRoute.appendChild(new Option(route.YatraRouteName, route.YatraRouteId));
+                }
+            });
         }
 
         function handleRouteChange() {
             const selectedRouteId = selectRoute.value;
-            const filteredYatras = selectedRouteId ? allYatras.filter(y => String(y.YatraRouteId) === selectedRouteId) : allYatras;
+            const yatraIdsWithBuses = new Set(allBuses.map(b => String(b.YatraId)));
+
+            // 🔴 फक्त Active आणि बस असणाऱ्याच यात्रा दाखवा:
+            const filteredYatras = allYatras.filter(y => {
+                const matchRoute = selectedRouteId ? String(y.YatraRouteId) === selectedRouteId : true;
+                const isActive = (String(y.YatraStatusId) === "1" || String(y.YatraStatus).toLowerCase() === "active");
+                const hasBus = yatraIdsWithBuses.has(String(y.YatraId));
+                return matchRoute && isActive && hasBus;
+            });
+
             selectYatra.innerHTML = '<option value="">Select Yatra*</option>';
             filteredYatras.forEach(yatra => {
                 selectYatra.appendChild(new Option(`${yatra.YatraRouteName} (${yatra.YatraDateTime})`, yatra.YatraId));

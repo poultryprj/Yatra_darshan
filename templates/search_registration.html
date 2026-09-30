@@ -166,7 +166,7 @@
     <!-- Search Input Wrapper -->
     <div class="search-box-wrapper">
         <div class="search-input-group">
-            <input id="searchQuery" type="text" class="search-input-field" placeholder="Search by Mobile or Name..." autocomplete="off">
+            <input id="searchQuery" type="tel" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" class="search-input-field" placeholder="Enter 10 Digit Mobile Number..." autocomplete="off">
             <button id="btnRunSearch" class="search-action-btn" type="button">
                 <i class="bi bi-search"></i>
             </button>
@@ -200,8 +200,8 @@
 
     function executeSearch() {
         const queryValue = searchInput.value.trim();
-        if (queryValue.length < 2) {
-            Swal.fire({ icon: 'warning', title: 'Invalid Search', text: 'Please type at least 2 characters.', confirmButtonColor: '#0D9488' });
+        if (queryValue.length !== 10) {
+            Swal.fire({ icon: 'warning', title: 'Invalid Mobile', text: 'Please enter a valid 10-digit mobile number.', confirmButtonColor: '#0D9488' });
             return;
         }
 

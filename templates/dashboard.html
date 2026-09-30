@@ -332,10 +332,14 @@
             {% if request.session.user_role == "1" or request.session.user_role == 1 %}
                 <a href="{% url 'user_rights_page' %}" class="menu-item"><i class="fa-solid fa-user-shield" style="color:#FF5500;"></i><span class="menu-text">User<br>Rights</span></a>
                 <a href="{% url 'user_master' %}" class="menu-item"><i class="fa-solid fa-users-gear"></i><span class="menu-text">User<br>Management</span></a>
-                <a href="{% url 'route_master' %}" class="menu-item"><i class="fa-solid fa-route"></i><span class="menu-text">Route<br>Master</span></a>
-                <a href="{% url 'area_master' %}" class="menu-item"><i class="fa-solid fa-map-location-dot"></i><span class="menu-text">Area<br>Master</span></a>
+
                 <a href="{% url 'yatra_master' %}" class="menu-item"><i class="fa-solid fa-calendar-days"></i><span class="menu-text">Yatra<br>Master</span></a>
+
                 <a href="{% url 'yatra_bus_master' %}" class="menu-item"><i class="fa-solid fa-bus"></i><span class="menu-text">Bus<br>Master</span></a>
+                <!-- <a href="{% url 'route_master' %}" class="menu-item"><i class="fa-solid fa-route"></i><span class="menu-text">Route<br>Master</span></a> -->
+                <a href="{% url 'area_master' %}" class="menu-item"><i class="fa-solid fa-map-location-dot"></i><span class="menu-text">Area<br>Master</span></a>
+                
+                
             {% endif %}
 
             {% if 'daily_collection' in request.session.user_rights or request.session.user_role == '1' %}

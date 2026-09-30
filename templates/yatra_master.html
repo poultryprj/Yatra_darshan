@@ -3,10 +3,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Darshan Yatra - Yatra Master (Premium Orange)</title>
+    <title>Darshan Yatra - Yatra Master (Unified Route & Yatra)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
-    <!-- Bootstrap & Icons -->
+    <!-- Bootstrap, Icons & SweetAlert -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
@@ -18,12 +18,12 @@
 
     <style>
         :root {
-            --brand-orange: #FF7B00; /* Vibrant Brand Orange */
-            --brand-orange-dark: #E06B00; /* Deep Orange for hovers */
-            --brand-primary: #0F172A; /* Slate Charcoal */
-            --brand-orange-light: #FFF7ED; /* Soft light orange tint */
-            --accent-green: #10B981; /* Success Green */
-            --danger-red: #EF4444; /* Soft Red */
+            --brand-orange: #FF7B00;
+            --brand-orange-dark: #E06B00;
+            --brand-primary: #0F172A;
+            --brand-orange-light: #FFF7ED;
+            --accent-green: #10B981;
+            --danger-red: #EF4444;
             --bg-slate: #f8fafc;
             --border-slate: #e2e8f0;
             --text-dark: #1e293b;
@@ -32,23 +32,21 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background-color: var(--bg-slate); 
+            background: linear-gradient(180deg, #FFF7ED 0%, #F8FAFC 100%); 
             color: var(--text-dark);
             padding-top: 60px;
+            min-height: 100vh;
         }
 
-        /* Fixed Navigation Header */
         .navbar { 
             background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-dark) 100%); 
             height: 60px;
             box-shadow: 0 4px 20px rgba(255, 123, 0, 0.2); 
             border: none;
         }
-        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; transition: opacity 0.2s; }
-        .back-btn:hover { opacity: 0.8; }
+        .back-btn { font-size: 1.5rem; color: white; text-decoration: none; }
         .navbar-brand { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
 
-        /* Main Card Container */
         .container-main { 
             max-width: 550px; 
             margin: 20px auto 40px auto; 
@@ -59,21 +57,19 @@
             border: 1px solid var(--border-slate);
         }
 
-        /* Premium Buttons */
         .btn-custom { 
             background: var(--brand-orange); 
             color: #fff !important; 
             border: none; 
             font-weight: 700; 
             border-radius: 12px;
-            padding: 10px 20px;
+            padding: 10px 18px;
             box-shadow: 0 4px 14px rgba(255, 123, 0, 0.25);
             transition: all 0.2s;
         }
         .btn-custom:active { transform: scale(0.98); }
         .btn-custom:hover { background: var(--brand-orange-dark); }
 
-        /* Modern Premium Search Input Box */
         .search-input-wrapper {
             position: relative;
             display: flex;
@@ -91,44 +87,34 @@
             font-weight: 600;
             color: var(--text-dark);
             outline: none;
-            transition: all 0.2s ease;
-        }
-        .search-input-field:focus {
-            border-color: var(--brand-orange);
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(255, 123, 0, 0.1);
         }
         .search-icon-inside {
             position: absolute;
             right: 16px;
             color: var(--text-muted);
-            font-size: 16px;
             pointer-events: none;
         }
 
-        /* Yatra Card Styling */
         .yatra-card { 
             padding: 16px; 
             border: 1px solid var(--border-slate); 
             border-radius: 16px; 
             background: #ffffff;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
             margin-bottom: 14px;
         }
         .yatra-card:hover {
             border-color: var(--brand-orange);
             box-shadow: 0 6px 18px rgba(255, 123, 0, 0.08);
         }
-        .yatra-card:last-child { margin-bottom: 0; }
 
         .yatra-row-1 { display: flex; justify-content: space-between; align-items: center; }
         .yatra-row-2 { margin-top: 8px; border-top: 1px dashed var(--border-slate); padding-top: 8px; }
-        .yatra-name { font-size: 15px; font-weight: 700; color: var(--brand-primary); }
+        .yatra-name { font-size: 15px; font-weight: 800; color: var(--brand-primary); }
         .yatra-date { font-size: 13px; color: var(--text-muted); font-weight: 600; }
-        .yatra-actions { display: flex; gap: 0.75rem; align-items: center; }
+        .yatra-actions { display: flex; gap: 0.6rem; align-items: center; }
         
-        /* Badges */
         .badge {
             font-weight: 700; 
             font-size: 11px;
@@ -138,13 +124,11 @@
         .bg-success-soft { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
         .bg-danger-soft { background-color: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
 
-        /* Edit & Delete Button */
         .action-btn-edit {
             border-color: var(--border-slate);
             color: var(--brand-orange);
             border-radius: 8px;
             padding: 6px 10px;
-            transition: all 0.2s;
         }
         .action-btn-edit:hover {
             background-color: var(--brand-orange);
@@ -155,14 +139,9 @@
         .action-btn-delete {
             border-radius: 8px;
             padding: 6px 10px;
-            transition: all 0.2s;
         }
 
-        @media (max-width: 480px) {
-            .container-main { margin: 20px 0; border-radius: 0; padding: 16px 12px; }
-        }
-
-        /* Animated Floating Labels Form */
+        /* Floating Form Fields */
         .form-group.basic.animated { margin-bottom: 16px; }
         .input-wrapper { position: relative; }
         .input-wrapper .float-label { 
@@ -187,7 +166,6 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-dark);
-            transition: all 0.2s ease;
         }
 
         .input-wrapper input.form-control:focus,
@@ -208,15 +186,9 @@
             background: transparent;
         }
 
-        /* select select2 reset */
         .select-fix { height: calc(2.75rem + 10px); padding-top: 10px; }
-
-        /* Style to ensure Select2 fits well in the modal */
-        .select2-container--bootstrap-5 .select2-dropdown {
-            z-index: 1060;
-        }
+        .select2-container--bootstrap-5 .select2-dropdown { z-index: 1060; }
         
-        /* Modal Style */
         .modal-content {
             border-radius: 20px;
             overflow: hidden;
@@ -230,6 +202,21 @@
         }
         .modal-title { color: #ffffff; font-weight: 700; font-size: 16px; }
         .btn-close-white { filter: invert(1) grayscale(1) brightness(2); }
+
+        /* 🔴 NEW: Quick Add Route Box Styling */
+        .quick-route-card {
+            display: none;
+            background: #FFF7ED;
+            border: 1.5px dashed var(--brand-orange);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -248,7 +235,7 @@
         <button class="btn btn-custom" id="addYatraBtn"><i class="bi bi-plus-circle-fill me-1"></i> Add Yatra</button>
     </div>
 
-    <!-- Real-time Search Box -->
+    <!-- Search Box -->
     <div class="search-input-wrapper mb-3">
         <input id="searchYatraInput" type="text" class="search-input-field" placeholder="Search Route/Yatra Name..." autocomplete="off">
         <span class="search-icon-inside"><i class="bi bi-search"></i></span>
@@ -266,13 +253,13 @@
             <div class="yatra-row-1">
                 <span class="yatra-name">{{ yatra.YatraRouteName }}</span>
                 <div class="yatra-actions">
-                    {% if yatra.YatraStatus == "Active" %}
+                    <!-- 🔴 Active/Inactive दोन्ही अचूक दाखवणारा बॅज -->
+                    {% if yatra.YatraStatusId == "1" or yatra.YatraStatus == "Active" %}
                         <span class="badge bg-success-soft">Active</span>
                     {% else %}
                         <span class="badge bg-danger-soft">Inactive</span>
                     {% endif %}
                     <button class="btn btn-sm btn-outline-primary edit-btn action-btn-edit" title="Edit Yatra"><i class="bi bi-pencil-fill"></i></button>
-                    <!-- 🔴 Delete (Soft Delete) Button -->
                     <button class="btn btn-sm btn-outline-danger delete-btn action-btn-delete" title="Delete Yatra"><i class="bi bi-trash-fill"></i></button>
                 </div>
             </div>
@@ -286,17 +273,46 @@
     </div>
 </div>
 
+<!-- Modal with Quick Add Route Feature -->
 <div class="modal fade" id="yatraModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalTitle"></h5>
+        <h5 class="modal-title" id="modalTitle">Add New Yatra</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <form id="yatraForm">
             <input type="hidden" id="formYatraId">
             
+            <!-- Route Header with Inline "+ Quick Add Route" Button -->
+            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                <span class="text-muted fw-bold" style="font-size:12px;">SELECT OR ADD ROUTE *</span>
+                <button type="button" class="btn btn-sm btn-outline-warning py-1 px-2 fw-bold text-dark" id="btnToggleQuickRoute" style="font-size:11px; border-radius:8px;">
+                    <i class="bi bi-plus-circle-fill text-warning me-1"></i> + New Route
+                </button>
+            </div>
+
+            <!-- 🔴 Quick Add Route Inline Sliding Box -->
+            <div id="quickRouteBox" class="quick-route-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="font-size:12px; font-weight:800; color:var(--brand-orange-dark);">
+                        <i class="bi bi-geo-alt-fill me-1"></i> Quick Add New Route
+                    </span>
+                    <button type="button" class="btn-close btn-close-sm" id="btnCloseQuickRoute" style="font-size:10px;"></button>
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm fw-semibold" id="quickRouteName" placeholder="Enter Route Name (e.g. Nashik, Shirdi)..." style="height:40px; border-radius:8px;">
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm text-muted" id="quickRouteDetails" placeholder="Route Details (Optional)..." style="height:38px; border-radius:8px;">
+                </div>
+                <button type="button" class="btn btn-sm btn-custom py-2 w-100" id="btnSaveQuickRoute" style="font-size:12px; border-radius:8px;">
+                    <i class="bi bi-check2-circle me-1"></i> Create & Select Route
+                </button>
+            </div>
+
+            <!-- Route Select Dropdown -->
             <div class="form-group basic animated">
                 <div class="input-wrapper">
                     <select class="form-select select-fix" id="formRouteId" style="width:100%;" required>
@@ -309,6 +325,7 @@
                 </div>
             </div>
 
+            <!-- Date and Time -->
             <div class="form-group basic animated">
                 <div class="input-wrapper">
                     <input type="datetime-local" class="form-control" id="formDateTime" required>
@@ -316,13 +333,15 @@
                 </div>
             </div>
 
+            <!-- Fees -->
             <div class="form-group basic animated">
                 <div class="input-wrapper">
-                    <input type="number" class="form-control" id="formFees" placeholder=" " required>
-                    <label class="float-label">Fees</label>
+                    <input type="number" class="form-control" id="formFees" placeholder=" " required min="0">
+                    <label class="float-label">Fees (₹)</label>
                 </div>
             </div>
 
+            <!-- Status Dropdown -->
             <div class="form-group basic animated">
                 <div class="input-wrapper">
                     <select class="form-select select-fix" id="formStatus" style="width:100%;">
@@ -349,40 +368,81 @@
 <script>
     const yatraModal = new bootstrap.Modal(document.getElementById('yatraModal'));
     const yatraTableBody = document.getElementById('yatraTableBody');
+    const quickRouteBox = document.getElementById('quickRouteBox');
 
     $(document).ready(function() {
         $('#formRouteId').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal') });
         $('#formStatus').select2({ theme: "bootstrap-5", dropdownParent: $('#yatraModal'), minimumResultsForSearch: Infinity });
     });
 
-    // Real-time instant search logic
-    const searchInput = document.getElementById('searchYatraInput');
-    const noResultsDiv = document.createElement('div');
-    noResultsDiv.id = 'noResultsMessage';
-    noResultsDiv.className = 'text-center text-muted py-4 d-none';
-    noResultsDiv.innerHTML = '<i class="bi bi-info-circle me-1"></i>No matching routes found.';
-    yatraTableBody.appendChild(noResultsDiv);
+    // 🔴 1. QUICK ADD ROUTE TOGGLE & SAVE LOGIC
+    document.getElementById('btnToggleQuickRoute').addEventListener('click', () => {
+        const isHidden = (quickRouteBox.style.display === 'none' || quickRouteBox.style.display === '');
+        quickRouteBox.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) document.getElementById('quickRouteName').focus();
+    });
 
+    document.getElementById('btnCloseQuickRoute').addEventListener('click', () => {
+        quickRouteBox.style.display = 'none';
+    });
+
+    document.getElementById('btnSaveQuickRoute').addEventListener('click', async () => {
+        const routeName = document.getElementById('quickRouteName').value.trim();
+        const routeDetails = document.getElementById('quickRouteDetails').value.trim();
+        const btnSave = document.getElementById('btnSaveQuickRoute');
+
+        if (!routeName) {
+            swal("Error", "Please enter Route Name.", "error");
+            return;
+        }
+
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating...';
+
+        let fd = new FormData();
+        fd.append('action', 'add_route');
+        fd.append('routeName', routeName);
+        fd.append('routeDetails', routeDetails);
+        fd.append('status', '1'); // Default Active
+
+        try {
+            const res = await fetch("{% url 'route_master_api' %}", { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.message_code === 1000) {
+                const newRouteId = data.message_data?.YatraRouteId;
+                const newRouteName = data.message_data?.YatraRouteName || routeName;
+
+                // 🔴 नवीन रूट तयार होताच तो ड्रॉपडाऊनमध्ये जोडून आपोआप सिलेक्ट करा:
+                const newOption = new Option(newRouteName, newRouteId, true, true);
+                $('#formRouteId').append(newOption).trigger('change');
+
+                // बॉक्स रीसेट आणि लपवा
+                document.getElementById('quickRouteName').value = '';
+                document.getElementById('quickRouteDetails').value = '';
+                quickRouteBox.style.display = 'none';
+
+                swal("Route Added!", `'${newRouteName}' is created and selected.`, "success");
+            } else {
+                swal("Error", data.message_text || "Failed to create route.", "error");
+            }
+        } catch (e) {
+            swal("Error", "Network connection error.", "error");
+        } finally {
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Create & Select Route';
+        }
+    });
+
+    // 🔴 2. REAL-TIME SEARCH BOX
+    const searchInput = document.getElementById('searchYatraInput');
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         const cards = document.querySelectorAll('.yatra-card');
-        let visibleCount = 0;
-
         cards.forEach(card => {
             const yatraName = card.querySelector('.yatra-name').textContent.toLowerCase();
-            if (yatraName.includes(query)) {
-                card.style.setProperty('display', 'block', 'important');
-                visibleCount++;
-            } else {
-                card.style.setProperty('display', 'none', 'important');
-            }
+            card.style.display = yatraName.includes(query) ? 'block' : 'none';
         });
-
-        if (visibleCount === 0 && query !== '') {
-            noResultsDiv.classList.remove('d-none');
-        } else {
-            noResultsDiv.classList.add('d-none');
-        }
     });
 
     function formatToInput(apiDate) {
@@ -392,18 +452,19 @@
         return `${year}-${month}-${day}T${timePart}`;
     }
 
+    // 🔴 3. ADD YATRA MODAL OPEN
     document.getElementById('addYatraBtn').addEventListener('click', () => {
         document.getElementById('yatraForm').reset();
         document.getElementById('formYatraId').value = ''; 
         document.getElementById('modalTitle').textContent = 'Add New Yatra';
+        quickRouteBox.style.display = 'none';
         $('#formRouteId').val('').trigger('change');
         $('#formStatus').val('1').trigger('change');
         yatraModal.show();
     });
 
-    // 🔴 EDIT & SOFT DELETE HANDLER (एकाच क्लिक इव्हेंटमध्ये अचूकपणे जोडले आहे)
+    // 🔴 4. EDIT & DELETE HANDLER
     yatraTableBody.addEventListener('click', (e) => {
-        // १. EDIT BUTTON
         const editButton = e.target.closest('.edit-btn');
         if (editButton) {
             const card = editButton.closest('.yatra-card');
@@ -411,16 +472,13 @@
             document.getElementById('formDateTime').value = formatToInput(card.dataset.dateTime);
             document.getElementById('formFees').value = card.dataset.fees; 
             document.getElementById('modalTitle').textContent = 'Edit Yatra';
+            quickRouteBox.style.display = 'none';
             $('#formRouteId').val(card.dataset.routeId).trigger('change');
-            
-            let statusValue = card.dataset.status;
-            $('#formStatus').val(statusValue).trigger('change');
-
+            $('#formStatus').val(card.dataset.status).trigger('change');
             yatraModal.show();
             return;
         }
 
-        // २. DELETE BUTTON (Soft Delete)
         const deleteButton = e.target.closest('.delete-btn');
         if (deleteButton) {
             const card = deleteButton.closest('.yatra-card');
@@ -447,15 +505,12 @@
                         } else {
                             swal("Error", data.message_text || "Failed to delete.", "error");
                         }
-                    })
-                    .catch(err => {
-                        swal("Error", "Server error occurred.", "error");
                     });
             });
         }
     });
 
-    // SAVE BUTTON HANDLER
+    // 🔴 5. SAVE YATRA
     document.getElementById('saveYatraBtn').addEventListener('click', () => {
         const yatraId = document.getElementById('formYatraId').value;
         const dateTime = document.getElementById('formDateTime').value;
@@ -464,7 +519,7 @@
         const status = $('#formStatus').val();
 
         if (!routeId || !dateTime || !fees) {
-            swal("Error", "All fields are required.", "error");
+            swal("Error", "Please select route, date & fees.", "error");
             return;
         }
 
@@ -479,6 +534,7 @@
         } else {
             formData.append('action', 'add_yatra');
         }
+
         fetch("{% url 'yatra_master_api' %}", { method: 'POST', body: formData })
             .then(res => res.json())
             .then(data => {
