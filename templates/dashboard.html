@@ -660,7 +660,89 @@
         return tableHtml;
     }
 
-    function printImage(url) { const printWindow = window.open('', '_blank'); if (!printWindow) { alert("Please allow pop-ups for printing."); return; } printWindow.document.write(` <!DOCTYPE html> <html> <head> <meta charset="UTF-8"> <title>Pilgrim Ticket</title> <style> @page { size: A4 portrait; margin: 0; } * { box-sizing: border-box; margin: 0; padding: 0; } html, body { margin: 0; padding: 0; background: white; } .print-page { width: 210mm; height: 297mm; padding-top: 20mm; display: flex; justify-content: center; align-items: flex-start; } .ticket { width: 101.6mm; /* 4 inch */ height: 76.2mm; /* 3 inch */ display: block; } </style> </head> <body> <div class="print-page"> <img id="ticketImage" class="ticket" src="${url}" alt="Ticket" > </div> <script> const img = document.getElementById('ticketImage'); img.onload = function() { setTimeout(function() { window.focus(); window.print(); }, 500); }; img.onerror = function() { document.body.innerHTML = '<h3 style="padding:20px;color:red;">Ticket image could not be loaded.</h3>'; }; <\/script> </body> </html> `); printWindow.document.close(); }
+
+function printImage(url) {
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) {
+        alert("Please allow pop-ups for printing.");
+        return;
+    }
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Pilgrim Ticket</title>
+
+            <style>
+                @page {
+                    size: A4 portrait;
+                    margin: 0;
+                }
+
+                * {
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                }
+
+                .print-page {
+                    width: 210mm;
+                    height: 297mm;
+                    padding-top: 20mm;
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                }
+
+                .ticket {
+                    width: 101.6mm;   /* 4 inch */
+                    height: 76.2mm;   /* 3 inch */
+                    display: block;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class="print-page">
+                <img
+                    id="ticketImage"
+                    class="ticket"
+                    src="${url}"
+                    alt="Ticket"
+                >
+            </div>
+
+            <script>
+                const img = document.getElementById('ticketImage');
+
+                img.onload = function() {
+                    setTimeout(function() {
+                        window.focus();
+                        window.print();
+                    }, 500);
+                };
+
+                img.onerror = function() {
+                    document.body.innerHTML =
+                        '<h3 style="padding:20px;color:red;">Ticket image could not be loaded.</h3>';
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+}
+
 </script>
 </body>
 </html>
