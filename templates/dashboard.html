@@ -665,44 +665,103 @@ function printImage(url) {
     const printWindow = window.open('', '_blank');
 
     if (!printWindow) {
-        alert("Please allow pop-ups for printing.");
+        alert("कृपया प्रिंटिंगसाठी ब्राउझरचे पॉप-अप (Pop-ups) सुरू करा.");
         return;
     }
 
     printWindow.document.write(`
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>Pilgrim Ticket</title>
+            <title>Print 4x3 Pilgrim Pass</title>
             <style>
-                @page {
-                    size: 4in 3in;  /* 🔴 रुंदी 4 इंच आणि उंची 3 इंच (Exact Card Size) */
-                    margin: 0in;    /* 🔴 शून्य मार्जिन (Edge to Edge) */
+                /* 🔴 प्रिंटरसाठी अचूक नियम: Landscape आणि Zero Margin */
+                @media print {
+                    @page {
+                        size: landscape;   /* सक्तीने आडवे प्रिंट */
+                        margin: 0mm;       /* काठोकाठ कडा, शून्य मार्जिन */
+                    }
+                    html, body {
+                        width: 100% !important;
+                        height: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff !important;
+                        overflow: hidden !important;
+                    }
+                    .no-print {
+                        display: none !important; /* प्रिंटमध्ये वरील बटणे येणार नाहीत */
+                    }
+                    .card-wrapper {
+                        width: 100vw !important;
+                        height: 100vh !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                    }
+                    .ticket-img {
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: fill !important; /* 4x3 कार्डवर १००% पूर्ण बसेल */
+                        display: block !important;
+                    }
                 }
-                * {
-                    box-sizing: border-box;
+
+                /* स्क्रीनवर दिसण्यासाठी स्टाईल */
+                body {
                     margin: 0;
                     padding: 0;
+                    background: #1e293b;
+                    font-family: sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    min-height: 100vh;
                 }
-                html, body {
-                    width: 4in;
-                    height: 3in;
-                    margin: 0;
-                    padding: 0;
-                    background: white;
-                    overflow: hidden;
-                }
-                .ticket {
+                .toolbar {
                     width: 100%;
-                    height: 100%;
+                    background: #0f172a;
+                    padding: 12px;
+                    display: flex;
+                    justify-content: center;
+                    gap: 15px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                }
+                .btn {
+                    padding: 8px 18px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    text-decoration: none;
+                }
+                .btn-print { background: #10b981; color: white; }
+                .btn-open { background: #3b82f6; color: white; }
+                .card-wrapper {
+                    margin-top: 20px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background: white;
+                }
+                .ticket-img {
+                    width: 480px;  /* 4x3 गुणोत्तर */
+                    height: 360px;
                     display: block;
-                    object-fit: fill; /* 🔴 4x3 कार्डवर १००% पूर्ण बसेल */
                 }
             </style>
         </head>
         <body>
-            <img id="ticketImage" class="ticket" src="${url}" alt="Ticket">
+            <div class="toolbar no-print">
+                <button class="btn btn-print" onclick="window.print()">🖨️ Print Now (४ x ३ प्रिंट करा)</button>
+                <a class="btn btn-open" href="${url}" target="_blank">🖼️ Open HD Image (थेट इमेज पहा)</a>
+            </div>
+
+            <div class="card-wrapper">
+                <img id="ticketImage" class="ticket-img" src="${url}" alt="Ticket">
+            </div>
 
             <script>
                 const img = document.getElementById('ticketImage');
@@ -710,10 +769,10 @@ function printImage(url) {
                     setTimeout(function() {
                         window.focus();
                         window.print();
-                    }, 400);
+                    }, 500);
                 };
                 img.onerror = function() {
-                    document.body.innerHTML = '<h3 style="padding:20px;color:red;">Ticket image could not be loaded.</h3>';
+                    alert("इमेज लोड होऊ शकली नाही.");
                 };
             <\/script>
         </body>
