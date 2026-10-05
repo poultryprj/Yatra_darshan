@@ -1604,20 +1604,25 @@ def print_passenger_list(request, route_id):
 def passenger_documents(request):
     """
     Renders the page for viewing passenger documents with filters.
+    (फक्त Active Yatra असणारेच Routes दाखवणे)
     """
     if 'user_id' not in request.session:
         return redirect('login')
 
     routes = []
     try:
-        # route_list_api_url = "https://lakshyapratishthan.com/api/listrouteall"
+        # १. फक्त चालू (Active) असणाऱ्या यात्रांची यादी मिळवणे:
+        active_route_ids = set()
+        y_resp = requests.get(f"{API_BASE_URL}listyatra/", verify=False, timeout=5)
+        if y_resp.status_code == 200:
+            active_route_ids = {str(y.get('YatraRouteId')) for y in y_resp.json().get("message_data", [])}
+
+        # २. सर्व रूट्समधून फक्त तेच रूट्स ठेवा ज्यांची यात्रा Active आहे:
         route_list_api_url = f"{API_BASE_URL}listrouteall/"
-        # route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
         route_response = requests.get(route_list_api_url, verify=False, timeout=10)
         if route_response.status_code == 200:
             all_routes = route_response.json().get("message_data", [])
-            # Filter out the placeholder route with ID "0"
-            routes = [route for route in all_routes if route.get("YatraRouteId") != "0"]
+            routes = [r for r in all_routes if str(r.get("YatraRouteId")) in active_route_ids]
     except Exception as e:
         messages.error(request, f"Could not fetch routes: {e}")
 
@@ -1928,25 +1933,28 @@ def send_whatsapp_api(request):
 
 def whatsapp_messaging_page(request):
     """
-    Renders the dedicated page for sending bulk custom WhatsApp messages.
-    It pre-fetches the list of routes for the initial filter.
+    Renders the WhatsApp page with only Active Yatra routes.
     """
     if 'user_id' not in request.session:
         return redirect('login')
 
     routes = []
     try:
-        # route_list_api_url = "https://lakshyapratishthan.com/api/listrouteall"
+        # १. फक्त चालू (Active) यात्रांची यादी:
+        active_route_ids = set()
+        y_resp = requests.get(f"{API_BASE_URL}listyatra/", verify=False, timeout=5)
+        if y_resp.status_code == 200:
+            active_route_ids = {str(y.get('YatraRouteId')) for y in y_resp.json().get("message_data", [])}
+
+        # २. फक्त Active Routes दाखवणे:
         route_list_api_url = f"{API_BASE_URL}listrouteall/"
-        route_response = requests.get(route_list_api_url, headers=headers, verify=False, timeout=10)
+        route_response = requests.get(route_list_api_url, verify=False, timeout=10)
         if route_response.status_code == 200:
             all_routes = route_response.json().get("message_data", [])
-            # Filter out the placeholder route with ID "0"
-            routes = [route for route in all_routes if str(route.get("YatraRouteId")) != "0"]
+            routes = [r for r in all_routes if str(r.get("YatraRouteId")) in active_route_ids]
     except Exception as e:
         messages.error(request, f"Could not fetch routes: {e}")
 
-    # The new template will be named 'whatsapp.html'
     return render(request, "whatsapp.html", {"routes": routes})
 
 

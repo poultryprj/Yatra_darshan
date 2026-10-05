@@ -1121,7 +1121,21 @@
                     currentRegistrations = [];
                     renderRegistrationList([], mob);
                     populatePassengerBookingDropdown([]);
-                    showMsg('info', resp.message_text || 'No registrations found.');
+
+                    Swal.fire({
+                        icon: 'question',
+                        title: 'नोंदणी सापडली नाही',
+                        text: `मोबाईल क्रमांक (${mob}) वर कोणतीही नोंदणी नाही. नवीन प्रवाशाची नोंदणी करायची आहे का?`,
+                        showCancelButton: true,
+                        confirmButtonColor: '#FF7B00',
+                        cancelButtonColor: '#64748B',
+                        confirmButtonText: 'हो, नवीन नोंदणी करा',
+                        cancelButtonText: 'रद्द करा'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            RegistrationForm.openForm('insert', null, mob);
+                        }
+                    });
                 }
             } catch (err) {
                 console.error(err);
