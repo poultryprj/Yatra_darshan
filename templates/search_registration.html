@@ -13,8 +13,8 @@
     
     <style>
         :root {
-            --brand-primary: #0F172A; /* Deep Charcoal Slate */
-            --brand-teal: #0D9488; /* Royal Premium Teal */
+            --brand-primary: #0F172A;
+            --brand-teal: #0D9488;
             --brand-teal-dark: #0F766E;
             --bg-slate: #f8fafc;
             --border-slate: #e2e8f0;
@@ -29,7 +29,6 @@
             color: var(--text-dark);
         }
 
-        /* Fixed Navigation Header */
         .navbar-custom {
             background: linear-gradient(135deg, var(--brand-primary) 0%, #1e293b 100%);
             height: 60px;
@@ -50,7 +49,6 @@
             padding: 0 14px;
         }
 
-        /* Search Input Styling */
         .search-box-wrapper {
             background: #ffffff;
             border-radius: 16px;
@@ -103,7 +101,6 @@
             transition: background-color 0.2s;
         }
 
-        /* Passenger Ticket Cards */
         .passenger-card {
             background: #ffffff;
             border-radius: 18px;
@@ -148,6 +145,23 @@
         .btn-print-ticket:hover {
             background-color: var(--brand-teal-dark);
         }
+
+        /* 🔴 सिम्पल डिलीट बटण स्टाईल */
+        .btn-delete-ticket {
+            background-color: #fee2e2;
+            color: #ef4444 !important;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-ticket:hover {
+            background-color: #ef4444;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -163,7 +177,6 @@
 
 <div class="container-main">
 
-    <!-- Search Input Wrapper -->
     <div class="search-box-wrapper">
         <div class="search-input-group">
             <input id="searchQuery" type="tel" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" class="search-input-field" placeholder="Enter 10 Digit Mobile Number..." autocomplete="off">
@@ -173,11 +186,10 @@
         </div>
     </div>
 
-    <!-- Results Area -->
     <div id="searchResultsArea">
         <div class="text-center py-5 text-muted" style="font-size: 14px;">
             <i class="bi bi-search" style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
-            Enter passenger name or mobile to fetch active bookings.
+            Enter passenger mobile number to fetch active bookings.
         </div>
     </div>
 
@@ -188,7 +200,6 @@
     const searchBtn = document.getElementById('btnRunSearch');
     const resultsArea = document.getElementById('searchResultsArea');
 
-    // Auto search when user finishes typing 10 digits
     searchInput.addEventListener('input', (e) => {
         const cleaned = e.target.value.replace(/\D/g, '');
         if (cleaned.length === 10) {
@@ -237,7 +248,7 @@
             resultsArea.innerHTML = `
                 <div class="text-center py-5 text-muted" style="font-size: 14px;">
                     <i class="bi bi-exclamation-circle" style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: #fca5a5;"></i>
-                    No matches found. Check name/number spelling.
+                    No matches found for this mobile number.
                 </div>`;
             return;
         }
@@ -248,7 +259,6 @@
             
             if (pax.Tickets && pax.Tickets.length > 0) {
                 pax.Tickets.forEach(ticket => {
-                    // Check only active/confirmed bookings
                     if ([1, 2, 3, 4].includes(ticket.TicketStatusId)) {
                         ticketsHtml += `
                             <div class="ticket-pill">
@@ -264,9 +274,15 @@
                                         <strong style="color:var(--brand-teal);"><i class="bi bi-bus-front-fill me-1"></i>${ticket.BusName || 'Bus'}</strong> &nbsp;&bull;&nbsp; 
                                         Seat: <strong>${ticket.SeatNo}</strong>
                                     </span>
-                                    <button class="btn-print-ticket btn-print-card" data-reg-id="${pax.RegistrationId}" data-ticket-id="${ticket.TicketId}" type="button">
-    <i class="bi bi-printer-fill me-1"></i>Print Pass
-</button>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn-print-ticket btn-print-card" data-reg-id="${pax.RegistrationId}" data-ticket-id="${ticket.TicketId}" type="button">
+                                            <i class="bi bi-printer-fill me-1"></i>Print Pass
+                                        </button>
+                                        <!-- 🔴 सिम्पल डिलीट बटण -->
+                                        <button class="btn-delete-ticket" data-reg-id="${pax.RegistrationId}" data-ticket-id="${ticket.TicketId}" data-seat="${ticket.SeatNo}" type="button">
+                                            <i class="bi bi-trash3-fill me-1"></i>Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </div>`;
                     }
@@ -294,7 +310,7 @@
 
         resultsArea.innerHTML = html;
 
-        // Print card handler integration
+        // Print Card Handler
         document.querySelectorAll('.btn-print-card').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -330,6 +346,71 @@
                 .catch(err => {
                     console.error(err);
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection failed.' });
+                });
+            });
+        });
+
+        // 🔴 Delete Ticket & Release Seat Handler
+        document.querySelectorAll('.btn-delete-ticket').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const regId = this.dataset.regId;
+                const ticketId = this.dataset.ticketId;
+                const seatNo = this.dataset.seat;
+
+                Swal.fire({
+                    title: 'Delete Ticket?',
+                    html: `Are you sure you want to delete this ticket (Seat No: <b>${seatNo}</b>)?<br><br><span style="color:#ef4444; font-size:13px;">This seat will become free immediately for other bookings.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, Delete & Free Seat',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Deleting ticket...',
+                            text: 'Releasing seat...',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
+                        let cancelFormData = new FormData();
+                        cancelFormData.append('action', 'cancel_ticket');
+                        cancelFormData.append('RegistrationId', regId);
+                        if (ticketId) {
+                            cancelFormData.append('TicketId', ticketId);
+                        }
+
+                        fetch("{% url 'registration_api1' %}", {
+                            method: "POST",
+                            body: cancelFormData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.message_code === 1000) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deleted!',
+                                    text: 'Ticket deleted and seat is now free for booking.',
+                                    confirmButtonColor: '#0D9488'
+                                }).then(() => {
+                                    executeSearch(); // यादी लगेच रिफ्रेश करा
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed',
+                                    text: data.message_text || 'Could not delete ticket.'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Network error occurred.' });
+                        });
+                    }
                 });
             });
         });

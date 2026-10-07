@@ -482,8 +482,14 @@ def registration_api1(request):
         elif action == "cancel_ticket":
             try:
                 registration_id = request.POST.get("RegistrationId")
+                ticket_id = request.POST.get("TicketId")
                 api_url = f"{API_BASE_URL}cancelticket/" 
-                response = requests.post(api_url, json={"RegistrationId": registration_id}, verify=False)
+                
+                payload = {}
+                if registration_id: payload["RegistrationId"] = registration_id
+                if ticket_id: payload["TicketId"] = ticket_id
+                
+                response = requests.post(api_url, json=payload, verify=False, timeout=10)
                 return JsonResponse(response.json())
             except Exception as e:
                 return JsonResponse({"message_code": 999, "message_text": f"Cancel Error: {str(e)}"}, status=500)
